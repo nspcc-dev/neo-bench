@@ -1,0 +1,25 @@
+version: '2.4'
+
+services:
+  node:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-go:bench
+    command: "node --config-path /config --privnet"
+    ports: [ "20331:20331" ]
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 20331']
+      timeout: 10s
+    environment:
+      - ACC=1600-privnet-blocks-single.acc.gz
+    volumes:
+      - ./wallet.one.json:/config/wallet.json
+      - ./go.protocol.privnet.single.yml:/config/protocol.privnet.yml
+
+  healthy:
+    image: alpine
+    depends_on:
+      node:
+        condition: service_healthy

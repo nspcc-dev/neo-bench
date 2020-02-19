@@ -1,0 +1,7 @@
+.idea
+.vscode
+vendor
+.docker/ir/out/*
+!.docker/ir/out/.gitkeep
+*.txs
+*.log

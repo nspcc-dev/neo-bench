@@ -1,0 +1,38 @@
+version: '2.4'
+
+services:
+  sharp-node:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    container_name: sharp-node
+    command: --rpc
+    depends_on: [ "healthy" ]
+    healthcheck:
+      interval: 5s
+      retries: 50
+      test:
+        - CMD
+        - bash
+        - '-c'
+        - /healthcheck.sh
+    volumes:
+      - ../rpc/sharp.config.json:/neo-cli/config.json
+      - ../rpc/sharp.wallet.json:/neo-cli/wallet.json
+      - ../rpc/sharp.protocol.json:/neo-cli/protocol.json
+    ports: [ "20331:20331" ]
+
+  node_healthy:
+    image: alpine
+    depends_on:
+      sharp-node:
+        condition: service_healthy
+
+  bench:
+    image: registry.nspcc.ru/neo-bench/neo-bench:bench
+    container_name: bench
+    depends_on: [ "node_healthy" ]
+    volumes:
+      - ./out:/out:rw
+      - ../../dump.txs:/dump.txs
+      - /var/run/docker.sock:/var/run/docker.sock

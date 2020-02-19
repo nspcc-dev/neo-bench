@@ -1,0 +1,62 @@
+# NEO private network - Dockerfile
+FROM microsoft/dotnet:3.0-runtime-stretch-slim
+
+# arguments to choose version of neo-cli to install (defaults to 2.10.3)
+ARG VERSION="2.10.3"
+
+# Frontend non-interactive
+ENV DEBIAN_FRONTEND noninteractive
+
+# Disable dotnet usage information collection
+# https://docs.microsoft.com/en-us/dotnet/core/tools/telemetry#behavior
+ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
+
+# Install system dependencies. always should be done in one line
+# https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#run
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y \
+        unzip \
+        screen \
+        libleveldb-dev \
+        wget \
+        curl \
+        jq \
+        libssl-dev \
+        libunwind8 \
+    # APT cleanup to reduce image size
+    && rm -rf /var/lib/apt/lists/*
+
+# Download, add and decomnpres the neo-cli package. At the end, delete the zip file.
+# $VERSION is a build argument
+ENV URL="https://github.com/neo-project/neo-cli/releases/download/v${VERSION}/neo-cli-linux-x64.zip"
+RUN wget -O /opt/neo-cli.zip ${URL} && \
+    unzip -q -d / /opt/neo-cli.zip && \
+    rm /opt/neo-cli.zip
+
+ENV MODULES="ImportBlocks"
+# SimplePolicy ApplicationLogs"
+ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}"
+
+# Download, add and decomnpres plugin packages. At the end, delete the zip files.
+RUN for mod in ${MODULES}; do \
+        wget -O /tmp/${mod}.zip ${URL}/${mod}.zip; \
+        unzip -q -d /neo-cli /tmp/${mod}.zip; \
+        rm /tmp/${mod}.zip; \
+    done
+
+# A welcome message for bash users
+RUN echo "printf \"\n* Consensus nodes are running in screen sessions, check 'screen -ls'\"" >> /root/.bashrc
+RUN echo "printf \"\n* Please report issues to https://github.com/CityOfZion/neo-local\n\n\"" >> /root/.bashrc
+
+WORKDIR /neo-cli
+
+RUN chmod +x /neo-cli/neo-cli
+
+
+COPY ./6000-privnet-blocks.acc.gz /
+COPY ./1600-privnet-blocks-single.acc.gz /
+COPY ./sharp.entrypoint.sh /entrypoint.sh
+COPY ./sharp.healthcheck.sh /healthcheck.sh
+
+ENTRYPOINT [ "/entrypoint.sh" ]

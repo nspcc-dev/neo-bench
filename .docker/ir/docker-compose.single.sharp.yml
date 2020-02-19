@@ -1,0 +1,30 @@
+version: '2.4'
+
+services:
+  node:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    command: --rpc
+    ports: [ "20331:20331" ]
+    environment:
+      - ACC=1600-privnet-blocks-single.acc.gz
+    volumes:
+      - ./wallet.one.json:/neo-cli/wallet.json
+      - ./sharp.config.single.json:/neo-cli/config.json
+      - ./sharp.protocol.single.json:/neo-cli/protocol.json
+    healthcheck:
+      interval: 5s
+      retries: 50
+      test:
+        - CMD
+        - bash
+        - '-c'
+        - /healthcheck.sh
+      timeout: 10s
+
+  healthy:
+    image: alpine
+    depends_on:
+      node:
+        condition: service_healthy

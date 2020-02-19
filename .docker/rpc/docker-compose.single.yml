@@ -1,0 +1,11 @@
+version: '2.4'
+
+services:
+  bench:
+    image: registry.nspcc.ru/neo-bench/neo-bench:bench
+    container_name: bench
+    depends_on: [ "healthy" ]
+    volumes:
+      - ./out:/out:rw
+      - ../../dump.txs:/dump.txs
+      - /var/run/docker.sock:/var/run/docker.sock

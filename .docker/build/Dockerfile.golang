@@ -1,0 +1,46 @@
+# Builder layer
+FROM golang:1-alpine as builder
+
+WORKDIR /neo-go
+
+# Install deps:
+RUN apk add --no-cache git
+
+ARG REV="c681891"
+ARG REPO="github.com/nspcc-dev/neo-go"
+
+# Clone and build repo:
+RUN set -x \
+    && git clone https://${REPO}.git /neo-go \
+    && git checkout ${REV} \
+    && export GOGC=off \
+    && export CGO_ENABLED=0 \
+    && export GO111MODULE=on \
+    && export MODULE=$(go list -m) \
+    && export VERSION=$(git describe --tags 2>/dev/null | sed 's/^v//') \
+    && export LDFLAGS="-X ${MODULE}/config.Version=${VERSION}" \
+    && go build \
+        -v \
+        -o /go/bin/neo-go \
+        -trimpath \
+        -ldflags "${LDFLAGS}" \
+        ./cli
+
+# Executable layer
+FROM alpine
+
+WORKDIR /neo-go
+
+WORKDIR /
+
+COPY ./6000-privnet-blocks.acc.gz /
+COPY ./1600-privnet-blocks-single.acc.gz /
+COPY ./go.entrypoint.sh /entrypoint.sh
+
+COPY --from=builder /neo-go/config /config
+COPY --from=builder /go/bin/neo-go /usr/bin/neo-go
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["node", "--config-path", "/config", "--privnet"]
