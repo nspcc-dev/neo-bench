@@ -107,7 +107,7 @@ gen: deps
 
 # Run benchmark (uncomment needed)
 start: stop
-# GoSingle:
+## GoSingle:
 #	## Workers:
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m wrk -w 10 -z 5m -t 30s -a node:20331
 #	make down
@@ -128,7 +128,7 @@ start: stop
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 1000 -z 5m -t 30s -a node:20331
 #	make down
 
-# Go4x1:
+## Go4x1:
 #	## Workers:
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 10 -z 5m -t 30s -a go-node:20331
 #	make down
@@ -149,7 +149,7 @@ start: stop
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 1000 -z 5m -t 30s -a go-node:20331
 #	make down
 
-# SharpSingle:
+## SharpSingle:
 #	## Workers:
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s -a node:20331
 #	make down
@@ -166,7 +166,7 @@ start: stop
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 300 -z 5m -t 30s -a node:20331
 #	make down
 
-# Sharp x 4 + RPC:
+## Sharp x 4 + RPC:
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
 #	make down
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 30 -z 5m -t 30s -a sharp-node:20331
