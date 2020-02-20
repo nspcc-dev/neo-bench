@@ -101,7 +101,7 @@ func main() {
 	// Run stats worker:
 	go ds.Run(ctx, func(cpu, mem float64) {
 		rep.UpdateRes(cpu, mem)
-		log.Printf("CPU: %0.3f, Mem: %0.3f: %v", cpu, mem, err)
+		log.Printf("CPU: %0.3f, Mem: %0.3f", cpu, mem)
 	})
 
 	client := internal.NewRPCClient(v)

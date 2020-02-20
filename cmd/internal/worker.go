@@ -25,7 +25,8 @@ type (
 		doerParams
 		*sync.Mutex
 		txCount      int
-		finished     chan struct{}
+		parsed       chan struct{}
+		sentOut      chan struct{}
 		waiter       *sync.WaitGroup
 		counter      *atomic.Int32 // stores count of completed queries
 		parsedCount  int
@@ -151,7 +152,8 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		txCount:      ln,
 		Mutex:        new(sync.Mutex),
 		waiter:       new(sync.WaitGroup),
-		finished:     make(chan struct{}),
+		parsed:       make(chan struct{}),
+		sentOut:      make(chan struct{}),
 		counter:      atomic.NewInt32(0),
 		parsedBlocks: make(map[int]struct{}),
 	}
@@ -210,10 +212,24 @@ func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 }
 
 // Wait waits when all workers stop.
-func (d *doer) Wait() { d.waiter.Wait() }
+func (d *doer) Wait() {
+	// wait until all request workers stopped
+	d.waiter.Wait()
+	log.Println("all request workers stopped")
+
+	// wait until sender worker is done
+	<-d.sentOut
+	log.Println("sender worker stopped")
+
+	// wait until parser worker is done
+	<-d.parsed
+	log.Println("parser worker stopped")
+}
 
 // Parser worker that periodically fetch blocks and parse them.
 func (d *doer) Parser(ctx context.Context, blk *block.Block) {
+	defer close(d.parsed)
+
 	done := ctx.Done()
 	period := 5 * time.Second
 	ticker := time.NewTimer(period)
@@ -238,7 +254,7 @@ loop:
 
 			if int32(d.parsedCount) >= d.counter.Load() {
 				select {
-				case <-d.finished:
+				case <-d.sentOut:
 					break loop
 				default:
 					// not finished yet..
@@ -312,11 +328,11 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (las
 				if len(tx.Scripts) > 0 {
 					if _, ok := d.dump.Hashes[tx.Hash().String()]; ok {
 						parsedCount++
-						d.parsedCount++
 					}
 				}
 			}
 
+			d.parsedCount += parsedCount
 			log.Printf("(#%d/%d) %d Tx's in %d secs %f tps", i, parsedCount, cnt, dt, tps)
 		}
 	}
@@ -326,6 +342,8 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (las
 
 // Sender worker that sends requests to the RPC server.
 func (d *doer) Sender(ctx context.Context) {
+	defer close(d.sentOut)
+
 	idx := atomic.NewInt64(0)
 
 	start := time.Now()
@@ -338,8 +356,6 @@ func (d *doer) Sender(ctx context.Context) {
 
 	since := time.Since(start)
 	count := d.counter.Load()
-
-	close(d.finished)
 
 	log.Printf("Sended %d txs for %s", count, since)
 	log.Printf("RPS: %5.3f", float64(count)/since.Seconds())
