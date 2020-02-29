@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -40,10 +41,18 @@ func main() {
 		workers   int
 		threshold time.Duration
 		dump      *internal.Dump
-		name      = v.GetString("desc")
+		desc      = v.GetString("desc")
 		timeLimit = v.GetDuration("timeLimit")
 		mode      = internal.BenchMode(v.GetString("mode"))
+		client    = internal.NewRPCClient(v)
 	)
+
+	version, err := client.GetVersion(ctx)
+	if err != nil {
+		log.Fatalf("could not receive RPC Node version: %v", err)
+	}
+
+	log.Println("Run benchmark for " + desc + " :: " + version)
 
 	switch mode {
 	case internal.ModeWorker:
@@ -58,9 +67,12 @@ func main() {
 		threshold = time.Second
 	}
 
+	//raising the limits. Some performance gains were achieved with the + workers count (not a lot).
+	runtime.GOMAXPROCS(runtime.NumCPU() + workers)
+
 	rep := internal.NewReporter(
 		internal.ReportMode(mode),
-		internal.ReportName(name),
+		internal.ReportDescription(desc+" :: "+version),
 		internal.ReportTimeLimit(timeLimit),
 		internal.ReportWorkersCount(workers))
 
@@ -101,10 +113,8 @@ func main() {
 	// Run stats worker:
 	go ds.Run(ctx, func(cpu, mem float64) {
 		rep.UpdateRes(cpu, mem)
-		log.Printf("CPU: %0.3f, Mem: %0.3f", cpu, mem)
+		log.Printf("CPU: %0.3f%%, Mem: %0.3fMB", cpu, mem)
 	})
-
-	client := internal.NewRPCClient(v)
 
 	log.Printf("fetch current block count")
 	blk, err := client.GetLastBlock(ctx)
@@ -131,6 +141,8 @@ func main() {
 		internal.WorkerBlockchainClient(client),
 		internal.WorkerRPSReporter(rep.UpdateRPS),
 		internal.WorkerTPSReporter(rep.UpdateTPS),
+		internal.WorkerErrReporter(rep.UpdateErr),
+		internal.WorkerCntReporter(rep.UpdateCnt),
 	)
 
 	if err != nil {
