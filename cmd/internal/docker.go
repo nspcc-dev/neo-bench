@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -169,7 +170,9 @@ loop:
 			break loop
 		case <-tick.C:
 			cpu, mem, err := s.Update(ctx)
-			if err != nil {
+			if errors.Is(err, context.Canceled) {
+				break loop
+			} else if err != nil {
 				s.Printf("Something went wrong: %v", err)
 			}
 
