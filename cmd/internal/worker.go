@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log"
 	"math"
@@ -28,7 +27,8 @@ type (
 		parsed       chan struct{}
 		sentOut      chan struct{}
 		waiter       *sync.WaitGroup
-		counter      *atomic.Int32 // stores count of completed queries
+		countTxs     *atomic.Int32 // stores count of completed queries
+		countErr     *atomic.Int32
 		parsedCount  int
 		parsedBlocks map[int]struct{}
 	}
@@ -40,6 +40,8 @@ type (
 		threshold   time.Duration
 		timeLimit   time.Duration
 		dump        *Dump
+		cntReporter func(cnt int32)
+		errReporter func(cnt int32)
 		rpsReporter func(rps float64)
 		tpsReporter func(tps float64)
 		stop        context.CancelFunc
@@ -98,17 +100,51 @@ func WorkerDump(dump *Dump) WorkerOption {
 	}
 }
 
-// WorkerRPSReporter sets method that would be used for report current RPS.
+// WorkerRPSReporter sets method that would be used to report current RPS.
 func WorkerRPSReporter(reporter func(v float64)) WorkerOption {
 	return func(p *doerParams) {
+		// ignore empty func
+		if reporter == nil {
+			return
+		}
+
 		p.rpsReporter = reporter
 	}
 }
 
-// WorkerTPSReporter sets method that would be used for report current TPS.
+// WorkerTPSReporter sets method that would be used to report current TPS.
 func WorkerTPSReporter(reporter func(v float64)) WorkerOption {
 	return func(p *doerParams) {
+		// ignore empty func
+		if reporter == nil {
+			return
+		}
+
 		p.tpsReporter = reporter
+	}
+}
+
+// WorkerErrReporter sets method that would be used to report errors count while send TX to RPC.
+func WorkerErrReporter(reporter func(v int32)) WorkerOption {
+	return func(p *doerParams) {
+		// ignore empty func
+		if reporter == nil {
+			return
+		}
+
+		p.errReporter = reporter
+	}
+}
+
+// WorkerCntReporter sets method that would be used to report count of Tx's sent to RPC.
+func WorkerCntReporter(reporter func(v int32)) WorkerOption {
+	return func(p *doerParams) {
+		// ignore empty func
+		if reporter == nil {
+			return
+		}
+
+		p.cntReporter = reporter
 	}
 }
 
@@ -116,6 +152,8 @@ func WorkerTPSReporter(reporter func(v float64)) WorkerOption {
 func NewWorkers(opts ...WorkerOption) (Worker, error) {
 	p := doerParams{
 		// set defaults:
+		cntReporter: func(_ int32) {},
+		errReporter: func(_ int32) {},
 		rpsReporter: func(_ float64) {},
 		tpsReporter: func(_ float64) {},
 		stop:        func() { log.Fatal("default stopper") },
@@ -154,7 +192,8 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		waiter:       new(sync.WaitGroup),
 		parsed:       make(chan struct{}),
 		sentOut:      make(chan struct{}),
-		counter:      atomic.NewInt32(0),
+		countTxs:     atomic.NewInt32(0),
+		countErr:     atomic.NewInt32(0),
 		parsedBlocks: make(map[int]struct{}),
 	}
 
@@ -175,6 +214,7 @@ func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 		d.waiter.Done()
 	}()
 
+loop:
 	for {
 		select {
 		case <-done:
@@ -187,21 +227,15 @@ func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 				return
 			}
 
-			body := d.cli.SendTX(ctx, d.dump.Transactions[i])
-			var resp SendTXResponse
-			if err := json.Unmarshal(body, &resp); err != nil {
-				log.Printf("ERROR !! Response json: %v %q", err, string(body))
-				d.stop()
-				return
-			} else if !resp.Result {
-				log.Println(string(body))
-				log.Printf("ERROR !! Request failed: %s", resp)
-				d.stop()
-				return
+			if err := d.cli.SendTX(ctx, d.dump.Transactions[i]); err != nil {
+				d.countErr.Inc()
+				continue loop
+				//d.stop()
+				//return
 			}
 
 			since := time.Since(start)
-			count := d.counter.Inc()
+			count := d.countTxs.Inc()
 			d.rpsReporter(float64(count) / since.Seconds())
 
 			if d.threshold > 0 {
@@ -252,7 +286,7 @@ loop:
 			// reset timer:
 			ticker.Reset(period)
 
-			if int32(d.parsedCount) >= d.counter.Load() {
+			if int32(d.parsedCount) >= d.countTxs.Load() {
 				select {
 				case <-d.sentOut:
 					break loop
@@ -269,7 +303,7 @@ loop:
 
 	d.parse(ctx, lastBlockIndx, &lastBlockTime)
 
-	log.Printf("Sent %v transactions in %v seconds", d.counter.Load(), lastBlockTime-blk.Timestamp)
+	log.Printf("Sent %v transactions in %v seconds", d.countTxs.Load(), lastBlockTime-blk.Timestamp)
 }
 
 func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (lastBlock int) {
@@ -282,14 +316,14 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (las
 		parsedCount int
 	)
 
-	lastBlock, err = getBlockCount(ctx, d.cli)
+	lastBlock, err = d.cli.GetBlockCount(ctx)
 	if err != nil {
 		log.Printf("could not fetch block count: %v", err)
 		d.stop()
 		return
 	}
 
-	ln := d.counter.Load() - int32(lastBlock-startBlock)
+	ln := d.countTxs.Load() - int32(lastBlock-startBlock)
 	if ln < 0 {
 		ln = 0
 	}
@@ -302,7 +336,7 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (las
 		if _, ok := d.parsedBlocks[i]; !ok {
 
 			d.parsedBlocks[i] = struct{}{}
-			if blk, err = getBlock(ctx, d.cli, i); err != nil {
+			if blk, err = d.cli.GetBlock(ctx, i); err != nil {
 				log.Printf("could not get block: %v", err)
 				continue
 			}
@@ -355,12 +389,19 @@ func (d *doer) Sender(ctx context.Context) {
 	d.waiter.Wait()
 
 	since := time.Since(start)
-	count := d.counter.Load()
+	count := d.countTxs.Load()
+	errCount := d.countErr.Load()
 
 	log.Printf("Sended %d txs for %s", count, since)
 	log.Printf("RPS: %5.3f", float64(count)/since.Seconds())
 
+	d.cntReporter(count)
+	d.errReporter(errCount)
 	d.rpsReporter(float64(count) / since.Seconds())
 
-	log.Println("All transactions were sent")
+	if errCount == 0 {
+		log.Println("All transactions were sent")
+	}
+
+	log.Printf("RPC Errors: %d / %0.3f%%", errCount, (float64(errCount)/float64(count))*100)
 }
