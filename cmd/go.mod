@@ -3,7 +3,7 @@ module github.com/nspcc-dev/neo-bench
 go 1.13
 
 require (
-	github.com/CityOfZion/neo-go v0.72.2
+	github.com/CityOfZion/neo-go v0.73.0
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
