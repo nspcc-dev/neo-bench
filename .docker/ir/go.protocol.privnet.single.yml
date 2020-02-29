@@ -1,6 +1,6 @@
 ProtocolConfiguration:
   Magic: 56753
-  MemPoolSize: 5000
+  MemPoolSize: 500000
   AddressVersion: 23
   SecondsPerBlock: 1
   LowPriorityThreshold: 0.001
