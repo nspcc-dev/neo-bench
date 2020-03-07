@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bytes"
 	"context"
 	crand "crypto/rand"
 	"encoding/binary"
@@ -10,7 +9,9 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/CityOfZion/neo-go/pkg/core/block"
@@ -21,52 +22,56 @@ import (
 	"go.uber.org/atomic"
 )
 
-// ErrorResponse struct for testing.
-type ErrorResponse struct {
-	Error struct {
-		Code    int    `json:"code"`
-		Data    string `json:"data"`
-		Message string `json:"message"`
-	} `json:"error"`
-}
+type (
+	// rpcResponse is base JSON RPC response
+	// easyjson:json
+	rpcResponse struct {
+		ID      int             `json:"id"`
+		Version string          `json:"jsonrpc"`
+		Result  json.RawMessage `json:"result"`
+		*errorResponse
+	}
 
-// SendTXResponse struct for testing.
-type SendTXResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Result  bool   `json:"result"`
-	ID      int    `json:"id"`
-	ErrorResponse
-}
+	// errorResponse struct for RPC error response.
+	// easyjson:json
+	errorResponse struct {
+		ErrorResult struct {
+			Code    int    `json:"code"`
+			Data    string `json:"data"`
+			Message string `json:"message"`
+		} `json:"error"`
+	}
 
-// GetBlockCountResponse struct for testing.
-type GetBlockCountResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Result  int    `json:"result"`
-	ID      int    `json:"id"`
-}
+	// versionResponse struct for RPC version response.
+	// easyjson:json
+	versionResponse struct {
+		Port    int    `json:"port"`
+		Nonce   int    `json:"nonce"`
+		Version string `json:"useragent"`
+	}
 
-// GetBlockResponse struct for testing.
-type GetBlockResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Result  string `json:"result"`
-	ID      int    `json:"id"`
-}
+	// RPCClient used in integration test.
+	RPCClient struct {
+		addr []string
+		len  int32
+		inc  *atomic.Int32
+		cli  *fasthttp.Client
 
-// RPCClient used in integration test.
-type RPCClient struct {
-	addr []string
-	len  int32
-	inc  *atomic.Int32
-	cli  *fasthttp.Client
-
-	timeout time.Duration
-}
+		timeout time.Duration
+	}
+)
 
 // DefaultTimeout used for requests.
 const DefaultTimeout = time.Second * 30
 
-func (e ErrorResponse) String() string {
-	return "Error #" + strconv.Itoa(e.Error.Code) + ": " + e.Error.Message + " " + e.Error.Data
+var reg = regexp.MustCompile(`[^\w.-]+`)
+
+func (v errorResponse) Error() string {
+	if v.ErrorResult.Code == 0 {
+		return ""
+	}
+
+	return "Error #" + strconv.Itoa(v.ErrorResult.Code) + ": " + v.ErrorResult.Message + " " + v.ErrorResult.Data
 }
 
 // NewRPCClient creates new client for RPC communications.
@@ -114,63 +119,67 @@ func NewRPCClient(v *viper.Viper) *RPCClient {
 	}
 }
 
-// makes a new RPC client and calls node by RPC.
-// getBlockCount returns current block index.
-func getBlockCount(ctx context.Context, client *RPCClient) (int, error) {
-	bodyBlockCount := client.GetBlockCount(ctx)
-	var respBlockCount GetBlockCountResponse
-	err := json.Unmarshal(bodyBlockCount, &respBlockCount)
-	if err != nil {
-		return 0, errors.Errorf("could not unmarshal block count: %#v", err)
-	}
-	return respBlockCount.Result, nil
-}
-
-// getBlock returns block by index.
-func getBlock(ctx context.Context, client *RPCClient, index int) (*block.Block, error) {
-	bodyBlock := client.GetBlock(ctx, index)
-	var respBlock GetBlockResponse
-
-	if err := json.Unmarshal(bodyBlock, &respBlock); err != nil {
-		return nil, errors.Errorf("could not unmarshal block: %#v", err)
-	}
-	decodedResp, _ := hex.DecodeString(respBlock.Result)
-
-	blk := new(block.Block)
-	newReader := io.NewBinReaderFromBuf(decodedResp)
-	blk.DecodeBinary(newReader)
-	return blk, nil
-}
-
 // GetLastBlock returns last block from blockchain.
 func (c *RPCClient) GetLastBlock(ctx context.Context) (*block.Block, error) {
-	num, err := getBlockCount(ctx, c)
+	num, err := c.GetBlockCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return c.GetBlock(ctx, num-1)
+}
+
+func (c *RPCClient) GetVersion(ctx context.Context) (string, error) {
+	res := new(versionResponse)
+	rpc := `{ "jsonrpc": "2.0", "id": 1, "method": "getversion", "params": [] }`
+	if err := c.doRPCCall(ctx, rpc, res); err != nil {
+		return "", err
+	}
+
+	return strings.Trim(reg.ReplaceAllString(res.Version, "_"), "_"), nil
+}
+
+// SendTX sends transaction.
+func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
+	res := false
+	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
+
+	if err := c.doRPCCall(ctx, rpc, &res); err != nil {
+		return err
+	} else if !res {
+		return errors.New("SendTX request failed")
+	}
+
+	return nil
+}
+
+// GetBlock sends getblock RPC request.
+func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, error) {
+	res := ""
+	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "getblock", "params": [%v]}`, index)
+	if err := c.doRPCCall(ctx, rpc, &res); err != nil {
+
+	}
+
+	blk := new(block.Block)
+	body, err := hex.DecodeString(res)
 	if err != nil {
 		return nil, err
 	}
 
-	return getBlock(ctx, c, num-1)
-}
+	rd := io.NewBinReaderFromBuf(body)
+	blk.DecodeBinary(rd)
 
-// SendTX sends transaction.
-func (c *RPCClient) SendTX(ctx context.Context, tx string) []byte {
-	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
-	return c.doRPCCall(ctx, rpc)
-}
-
-// GetBlock sends getblock RPC request.
-func (c *RPCClient) GetBlock(ctx context.Context, index int) []byte {
-	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "getblock", "params": [%v]}`, index)
-	return c.doRPCCall(ctx, rpc)
+	return blk, rd.Err
 }
 
 // GetBlockCount send getblockcount RPC request.
-func (c *RPCClient) GetBlockCount(ctx context.Context) []byte {
+func (c *RPCClient) GetBlockCount(ctx context.Context) (int, error) {
+	num := 0
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "getblockcount", "params": []}`)
-	return c.doRPCCall(ctx, rpc)
+	return num, c.doRPCCall(ctx, rpc, &num)
 }
 
-func (c *RPCClient) doRPCCall(_ context.Context, rpcCall string) []byte {
+func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}) error {
 	idx := c.inc.Inc() % c.len
 
 	req, res := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
@@ -178,7 +187,7 @@ func (c *RPCClient) doRPCCall(_ context.Context, rpcCall string) []byte {
 		fasthttp.ReleaseRequest(req)
 		fasthttp.ReleaseResponse(res)
 	}()
-	req.SetBodyString(rpcCall)
+	req.SetBodyString(call)
 	req.SetRequestURI(c.addr[idx])
 	req.Header.SetMethod(fasthttp.MethodPost)
 	req.Header.Set(fasthttp.HeaderContentType, "application/json; charset=utf-8")
@@ -187,9 +196,17 @@ func (c *RPCClient) doRPCCall(_ context.Context, rpcCall string) []byte {
 	// reqData, _ := httputil.DumpRequest(req, true)
 	// fmt.Println(string(reqData))
 
+	resp := new(rpcResponse)
 	if err := c.cli.Do(req, res); err != nil {
-		log.Fatalf("error after calling rpc server %s", err)
+		return errors.Errorf("error after calling rpc server %s", err)
+	} else if body, code := res.Body(), res.StatusCode(); code != fasthttp.StatusOK && len(body) == 0 {
+		return errors.Errorf("http error: %d %s", code, res.String())
+	} else if err := json.Unmarshal(body, &resp); err != nil {
+		return errors.Errorf("could not unmarshal response body: %q %v", string(body), err)
+	} else if resp.errorResponse != nil && resp.ErrorResult.Code != 0 {
+		return resp
+	} else if err = json.Unmarshal(resp.Result, result); err != nil {
+		return errors.Errorf("could not unmarshal result body: %q %v", string(body), err)
 	}
-
-	return bytes.TrimSpace(res.Body())
+	return nil
 }

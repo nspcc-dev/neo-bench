@@ -32,7 +32,6 @@ help:
 	@echo ''
 	@awk '/^#/{ comment = substr($$0,3) } comment && /^[a-zA-Z][a-zA-Z0-9_-]+ ?:/{ print "   ", $$1, comment }' $(MAKEFILE_LIST) | column -t -s ':' | grep -v 'IGNORE' | sort | uniq
 
-
 .PHONY: build push build.node.go build.node.sharp stop start deps gen
 
 # Build all images
@@ -67,17 +66,23 @@ build.node.sharp:
 	@echo "=> Building Sharp Node image $(HUB)-sharp:$(TAG)"
 	@docker build -t $(HUB)-sharp:$(TAG) -f $(DF_SHARP) $(BUILD_DIR)
 
-# Test local benchmark (go run) with NeoGo single node
-test: single deps
-	@echo "=> Test Golang single node"
+# Test local benchmark (go run) with Neo single node
+test: single.go deps
+	@echo "=> Test Single node"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./bench -o ../single.log -i ../dump.txs -d "GoSingle" -m rate -q 150 -z 1m -t 30s -a localhost:20331
+		&& go run ./bench -o ../single.log -i ../dump.txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
+	@make stop
 
 # Bootup NeoGo single node
-single: stop
+single.go: stop
 	@echo "=> Up Golang single node"
-	@docker-compose -f $(DC_GO_IR_SINGLE) up -d node
+	@docker-compose -f $(DC_GO_IR_SINGLE) up -d healthy
+
+# Bootup NeoSharp single node
+single.sharp: stop
+	@echo "=> Up Sharp single node"
+	@docker-compose -f $(DC_SHARP_IR_SINGLE) up -d healthy
 
 # Stop all containers
 stop:
