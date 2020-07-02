@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CityOfZion/neo-go/pkg/core/block"
+	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"go.uber.org/atomic"
 )
 
@@ -306,7 +306,7 @@ loop:
 	log.Printf("Sent %v transactions in %v seconds", d.countTxs.Load(), lastBlockTime-blk.Timestamp)
 }
 
-func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (lastBlock int) {
+func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (lastBlock int) {
 	var (
 		cnt int
 		err error

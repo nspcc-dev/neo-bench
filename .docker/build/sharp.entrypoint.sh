@@ -3,11 +3,11 @@
 BIN=/neo-cli/neo-cli
 
 if [ -z "$ACC" ]; then
-  ACC=6000-privnet-blocks.acc.gz
+  ACC=dump.acc
 fi
 
 if test -f ${ACC}; then
-    gunzip -c /${ACC} > /neo-cli/chain.acc
+    cp /${ACC} /neo-cli/chain.acc
 fi
 
 [[ -p node.log ]] || mkfifo node.log
