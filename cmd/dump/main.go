@@ -25,6 +25,9 @@ import (
 // wifTo is a wif of the wallet where all NEO and GAS are sent.
 const wifTo = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
 
+// txPerBlock is a new policy value for maximum amount of transactions per block.
+const txPerBlock = 40000
+
 var (
 	isSingle = flag.Bool("single", false, "generate dump for a single node")
 	outName = flag.String("out", "dump.acc", "file where to write dump")
@@ -152,6 +155,26 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	c.signTx(txMoveNeo, txMoveGas)
 
 	err = addBlock(bc, c, txMoveNeo, txMoveGas)
+	if err != nil {
+		return err
+	}
+
+	// update max tx per block
+	w := io.NewBufBinWriter()
+	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxTransactionsPerBlock", int64(txPerBlock))
+	emit.Opcode(w.BinWriter, opcode.ASSERT)
+	script := w.Bytes()
+	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 0)
+	txUpdatePolicy.NetworkFee = 250000
+	txUpdatePolicy.ValidUntilBlock = 1000
+	txUpdatePolicy.Sender = c.addr
+	txUpdatePolicy.Cosigners = append(txUpdatePolicy.Cosigners, transaction.Cosigner{
+		Account:          c.addr,
+		Scopes:           transaction.CalledByEntry,
+	})
+	c.signTx(txUpdatePolicy)
+
+	err = addBlock(bc, c, txUpdatePolicy)
 	if err != nil {
 		return err
 	}
