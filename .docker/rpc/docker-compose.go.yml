@@ -15,7 +15,7 @@ services:
       interval: 5s
       test: ['CMD', 'sh', '-c', 'echo | nc localhost 20331']
     environment:
-      - ACC=6000-privnet-blocks.acc.gz
+      - ACC=/dump.acc
     volumes:
       - ../rpc/go.protocol.yml:/config/protocol.privnet.yml
 

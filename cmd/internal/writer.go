@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/CityOfZion/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/io"
 )
 
 // WriteDump generates and writes the specific number of transactions to file.

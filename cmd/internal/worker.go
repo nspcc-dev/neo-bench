@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CityOfZion/neo-go/pkg/core/block"
+	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"go.uber.org/atomic"
 )
 
@@ -306,7 +306,7 @@ loop:
 	log.Printf("Sent %v transactions in %v seconds", d.countTxs.Load(), lastBlockTime-blk.Timestamp)
 }
 
-func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (lastBlock int) {
+func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (lastBlock int) {
 	var (
 		cnt int
 		err error
@@ -346,8 +346,9 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (las
 				continue
 			}
 
+			// Timestamp is in milliseconds so we multiply numerator by 1000 to be more precise.
 			dt := blk.Timestamp - *lastTime
-			if tps = float64(cnt-1) / float64(dt); math.IsNaN(tps) || tps < 0 {
+			if tps = float64(cnt-1) * 1000 / float64(dt); math.IsNaN(tps) || tps < 0 {
 				tps = 0
 			}
 
@@ -367,7 +368,7 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint32) (las
 			}
 
 			d.parsedCount += parsedCount
-			log.Printf("(#%d/%d) %d Tx's in %d secs %f tps", i, parsedCount, cnt, dt, tps)
+			log.Printf("(#%d/%d) %d Tx's in %d ms %f tps", i, parsedCount, cnt, dt, tps)
 		}
 	}
 

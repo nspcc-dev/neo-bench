@@ -14,8 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CityOfZion/neo-go/pkg/core/block"
-	"github.com/CityOfZion/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
+	"github.com/nspcc-dev/neo-go/pkg/core/block"
+	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
@@ -160,7 +161,7 @@ func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, erro
 
 	}
 
-	blk := new(block.Block)
+	blk := block.New(netmode.PrivNet)
 	body, err := hex.DecodeString(res)
 	if err != nil {
 		return nil, err

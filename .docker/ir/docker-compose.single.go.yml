@@ -13,7 +13,7 @@ services:
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 20331']
       timeout: 10s
     environment:
-      - ACC=1600-privnet-blocks-single.acc.gz
+      - ACC=single.acc
     volumes:
       - ./wallet.one.json:/config/wallet.json
       - ./go.protocol.privnet.single.yml:/config/protocol.privnet.yml

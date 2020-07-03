@@ -6,7 +6,7 @@ WORKDIR /neo-go
 # Install deps:
 RUN apk add --no-cache git
 
-ARG REV="ff551d2"
+ARG REV="de052eb001e13"
 ARG REPO="github.com/nspcc-dev/neo-go"
 
 # Clone and build repo:
@@ -33,8 +33,8 @@ WORKDIR /neo-go
 
 WORKDIR /
 
-COPY ./6000-privnet-blocks.acc.gz /
-COPY ./1600-privnet-blocks-single.acc.gz /
+COPY ./dump.acc /
+COPY ./single.acc /
 COPY ./go.entrypoint.sh /entrypoint.sh
 
 COPY --from=builder /neo-go/config /config

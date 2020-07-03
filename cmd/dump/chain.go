@@ -1,0 +1,67 @@
+package main
+
+import (
+	"github.com/nspcc-dev/neo-go/pkg/core/block"
+	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
+	"github.com/nspcc-dev/neo-go/pkg/crypto/hash"
+	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
+	"github.com/nspcc-dev/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
+	"github.com/nspcc-dev/neo-go/pkg/util"
+	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
+)
+
+type signer struct {
+	script []byte
+	addr   util.Uint160
+	privs  []*keys.PrivateKey
+	pubs   keys.PublicKeys
+}
+
+func newSigner(wifs ...string) (*signer, error) {
+	var c signer
+	for i := range wifs {
+		priv, err := keys.NewPrivateKeyFromWIF(wifs[i])
+		if err != nil {
+			return nil, err
+		}
+		c.privs = append(c.privs, priv)
+		c.pubs = append(c.pubs, priv.PublicKey())
+	}
+	var err error
+	c.script, err = smartcontract.CreateMultiSigRedeemScript(len(c.pubs)/2+1, c.pubs)
+	if err != nil {
+		return nil, err
+	}
+
+	c.addr = hash.Hash160(c.script)
+	return &c, nil
+}
+
+func (c *signer) signTx(txs ...*transaction.Transaction) {
+	for _, tx := range txs {
+		data := tx.GetSignedPart()
+		tx.Scripts = []transaction.Witness{{
+			InvocationScript:   c.sign(data),
+			VerificationScript: c.script,
+		}}
+	}
+}
+
+func (c *signer) signBlock(b *block.Block) {
+	data := b.GetSignedPart()
+	b.Script.InvocationScript = c.sign(data)
+	b.Script.VerificationScript = c.script
+}
+
+func (c *signer) sign(data []byte) []byte {
+	buf := io.NewBufBinWriter()
+	for i := range c.privs {
+		s := c.privs[i].Sign(data)
+		if len(s) != 64 {
+			panic("wrong signature length")
+		}
+		emit.Bytes(buf.BinWriter, s)
+	}
+	return buf.Bytes()
+}

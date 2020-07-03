@@ -2,16 +2,18 @@ package internal
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/hex"
 	"log"
 	"time"
 
-	"github.com/CityOfZion/neo-go/pkg/core/transaction"
-	"github.com/CityOfZion/neo-go/pkg/crypto/keys"
-	"github.com/CityOfZion/neo-go/pkg/encoding/address"
-	"github.com/CityOfZion/neo-go/pkg/io"
-	"github.com/CityOfZion/neo-go/pkg/rpc"
+	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
+	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
+	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
+	"github.com/nspcc-dev/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
+	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
+	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
+	"github.com/nspcc-dev/neo-go/pkg/wallet"
 )
 
 type (
@@ -29,43 +31,30 @@ type (
 func getWif() (*keys.WIF, error) {
 	var (
 		wifEncoded = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-		version    = byte(0x00)
+		version = byte(0x00)
 	)
 	return keys.WIFDecode(wifEncoded, version)
 }
 
 // newTX returns Invocation transaction with some random attributes in order to have different hashes.
 func newTX(wif *keys.WIF) *transaction.Transaction {
-	fromAddress := wif.PrivateKey.Address()
-	fromAddressHash, err := address.StringToUint160(fromAddress)
-	if err != nil {
-		log.Fatalf("could not fetch address: %#v", err)
-	}
+	fromAddressHash := wif.PrivateKey.GetScriptHash()
 
-	tx := &transaction.Transaction{
-		Type:    transaction.InvocationType,
-		Version: 0,
-		Data: &transaction.InvocationTX{
-			Script:  []byte{0x51},
-			Gas:     0,
-			Version: 0,
-		},
-		Attributes: []transaction.Attribute{},
-		Inputs:     []transaction.Input{},
-		Outputs:    []transaction.Output{},
-		Scripts:    []transaction.Witness{},
-		Trimmed:    false,
-	}
-	tx.Attributes = append(tx.Attributes,
-		transaction.Attribute{
-			Usage: transaction.Description,
-			Data:  make([]byte, 16),
-		})
-	tx.Attributes = append(tx.Attributes,
-		transaction.Attribute{
-			Usage: transaction.Script,
-			Data:  fromAddressHash.BytesBE(),
-		})
+	w := io.NewBufBinWriter()
+	emit.AppCallWithOperationAndArgs(w.BinWriter,
+		client.NeoContractHash, "transfer",
+		fromAddressHash, fromAddressHash, 1)
+	emit.Opcode(w.BinWriter, opcode.ASSERT)
+
+	script := w.Bytes()
+	tx := transaction.New(netmode.PrivNet, script, 0)
+	tx.NetworkFee = 266000 // hardcoded for now
+	tx.Sender = fromAddressHash
+	tx.ValidUntilBlock = 1200
+	tx.Cosigners = append(tx.Cosigners, transaction.Cosigner{
+		Account: fromAddressHash,
+		Scopes:  transaction.CalledByEntry,
+	})
 	return tx
 }
 
@@ -85,6 +74,11 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		log.Fatalf("Could not get wif: %v", err)
 	}
 
+	acc, err := wallet.NewAccountFromWIF(wif.S)
+	if err != nil {
+		log.Fatalf("Could not create account: %v", err)
+	}
+
 	buf := io.NewBufBinWriter()
 
 	tx := newTX(wif)
@@ -94,10 +88,10 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		}
 
 		tx := *tx
-		binary.BigEndian.PutUint64(tx.Attributes[0].Data, uint64(i))
+		tx.Nonce = uint32(i)
 
-		if err := rpc.SignTx(&tx, wif); err != nil {
-			log.Fatalf("Could not read random bytes")
+		if err := acc.SignTx(&tx); err != nil {
+			log.Fatalf("Could not sign tx: %v", err)
 		}
 
 		tx.EncodeBinary(buf.BinWriter)

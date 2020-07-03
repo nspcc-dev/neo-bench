@@ -1,18 +1,11 @@
 ProtocolConfiguration:
   Magic: 56753
   MemPoolSize: 500000
-  AddressVersion: 23
   SecondsPerBlock: 1
-  LowPriorityThreshold: 0.001
   StandbyValidators:
     - 02b3622bf4017bdfe317c58aed5f4c753f206b7db896046fa7d774bbc4bf7f8dc2
   SeedList:
     - node:20332
-  SystemFee:
-    EnrollmentTransaction: 1000
-    IssueTransaction: 500
-    PublishTransaction: 500
-    RegisterTransaction: 10000
   VerifyBlocks: true
   VerifyTransactions: true
 

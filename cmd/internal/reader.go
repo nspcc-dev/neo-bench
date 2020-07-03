@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/CityOfZion/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/io"
 )
 
 // ReadDump used to open dump of transactions.
