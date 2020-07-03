@@ -17,4 +17,5 @@ require (
 	github.com/spf13/viper v1.6.1
 	github.com/valyala/fasthttp v1.9.0
 	go.uber.org/atomic v1.4.0
+	go.uber.org/zap v1.10.0
 )

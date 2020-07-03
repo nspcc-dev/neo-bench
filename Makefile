@@ -110,6 +110,19 @@ gen: deps
 		&& cd cmd/ \
 		&& go run ./gen -out ../dump.txs
 
+dump.single: deps
+	@echo "=> Generate block dump for the single node network"
+	@set -x \
+		&& cd cmd/ \
+		&& go run ./dump -single -out ../$(BUILD_DIR)/single.acc
+
+dump: deps
+	@echo "=> Generate block dump for the 4-node network"
+	@set -x \
+		&& cd cmd/ \
+		&& go run ./dump -single -out ../$(BUILD_DIR)/dump.acc
+
+
 # Run benchmark (uncomment needed)
 start: stop
 ## GoSingle:
