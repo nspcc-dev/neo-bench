@@ -1,4 +1,4 @@
-# Neo Blockchain benchmark
+# Neo Blockchain benchmark (Neo 2 version)
 
 ## Requirements
 
