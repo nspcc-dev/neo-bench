@@ -43,7 +43,7 @@ func newTX(wif *keys.WIF) *transaction.Transaction {
 	w := io.NewBufBinWriter()
 	emit.AppCallWithOperationAndArgs(w.BinWriter,
 		client.NeoContractHash, "transfer",
-		fromAddressHash, fromAddressHash, 1)
+		fromAddressHash, fromAddressHash, int64(1))
 	emit.Opcode(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
