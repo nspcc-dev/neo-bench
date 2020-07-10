@@ -27,18 +27,34 @@ RUN set -x \
     # APT cleanup to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
-# Download, add and decomnpres the neo-cli package. At the end, delete the zip file.
+# Download, add and decompress the neo-cli package. At the end, delete the zip file.
 # $VERSION is a build argument
 ENV URL="https://github.com/neo-project/neo-node/releases/download/v${VERSION}/neo-cli-linux-x64.zip"
 RUN wget -O /opt/neo-cli.zip ${URL} && \
     unzip -q -d / /opt/neo-cli.zip && \
     rm /opt/neo-cli.zip
 
-ENV MODULES="ImportBlocks"
-# SimplePolicy ApplicationLogs"
-ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}"
+# Download, add and decompress the neo-cli package v3.0.0-preview1. At the end, delete the zip file,
+# copy .dll file which is missing in neo-cli v3.0.0-preview2 and delete neo-cli v3.0.0-preview1.
+# See https://github.com/neo-project/neo-modules/issues/284
+ENV URL="https://github.com/neo-project/neo-node/releases/download/v3.0.0-preview1/neo-cli-linux-x64.zip"
+RUN wget -O /opt/neo-cli.zip ${URL} && \
+    unzip -q -d /temp /opt/neo-cli.zip && \
+    rm /opt/neo-cli.zip && \
+    cp /temp/neo-cli/Microsoft.AspNetCore.ResponseCompression.dll /neo-cli && \
+    rm -r /temp
 
-# Download, add and decomnpres plugin packages. At the end, delete the zip files.
+# Download, add and decompress the ImportBlocks module (it is a part of v3.0.0-preview1). At the end, delete the zip file.
+ENV URL="https://github.com/neo-project/neo-modules/releases/download/v3.0.0-preview1/ImportBlocks.zip"
+RUN wget -O /tmp/ImportBlocks.zip ${URL} && \
+    unzip -q -d /neo-cli /tmp/ImportBlocks.zip && \
+    rm /tmp/ImportBlocks.zip
+
+ENV MODULES="RpcServer"
+# SimplePolicy ApplicationLogs"
+ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}-00"
+
+# Download, add and decompress version-dependant plugin packages. At the end, delete the zip files.
 RUN for mod in ${MODULES}; do \
         wget -O /tmp/${mod}.zip ${URL}/${mod}.zip; \
         unzip -q -d /neo-cli /tmp/${mod}.zip; \
@@ -58,5 +74,6 @@ COPY ./dump.acc /
 COPY ./single.acc /
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
+COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
