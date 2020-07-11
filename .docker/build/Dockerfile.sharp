@@ -50,7 +50,7 @@ RUN wget -O /tmp/ImportBlocks.zip ${URL} && \
     unzip -q -d /neo-cli /tmp/ImportBlocks.zip && \
     rm /tmp/ImportBlocks.zip
 
-ENV MODULES="RpcServer"
+ENV MODULES="RpcServer SystemLog"
 # SimplePolicy ApplicationLogs"
 ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}-00"
 
