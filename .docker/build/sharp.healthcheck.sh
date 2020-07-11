@@ -1,7 +1,7 @@
 #!/bin/bash
 
 maxDelayBlocks=10
-export port=`jq -r '.ApplicationConfiguration.RPC.Port' < /neo-cli/config.json`
+export port=`jq -r '.PluginConfiguration.Port' < /neo-cli/Plugins/RpcServer/config.json`
 export host=127.0.0.1
 export addr=${host}:${port}
 echo curl -s -X POST http://${addr} -H 'Content-Type: application/json' -d '{ "jsonrpc": "2.0", "id": 5, "method": "getblockcount", "params": [] }'
