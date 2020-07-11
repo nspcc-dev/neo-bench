@@ -1,16 +1,7 @@
 {
     "ApplicationConfiguration": {
-      "Paths": {
-        "Chain": "Chain_{0}",
-        "Index": "Index_{0}"
-      },
+      "Storage": {"Engine": "LevelDBStore"},
       "P2P": { "Port": 20334, "WsPort": 9999 },
-      "RPC": {
-        "BindAddress": "0.0.0.0",
-        "Port": 30334,
-        "SslCert": "",
-        "SslCertPassword": ""
-      },
       "UnlockWallet": {
         "Path": "wallet.json",
         "Password": "two",
@@ -20,4 +11,3 @@
       "PluginURL": "https://github.com/neo-project/neo-plugins/releases/download/v{1}/{0}.zip"
     }
   }
-  
