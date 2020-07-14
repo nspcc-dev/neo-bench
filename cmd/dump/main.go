@@ -30,7 +30,7 @@ const txPerBlock = 40000
 
 var (
 	isSingle = flag.Bool("single", false, "generate dump for a single node")
-	outName = flag.String("out", "dump.acc", "file where to write dump")
+	outName  = flag.String("out", "dump.acc", "file where to write dump")
 )
 
 func main() {
@@ -133,8 +133,12 @@ func newNEP5Transfer(sc util.Uint160, from, to util.Uint160, amount int64) *tran
 	emit.Opcode(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
-	tx := transaction.New(netmode.PrivNet, script, 0)
-	tx.NetworkFee = 274000
+	tx := transaction.New(netmode.PrivNet, script, 10000000)
+	if *isSingle {
+		tx.NetworkFee = 1500000
+	} else {
+		tx.NetworkFee = 4500000
+	}
 	tx.ValidUntilBlock = 1000
 	tx.Sender = from
 	tx.Cosigners = append(tx.Cosigners, transaction.Cosigner{
@@ -151,7 +155,7 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	}
 
 	txMoveNeo := newNEP5Transfer(client.NeoContractHash, c.addr, priv.GetScriptHash(), native.NEOTotalSupply)
-	txMoveGas := newNEP5Transfer(client.GasContractHash, c.addr, priv.GetScriptHash(), native.GASFactor*30000000)
+	txMoveGas := newNEP5Transfer(client.GasContractHash, c.addr, priv.GetScriptHash(), native.GASFactor*29000000)
 	c.signTx(txMoveNeo, txMoveGas)
 
 	err = addBlock(bc, c, txMoveNeo, txMoveGas)
@@ -164,13 +168,17 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxTransactionsPerBlock", int64(txPerBlock))
 	emit.Opcode(w.BinWriter, opcode.ASSERT)
 	script := w.Bytes()
-	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 0)
-	txUpdatePolicy.NetworkFee = 250000
+	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 10000000)
+	if *isSingle {
+		txUpdatePolicy.NetworkFee = 1500000
+	} else {
+		txUpdatePolicy.NetworkFee = 4500000
+	}
 	txUpdatePolicy.ValidUntilBlock = 1000
 	txUpdatePolicy.Sender = c.addr
 	txUpdatePolicy.Cosigners = append(txUpdatePolicy.Cosigners, transaction.Cosigner{
-		Account:          c.addr,
-		Scopes:           transaction.CalledByEntry,
+		Account: c.addr,
+		Scopes:  transaction.CalledByEntry,
 	})
 	c.signTx(txUpdatePolicy)
 

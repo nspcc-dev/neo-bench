@@ -31,7 +31,7 @@ type (
 func getWif() (*keys.WIF, error) {
 	var (
 		wifEncoded = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-		version = byte(0x00)
+		version    = byte(0x00)
 	)
 	return keys.WIFDecode(wifEncoded, version)
 }
@@ -47,8 +47,8 @@ func newTX(wif *keys.WIF) *transaction.Transaction {
 	emit.Opcode(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
-	tx := transaction.New(netmode.PrivNet, script, 0)
-	tx.NetworkFee = 266000 // hardcoded for now
+	tx := transaction.New(netmode.PrivNet, script, 10000000)
+	tx.NetworkFee = 1500000 // hardcoded for now
 	tx.Sender = fromAddressHash
 	tx.ValidUntilBlock = 1200
 	tx.Cosigners = append(tx.Cosigners, transaction.Cosigner{
