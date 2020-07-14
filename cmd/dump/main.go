@@ -30,7 +30,7 @@ const txPerBlock = 40000
 
 var (
 	isSingle = flag.Bool("single", false, "generate dump for a single node")
-	outName = flag.String("out", "dump.acc", "file where to write dump")
+	outName  = flag.String("out", "dump.acc", "file where to write dump")
 )
 
 func main() {
@@ -177,8 +177,8 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	txUpdatePolicy.ValidUntilBlock = 1000
 	txUpdatePolicy.Sender = c.addr
 	txUpdatePolicy.Cosigners = append(txUpdatePolicy.Cosigners, transaction.Cosigner{
-		Account:          c.addr,
-		Scopes:           transaction.CalledByEntry,
+		Account: c.addr,
+		Scopes:  transaction.CalledByEntry,
 	})
 	c.signTx(txUpdatePolicy)
 

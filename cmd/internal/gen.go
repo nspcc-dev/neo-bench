@@ -31,7 +31,7 @@ type (
 func getWif() (*keys.WIF, error) {
 	var (
 		wifEncoded = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-		version = byte(0x00)
+		version    = byte(0x00)
 	)
 	return keys.WIFDecode(wifEncoded, version)
 }
