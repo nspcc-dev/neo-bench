@@ -133,8 +133,12 @@ func newNEP5Transfer(sc util.Uint160, from, to util.Uint160, amount int64) *tran
 	emit.Opcode(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
-	tx := transaction.New(netmode.PrivNet, script, 0)
-	tx.NetworkFee = 274000
+	tx := transaction.New(netmode.PrivNet, script, 10000000)
+	if *isSingle {
+		tx.NetworkFee = 1500000
+	} else {
+		tx.NetworkFee = 4500000
+	}
 	tx.ValidUntilBlock = 1000
 	tx.Sender = from
 	tx.Cosigners = append(tx.Cosigners, transaction.Cosigner{
@@ -164,8 +168,12 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxTransactionsPerBlock", int64(txPerBlock))
 	emit.Opcode(w.BinWriter, opcode.ASSERT)
 	script := w.Bytes()
-	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 0)
-	txUpdatePolicy.NetworkFee = 250000
+	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 10000000)
+	if *isSingle {
+		txUpdatePolicy.NetworkFee = 1500000
+	} else {
+		txUpdatePolicy.NetworkFee = 4500000
+	}
 	txUpdatePolicy.ValidUntilBlock = 1000
 	txUpdatePolicy.Sender = c.addr
 	txUpdatePolicy.Cosigners = append(txUpdatePolicy.Cosigners, transaction.Cosigner{
