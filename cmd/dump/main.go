@@ -151,7 +151,7 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	}
 
 	txMoveNeo := newNEP5Transfer(client.NeoContractHash, c.addr, priv.GetScriptHash(), native.NEOTotalSupply)
-	txMoveGas := newNEP5Transfer(client.GasContractHash, c.addr, priv.GetScriptHash(), native.GASFactor*30000000)
+	txMoveGas := newNEP5Transfer(client.GasContractHash, c.addr, priv.GetScriptHash(), native.GASFactor*29000000)
 	c.signTx(txMoveNeo, txMoveGas)
 
 	err = addBlock(bc, c, txMoveNeo, txMoveGas)
