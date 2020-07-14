@@ -120,7 +120,7 @@ dump: deps
 	@echo "=> Generate block dump for the 4-node network"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./dump -single -out ../$(BUILD_DIR)/dump.acc
+		&& go run ./dump -out ../$(BUILD_DIR)/dump.acc
 
 
 # Run benchmark (uncomment needed)
