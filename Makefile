@@ -116,6 +116,7 @@ dump.single: deps
 		&& cd cmd/ \
 		&& go run ./dump -single -out ../$(BUILD_DIR)/single.acc
 
+# Generate `dump.acc` for the 4-node network
 dump: deps
 	@echo "=> Generate block dump for the 4-node network"
 	@set -x \
