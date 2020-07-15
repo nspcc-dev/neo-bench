@@ -116,6 +116,7 @@ dump.single: deps
 		&& cd cmd/ \
 		&& go run ./dump -single -out ../$(BUILD_DIR)/single.acc
 
+# Generate `dump.acc` for the 4-node network
 dump: deps
 	@echo "=> Generate block dump for the 4-node network"
 	@set -x \
@@ -128,66 +129,66 @@ start: stop
 ## GoSingle:
 #	## Workers:
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m wrk -w 10 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	@.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m wrk -w 30 -z 5m -t 30s -a node:20331
-#	@make down
+#	@make stop
 #	@.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m wrk -w 100 -z 5m -t 30s -a node:20331
-#	@make down
+#	@make stop
 
 #	## Rate:
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 25 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 50 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 60 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 300 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 1000 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 
 ## Go4x1:
 #	## Workers:
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 10 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 30 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 100 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 
 #	## Rate:
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 25 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 50 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 60 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 300 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 1000 -z 5m -t 30s -a go-node:20331
-#	make down
+#	make stop
 
 ## SharpSingle:
 #	## Workers:
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m wrk -w 30 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 
 #	## Rate:
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 25 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 50 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 60 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 300 -z 5m -t 30s -a node:20331
-#	make down
+#	make stop
 
 ## Sharp x 4 + RPC:
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 30 -z 5m -t 30s -a sharp-node:20331
-#	make down
+#	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 50 -z 5m -t 30s -a sharp-node:20331
-#	make down
+#	make stop
