@@ -1,20 +1,12 @@
 {
-  "name": "wallet1",
-  "version": "1.0",
-  "scrypt": {
-    "n": 16384,
-    "r": 8,
-    "p": 8
-  },
+  "version": "3.0",
   "accounts": [
     {
-      "address": "AKkkumHbBipZ46UMZJoFynJMXzSRnBvKcs",
-      "label": null,
-      "isDefault": false,
-      "lock": false,
-      "key": "6PYLmjBYJ4wQTCEfqvnznGJwZeW9pfUcV5m5oreHxqryUgqKpTRAFt9L8Y",
+      "address": "NPtrT2EEV8iqb6exHtnpXYTxR8Aj67Ryzr",
+      "key": "6PYN7LvaWqBNw7Xb7a52LSbPnP91kyuzYi3HncGvQwQoYAY2W8DncTgpux",
+      "label": "",
       "contract": {
-        "script": "2102b3622bf4017bdfe317c58aed5f4c753f206b7db896046fa7d774bbc4bf7f8dc2ac",
+        "script": "IQKzYiv0AXvf4xfFiu1fTHU/IGt9uJYEb6fXdLvEv3+Nwqw=",
         "parameters": [
           {
             "name": "parameter0",
@@ -23,16 +15,15 @@
         ],
         "deployed": false
       },
-      "extra": null
+      "lock": false,
+      "isDefault": false
     },
     {
-      "address": "AZ81H31DMWzbSnFDLFkzh9vHwaDLayV7fU",
-      "label": null,
-      "isDefault": false,
-      "lock": false,
-      "key": "6PYLmjBYJ4wQTCEfqvnznGJwZeW9pfUcV5m5oreHxqryUgqKpTRAFt9L8Y",
+      "address": "NdG6pHwrevtsynRp4qkZEv5tphwdtWZLBV",
+      "key": "6PYN7LvaWqBNw7Xb7a52LSbPnP91kyuzYi3HncGvQwQoYAY2W8DncTgpux",
+      "label": "",
       "contract": {
-        "script": "532102103a7f7dd016558597f7960d27c516a4394fd968b9e65155eb4b013e4040406e2102a7bc55fe8684e0119768d104ba30795bdcc86619e864add26156723ed185cd622102b3622bf4017bdfe317c58aed5f4c753f206b7db896046fa7d774bbc4bf7f8dc22103d90c07df63e690ce77912e10ab51acc944b66860237b608c4f8f8309e71ee69954ae",
+        "script": "UyECEDp/fdAWVYWX95YNJ8UWpDlP2Wi55lFV60sBPkBAQG4hAqe8Vf6GhOARl2jRBLoweVvcyGYZ6GSt0mFWcj7Rhc1iIQKzYiv0AXvf4xfFiu1fTHU/IGt9uJYEb6fXdLvEv3+NwiED2QwH32PmkM53kS4Qq1GsyUS2aGAje2CMT4+DCece5plUrg==",
         "parameters": [
           {
             "name": "parameter0",
@@ -49,8 +40,16 @@
         ],
         "deployed": false
       },
-      "extra": null
+      "lock": false,
+      "isDefault": false
     }
   ],
-  "extra": null
+  "scrypt": {
+    "n": 16384,
+    "r": 8,
+    "p": 8
+  },
+  "extra": {
+    "Tokens": null
+  }
 }
