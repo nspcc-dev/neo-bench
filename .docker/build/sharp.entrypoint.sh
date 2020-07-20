@@ -3,7 +3,7 @@
 BIN=/neo-cli/neo-cli
 
 if [ -z "$ACC" ]; then
-  ACC=dump.acc
+  ACC=single.acc
 fi
 
 if test -f ${ACC}; then
