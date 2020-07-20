@@ -6,8 +6,8 @@ if [ -z "$ACC" ]; then
   ACC=single.acc
 fi
 
-if test -f ${ACC}; then
-    cp /${ACC} /neo-cli/chain.acc
+if test -f /"$ACC"; then
+  cp /${ACC} /neo-cli/chain.acc
 fi
 
 [[ -p node.log ]] || mkfifo node.log
