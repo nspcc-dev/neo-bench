@@ -16,6 +16,8 @@ services:
         - bash
         - '-c'
         - /healthcheck.sh
+    environment:
+      - ACC=/dump.acc
     volumes:
       - ../rpc/sharp.config.json:/neo-cli/config.json
       - ../rpc/sharp.wallet.json:/neo-cli/wallet.json
