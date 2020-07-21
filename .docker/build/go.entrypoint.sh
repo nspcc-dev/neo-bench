@@ -9,8 +9,8 @@ fi
 case $@ in
 	"node"*)
 	echo "=> Try to restore blocks before running node"
-	if test -f /$ACC; then
-		${BIN} db restore -p --config-path /config -i /$ACC
+	if test -f /"$ACC"; then
+		${BIN} db restore -p --config-path /config -i /"$ACC"
 	fi
   	;;
 esac

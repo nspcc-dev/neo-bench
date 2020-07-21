@@ -44,12 +44,6 @@ RUN wget -O /opt/neo-cli.zip ${URL} && \
     cp /temp/neo-cli/Microsoft.AspNetCore.ResponseCompression.dll /neo-cli && \
     rm -r /temp
 
-# Download, add and decompress the ImportBlocks module (it is a part of v3.0.0-preview1). At the end, delete the zip file.
-ENV URL="https://github.com/neo-project/neo-modules/releases/download/v3.0.0-preview1/ImportBlocks.zip"
-RUN wget -O /tmp/ImportBlocks.zip ${URL} && \
-    unzip -q -d /neo-cli /tmp/ImportBlocks.zip && \
-    rm /tmp/ImportBlocks.zip
-
 ENV MODULES="RpcServer SystemLog"
 # SimplePolicy ApplicationLogs"
 ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}-00"

@@ -20,6 +20,8 @@ services:
         - '-c'
         - /healthcheck.sh
       timeout: 10s
+    environment:
+      - ACC=dump.acc
 
   node_two:
     labels:
@@ -40,6 +42,8 @@ services:
         - '-c'
         - /healthcheck.sh
       timeout: 10s
+    environment:
+      - ACC=dump.acc
 
   node_three:
     labels:
@@ -60,6 +64,8 @@ services:
         - '-c'
         - /healthcheck.sh
       timeout: 10s
+    environment:
+      - ACC=dump.acc
 
   node_four:
     labels:
@@ -80,6 +86,8 @@ services:
         - '-c'
         - /healthcheck.sh
       timeout: 10s
+    environment:
+      - ACC=dump.acc
 
   healthy:
     image: alpine
