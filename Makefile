@@ -4,6 +4,8 @@ DC_GO_IR=.docker/ir/docker-compose.go.yml
 DC_GO_RPC=.docker/rpc/docker-compose.go.yml
 
 DC_SINGLE=.docker/rpc/docker-compose.single.yml
+# DC_SINGLE_RPC is a Go RPC-node configured to connect to single-node (C# or Go)
+DC_SINGLE_RPC=.docker/rpc/docker-compose.single.rpc.yml
 
 DC_GO_IR_SINGLE=.docker/ir/docker-compose.single.go.yml
 DC_SHARP_IR_SINGLE=.docker/ir/docker-compose.single.sharp.yml
@@ -147,7 +149,7 @@ start: stop
 #	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 1000 -z 5m -t 30s -a node:20331
 #	make stop
 
-## Go4x1:
+## Go x 4 + GoRPC:
 #	## Workers:
 #	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 10 -z 5m -t 30s -a go-node:20331
 #	make stop
@@ -185,10 +187,52 @@ start: stop
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 300 -z 5m -t 30s -a node:20331
 #	make stop
 
-## Sharp x 4 + RPC:
-#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
+## SharpSingle + GoRPC
+#   ## Workers:
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m wrk -w 10 -z 5m -t 30s -a rpc-node:20330
 #	make stop
-#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 30 -z 5m -t 30s -a sharp-node:20331
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m wrk -w 30 -z 5m -t 30s -a rpc-node:20330
 #	make stop
-#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x1" -m wrk -w 50 -z 5m -t 30s -a sharp-node:20331
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m wrk -w 100 -z 5m -t 30s -a rpc-node:20330
+#	make stop
+
+#	## Rate:
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m rate -q 25 -z 5m -t 30s -a rpc-node:20330
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m rate -q 50 -z 5m -t 30s -a rpc-node:20330
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m rate -q 60 -z 5m -t 30s -a rpc-node:20330
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m rate -q 300 -z 5m -t 30s -a rpc-node:20330
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE_RPC) -i /dump.txs -d "SharpSingle_GoRPC" -m rate -q 1000 -z 5m -t 30s -a rpc-node:20330
+#	make stop
+
+## Sharp x 4 + SharpRPC:
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 50 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+
+## Sharp x 4 + GoRPC:
+#	## Workers:
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 10 -z 5m -t 30s -a go-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 30 -z 5m -t 30s -a go-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 100 -z 5m -t 30s -a go-node:20331
+#	make stop
+
+#	## Rate:
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 25 -z 5m -t 30s -a go-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 50 -z 5m -t 30s -a go-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 60 -z 5m -t 30s -a go-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 300 -z 5m -t 30s -a go-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 1000 -z 5m -t 30s -a go-node:20331
 #	make stop

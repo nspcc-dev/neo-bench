@@ -1,0 +1,35 @@
+version: '2.4'
+
+services:
+  rpc-node:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-go:bench
+    container_name: go-node
+    command: "node --config-path /config --privnet"
+    ports: [ "20330:20330" ]
+    depends_on: [ "healthy" ]
+    healthcheck:
+      retries: 15
+      timeout: 5s
+      interval: 5s
+      test: ['CMD', 'sh', '-c', 'echo | nc localhost 20330']
+    environment:
+      - ACC=/single.acc
+    volumes:
+      - ../rpc/rpc.protocol.single.yml:/config/protocol.privnet.yml
+
+  node_healthy:
+    image: alpine
+    depends_on:
+      rpc-node:
+        condition: service_healthy
+
+  bench:
+    image: registry.nspcc.ru/neo-bench/neo-bench:bench
+    container_name: bench
+    depends_on: [ "node_healthy" ]
+    volumes:
+      - ./out:/out:rw
+      - ../../dump.txs:/dump.txs
+      - /var/run/docker.sock:/var/run/docker.sock
