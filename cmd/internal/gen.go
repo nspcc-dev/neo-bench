@@ -49,9 +49,8 @@ func newTX(wif *keys.WIF) *transaction.Transaction {
 	script := w.Bytes()
 	tx := transaction.New(netmode.PrivNet, script, 10000000)
 	tx.NetworkFee = 1500000 // hardcoded for now
-	tx.Sender = fromAddressHash
 	tx.ValidUntilBlock = 1200
-	tx.Cosigners = append(tx.Cosigners, transaction.Cosigner{
+	tx.Signers = append(tx.Signers, transaction.Signer{
 		Account: fromAddressHash,
 		Scopes:  transaction.CalledByEntry,
 	})

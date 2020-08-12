@@ -15,6 +15,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/network/payload"
 	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
@@ -140,8 +141,7 @@ func newNEP5Transfer(sc util.Uint160, from, to util.Uint160, amount int64) *tran
 		tx.NetworkFee = 4500000
 	}
 	tx.ValidUntilBlock = 1000
-	tx.Sender = from
-	tx.Cosigners = append(tx.Cosigners, transaction.Cosigner{
+	tx.Signers = append(tx.Signers, transaction.Signer{
 		Account: from,
 		Scopes:  transaction.CalledByEntry,
 	})
@@ -167,6 +167,8 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	w := io.NewBufBinWriter()
 	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxTransactionsPerBlock", int64(txPerBlock))
 	emit.Opcode(w.BinWriter, opcode.ASSERT)
+	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxBlockSize", int64(payload.MaxSize/2))
+	emit.Opcode(w.BinWriter, opcode.ASSERT)
 	script := w.Bytes()
 	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 10000000)
 	if *isSingle {
@@ -175,8 +177,7 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 		txUpdatePolicy.NetworkFee = 4500000
 	}
 	txUpdatePolicy.ValidUntilBlock = 1000
-	txUpdatePolicy.Sender = c.addr
-	txUpdatePolicy.Cosigners = append(txUpdatePolicy.Cosigners, transaction.Cosigner{
+	txUpdatePolicy.Signers = append(txUpdatePolicy.Signers, transaction.Signer{
 		Account: c.addr,
 		Scopes:  transaction.CalledByEntry,
 	})
