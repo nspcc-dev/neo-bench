@@ -17,6 +17,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
@@ -141,12 +142,14 @@ func (c *RPCClient) GetVersion(ctx context.Context) (string, error) {
 
 // SendTX sends transaction.
 func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
-	res := false
+	var res struct {
+		Hash util.Uint256 `json:"hash"`
+	}
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
 
 	if err := c.doRPCCall(ctx, rpc, &res); err != nil {
 		return err
-	} else if !res {
+	} else if res.Hash.Equals(util.Uint256{}) {
 		return errors.New("SendTX request failed")
 	}
 
