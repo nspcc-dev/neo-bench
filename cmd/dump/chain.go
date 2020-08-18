@@ -57,6 +57,12 @@ func (c *signer) signBlock(b *block.Block) {
 func (c *signer) sign(data []byte) []byte {
 	buf := io.NewBufBinWriter()
 	for i := range c.privs {
+		// It's kludgy, but we either sign for single node (1 out of 1)
+		// or small private network (3 out of 4) and we need only 3
+		// signatures for the latter case.
+		if i == 3 {
+			break
+		}
 		s := c.privs[i].Sign(data)
 		if len(s) != 64 {
 			panic("wrong signature length")
