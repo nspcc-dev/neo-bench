@@ -265,7 +265,7 @@ func (d *doer) Parser(ctx context.Context, blk *block.Block) {
 	defer close(d.parsed)
 
 	done := ctx.Done()
-	period := 5 * time.Second
+	period := time.Second
 	ticker := time.NewTimer(period)
 	timeout := time.NewTimer(d.timeLimit + 5*time.Minute)
 	lastBlockIndx := int(blk.Index)
