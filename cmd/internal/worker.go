@@ -393,7 +393,7 @@ func (d *doer) Sender(ctx context.Context) {
 	count := d.countTxs.Load()
 	errCount := d.countErr.Load()
 
-	log.Printf("Sended %d txs for %s", count, since)
+	log.Printf("Sent %d transactions in %s", count, since)
 	log.Printf("RPS: %5.3f", float64(count)/since.Seconds())
 
 	d.cntReporter(count)
@@ -401,7 +401,7 @@ func (d *doer) Sender(ctx context.Context) {
 	d.rpsReporter(float64(count) / since.Seconds())
 
 	if errCount == 0 {
-		log.Println("All transactions were sent")
+		log.Println("All transactions have been sent successfully")
 	}
 
 	log.Printf("RPC Errors: %d / %0.3f%%", errCount, (float64(errCount)/float64(count))*100)
