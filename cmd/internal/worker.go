@@ -341,9 +341,8 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 				continue
 			}
 
-			if cnt = len(blk.Transactions); cnt <= 1 {
+			if cnt = len(blk.Transactions); cnt < 1 {
 				log.Printf("empty block: %d", i)
-				continue
 			}
 
 			// Timestamp is in milliseconds so we multiply numerator by 1000 to be more precise.

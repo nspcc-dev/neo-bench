@@ -226,7 +226,7 @@ func (r *reporter) UpdateErr(v int32) {
 
 // UpdateTPS sets current tps rate
 func (r *reporter) UpdateTPS(v float64) {
-	if v <= 0 || math.IsNaN(v) {
+	if v < 0 || math.IsNaN(v) {
 		return
 	}
 
