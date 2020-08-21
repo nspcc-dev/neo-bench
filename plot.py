@@ -90,7 +90,7 @@ def plot_data(path):
                     else:
                         tpsStart = i + 2
                         break
-                for i in range(tpsStart, len(lines) - 1):
+                for i in range(tpsStart, len(lines)):
                     tpsFile.append(float(lines[i]))
             tps[fileCounter] = tpsFile
             cpu[fileCounter] = cpuFile
