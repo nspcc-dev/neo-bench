@@ -18,6 +18,7 @@ type (
 		ErrCount int32
 		RPS      []float64
 		TPS      []float64
+		TPSPool  []float64
 		Stats    [][2]float64 // CPU, Mem
 	}
 
@@ -233,7 +234,13 @@ func (r *reporter) UpdateTPS(v float64) {
 	r.Lock()
 	defer r.Unlock()
 
-	r.TPS = append(r.TPS, v)
+	if v > 0 {
+		r.TPS = append(r.TPS, r.TPSPool...)
+		r.TPS = append(r.TPS, v)
+		r.TPSPool = nil
+	} else {
+		r.TPSPool = append(r.TPSPool, v)
+	}
 }
 
 // UpdateRes sets current resource usage by containers.
