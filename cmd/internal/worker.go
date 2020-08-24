@@ -29,6 +29,7 @@ type (
 		waiter       *sync.WaitGroup
 		countTxs     *atomic.Int32 // stores count of completed queries
 		countErr     *atomic.Int32
+		hasStarted   *atomic.Bool
 		parsedCount  int
 		parsedBlocks map[int]struct{}
 	}
@@ -194,6 +195,7 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		sentOut:      make(chan struct{}),
 		countTxs:     atomic.NewInt32(0),
 		countErr:     atomic.NewInt32(0),
+		hasStarted:   atomic.NewBool(false),
 		parsedBlocks: make(map[int]struct{}),
 	}
 
@@ -343,6 +345,8 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 
 			if cnt = len(blk.Transactions); cnt < 1 {
 				log.Printf("empty block: %d", i)
+			} else if !d.hasStarted.Load() {
+				d.hasStarted.Store(true)
 			}
 
 			// Timestamp is in milliseconds so we multiply numerator by 1000 to be more precise.
@@ -353,6 +357,13 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 
 			// update last block timestamp
 			*lastTime = blk.Timestamp
+
+			// do not add zero TPS in case if there were no non-empty blocks yet
+			if tps == 0 {
+				if !d.hasStarted.Load() {
+					continue
+				}
+			}
 
 			// report current tps
 			d.tpsReporter(tps)
