@@ -357,7 +357,7 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 			// report current tps
 			d.tpsReporter(tps)
 
-			for i := 1; i < cnt; i++ {
+			for i := 0; i < cnt; i++ {
 				tx := blk.Transactions[i]
 				if len(tx.Scripts) > 0 {
 					if _, ok := d.dump.Hashes[tx.Hash().String()]; ok {
