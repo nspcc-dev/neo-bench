@@ -46,7 +46,7 @@ ApplicationConfiguration:
     EnableCORSWorkaround: false
     Port: 30334
   Monitoring:
-    Enabled: true
+    Enabled: false
     Port: 20002
   UnlockWallet:
     Path: /config/wallet.json

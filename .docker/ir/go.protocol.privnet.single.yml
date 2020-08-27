@@ -40,7 +40,7 @@ ApplicationConfiguration:
     EnableCORSWorkaround: false
     Port: 20331
   Monitoring:
-    Enabled: true
+    Enabled: false
     Port: 20004
   Pprof:
     Enabled: false
