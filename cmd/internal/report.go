@@ -125,7 +125,7 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 		rpsCount = float64(len(r.RPS))
 		tpsCount = float64(len(r.TPS))
 		resCount = float64(len(r.Stats))
-		errRate  = float64(r.ErrCount*100) / float64(r.TxCount)
+		errRate  = float64(r.ErrCount*100) / float64(r.TxCount+r.ErrCount)
 	)
 
 	if num, err = fmt.Fprintf(out, "%s\n\n", r.name); err != nil {
