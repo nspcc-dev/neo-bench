@@ -77,7 +77,7 @@ func (v errorResponse) Error() string {
 }
 
 // NewRPCClient creates new client for RPC communications.
-func NewRPCClient(v *viper.Viper) *RPCClient {
+func NewRPCClient(v *viper.Viper, maxConnsPerHost int) *RPCClient {
 	var addresses []string
 	for _, addr := range v.GetStringSlice("rpcAddress") {
 		if addr == "" {
@@ -108,7 +108,7 @@ func NewRPCClient(v *viper.Viper) *RPCClient {
 		MaxIdemponentCallAttempts: 1, // don't repeat queries
 		ReadTimeout:               timeout,
 		WriteTimeout:              timeout,
-		MaxConnsPerHost:           5_000,
+		MaxConnsPerHost:           maxConnsPerHost,
 	}
 
 	return &RPCClient{

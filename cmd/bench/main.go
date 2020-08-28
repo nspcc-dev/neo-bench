@@ -44,8 +44,23 @@ func main() {
 		desc      = v.GetString("desc")
 		timeLimit = v.GetDuration("timeLimit")
 		mode      = internal.BenchMode(v.GetString("mode"))
-		client    = internal.NewRPCClient(v)
+		client    *internal.RPCClient
 	)
+
+	switch mode {
+	case internal.ModeWorker:
+		// num_sec * worker_count * defaultRate * coefficient
+		count = int(timeLimit.Seconds() * defaultRate * coefficient)
+		workers = v.GetInt("workers")
+		client = internal.NewRPCClient(v, workers)
+
+	case internal.ModeRate:
+		// num_sec * rate * coefficient
+		count = int(timeLimit.Seconds() * v.GetFloat64("rateLimit") * coefficient)
+		workers = v.GetInt("rateLimit")
+		threshold = time.Second
+		client = internal.NewRPCClient(v, 1)
+	}
 
 	version, err := client.GetVersion(ctx)
 	if err != nil {
@@ -53,19 +68,6 @@ func main() {
 	}
 
 	log.Println("Run benchmark for " + desc + " :: " + version)
-
-	switch mode {
-	case internal.ModeWorker:
-		// num_sec * worker_count * defaultRate * coefficient
-		count = int(timeLimit.Seconds() * defaultRate * coefficient)
-		workers = v.GetInt("workers")
-
-	case internal.ModeRate:
-		// num_sec * rate * coefficient
-		count = int(timeLimit.Seconds() * v.GetFloat64("rateLimit") * coefficient)
-		workers = v.GetInt("rateLimit")
-		threshold = time.Second
-	}
 
 	//raising the limits. Some performance gains were achieved with the + workers count (not a lot).
 	runtime.GOMAXPROCS(runtime.NumCPU() + workers)
