@@ -36,6 +36,7 @@ type (
 		description string
 		mode        BenchMode
 		wrkLimit    int
+		rateLimit   int
 		timeLimit   time.Duration
 	}
 
@@ -64,10 +65,17 @@ func ReportTimeLimit(limit time.Duration) ReportOption {
 	}
 }
 
-// ReportWorkersCount sets count of workers / rate limit for current report.
+// ReportWorkersCount sets count of workers for current report.
 func ReportWorkersCount(cnt int) ReportOption {
 	return func(p *reportParams) {
 		p.wrkLimit = cnt
+	}
+}
+
+// ReportRate sets rate limit for current report.
+func ReportRate(rate int) ReportOption {
+	return func(p *reportParams) {
+		p.rateLimit = rate
 	}
 }
 
@@ -84,9 +92,16 @@ func NewReporter(opts ...ReportOption) Reporter {
 		opts[i](&p)
 	}
 
+	var count int
+	switch p.mode {
+	case ModeWorker:
+		count = p.wrkLimit
+	case ModeRate:
+		count = p.rateLimit
+	}
 	return &reporter{
 		Mutex: new(sync.Mutex),
-		name:  fmt.Sprintf("%s / %d %s / %s", p.description, p.wrkLimit, p.mode, p.timeLimit),
+		name:  fmt.Sprintf("%s / %d %s / %s", p.description, count, p.mode, p.timeLimit),
 	}
 }
 

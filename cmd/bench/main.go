@@ -39,6 +39,7 @@ func main() {
 	var (
 		count     int
 		workers   int
+		rate      int
 		threshold time.Duration
 		dump      *internal.Dump
 		desc      = v.GetString("desc")
@@ -57,8 +58,9 @@ func main() {
 	case internal.ModeRate:
 		// num_sec * rate * coefficient
 		count = int(timeLimit.Seconds() * v.GetFloat64("rateLimit") * coefficient)
-		workers = v.GetInt("rateLimit")
-		threshold = time.Second
+		workers = 1
+		rate = v.GetInt("rateLimit")
+		threshold = time.Duration(time.Second.Nanoseconds() / int64(rate))
 		client = internal.NewRPCClient(v, 1)
 	}
 
@@ -76,7 +78,8 @@ func main() {
 		internal.ReportMode(mode),
 		internal.ReportDescription(desc+" :: "+version),
 		internal.ReportTimeLimit(timeLimit),
-		internal.ReportWorkersCount(workers))
+		internal.ReportWorkersCount(workers),
+		internal.ReportRate(rate))
 
 	out, err := os.Create(v.GetString("out"))
 	if err != nil {
@@ -137,6 +140,7 @@ func main() {
 		internal.WorkerDump(dump),
 		internal.WorkerMode(mode),
 		internal.WorkersCount(workers),
+		internal.Rate(rate),
 		internal.WorkerStopper(cancel),
 		internal.WorkerTimeLimit(timeLimit),
 		internal.WorkerThreshold(threshold),
