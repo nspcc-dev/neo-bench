@@ -46,5 +46,5 @@ ApplicationConfiguration:
     EnableCORSWorkaround: false
     Port: 20331
   Monitoring:
-    Enabled: true
+    Enabled: false
     Port: 2112

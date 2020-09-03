@@ -57,7 +57,13 @@ type (
 		addr []string
 		len  int32
 		inc  *atomic.Int32
-		cli  *fasthttp.Client
+		// The only txSender's duty is to send `sendrawtransaction` requests in
+		// order not to affect bench results by sending service requests via the
+		// same connection. txSender has different fasthttp settings than blockRequester.
+		txSender *fasthttp.Client
+		// blockRequester should do the rest of work, e.g. fetch blocks count, fetch
+		// blocks and etc.
+		blockRequester *fasthttp.Client
 
 		timeout time.Duration
 	}
@@ -77,7 +83,7 @@ func (v errorResponse) Error() string {
 }
 
 // NewRPCClient creates new client for RPC communications.
-func NewRPCClient(v *viper.Viper) *RPCClient {
+func NewRPCClient(v *viper.Viper, maxConnsPerHost int) *RPCClient {
 	var addresses []string
 	for _, addr := range v.GetStringSlice("rpcAddress") {
 		if addr == "" {
@@ -104,18 +110,26 @@ func NewRPCClient(v *viper.Viper) *RPCClient {
 		timeout = v
 	}
 
-	cli := &fasthttp.Client{
+	txSender := &fasthttp.Client{
 		MaxIdemponentCallAttempts: 1, // don't repeat queries
 		ReadTimeout:               timeout,
 		WriteTimeout:              timeout,
-		MaxConnsPerHost:           5_000,
+		MaxConnsPerHost:           maxConnsPerHost,
+	}
+
+	blockRequester := &fasthttp.Client{
+		MaxIdemponentCallAttempts: 1, // don't repeat queries
+		ReadTimeout:               timeout,
+		WriteTimeout:              timeout,
+		MaxConnsPerHost:           2, // let's keep it small in order not to overload the nodes by open service connections in `Workers` mode
 	}
 
 	return &RPCClient{
-		cli:  cli,
-		addr: addresses,
-		len:  int32(len(addresses)),
-		inc:  atomic.NewInt32(rand.Int31()),
+		txSender:       txSender,
+		blockRequester: blockRequester,
+		addr:           addresses,
+		len:            int32(len(addresses)),
+		inc:            atomic.NewInt32(rand.Int31()),
 
 		timeout: timeout,
 	}
@@ -133,7 +147,7 @@ func (c *RPCClient) GetLastBlock(ctx context.Context) (*block.Block, error) {
 func (c *RPCClient) GetVersion(ctx context.Context) (string, error) {
 	res := new(versionResponse)
 	rpc := `{ "jsonrpc": "2.0", "id": 1, "method": "getversion", "params": [] }`
-	if err := c.doRPCCall(ctx, rpc, res); err != nil {
+	if err := c.doRPCCall(ctx, rpc, res, c.blockRequester); err != nil {
 		return "", err
 	}
 
@@ -147,7 +161,7 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 	}
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
 
-	if err := c.doRPCCall(ctx, rpc, &res); err != nil {
+	if err := c.doRPCCall(ctx, rpc, &res, c.txSender); err != nil {
 		return err
 	} else if res.Hash.Equals(util.Uint256{}) {
 		return errors.New("SendTX request failed")
@@ -160,7 +174,7 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, error) {
 	res := ""
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "getblock", "params": [%v]}`, index)
-	if err := c.doRPCCall(ctx, rpc, &res); err != nil {
+	if err := c.doRPCCall(ctx, rpc, &res, c.blockRequester); err != nil {
 
 	}
 
@@ -180,10 +194,10 @@ func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, erro
 func (c *RPCClient) GetBlockCount(ctx context.Context) (int, error) {
 	num := 0
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "getblockcount", "params": []}`)
-	return num, c.doRPCCall(ctx, rpc, &num)
+	return num, c.doRPCCall(ctx, rpc, &num, c.blockRequester)
 }
 
-func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}) error {
+func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}, client *fasthttp.Client) error {
 	idx := c.inc.Inc() % c.len
 
 	req, res := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
@@ -201,7 +215,7 @@ func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}
 	// fmt.Println(string(reqData))
 
 	resp := new(rpcResponse)
-	if err := c.cli.Do(req, res); err != nil {
+	if err := client.Do(req, res); err != nil {
 		return errors.Errorf("error after calling rpc server %s", err)
 	} else if body, code := res.Body(), res.StatusCode(); code != fasthttp.StatusOK && len(body) == 0 {
 		return errors.Errorf("http error: %d %s", code, res.String())

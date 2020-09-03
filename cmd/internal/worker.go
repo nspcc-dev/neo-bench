@@ -38,6 +38,7 @@ type (
 		wrkCount    int
 		cli         *RPCClient
 		mode        BenchMode
+		rate        int
 		threshold   time.Duration
 		timeLimit   time.Duration
 		dump        *Dump
@@ -91,6 +92,13 @@ func WorkerThreshold(threshold time.Duration) WorkerOption {
 func WorkersCount(cnt int) WorkerOption {
 	return func(p *doerParams) {
 		p.wrkCount = cnt
+	}
+}
+
+// Rate sets the number requests per second.
+func Rate(rate int) WorkerOption {
+	return func(p *doerParams) {
+		p.rate = rate
 	}
 }
 
@@ -181,7 +189,7 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 
 	switch p.mode {
 	case ModeRate:
-		log.Printf("Init worker with %d QPS / %s time limit (%d txs will try to send)", p.wrkCount, p.timeLimit, ln)
+		log.Printf("Init worker with %d QPS / %s time limit (%d txs will try to send)", p.rate, p.timeLimit, ln)
 	case ModeWorker:
 		log.Printf("Init %d workers / %s time limit (%d txs will try to send)", p.wrkCount, p.timeLimit, ln)
 	}
@@ -241,7 +249,10 @@ loop:
 			d.rpsReporter(float64(count) / since.Seconds())
 
 			if d.threshold > 0 {
-				time.Sleep(d.threshold)
+				waitFor := start.Add(time.Duration(d.threshold.Nanoseconds() * (i + 1))).Sub(time.Now())
+				if waitFor > 0 {
+					time.Sleep(waitFor)
+				}
 			}
 		}
 	}

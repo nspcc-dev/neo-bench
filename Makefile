@@ -186,6 +186,8 @@ start: stop
 #	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 300 -z 5m -t 30s -a node:20331
 #	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 1000 -z 5m -t 30s -a node:20331
+#	make stop
 
 ## SharpSingle + GoRPC
 #   ## Workers:
@@ -209,11 +211,24 @@ start: stop
 #	make stop
 
 ## Sharp x 4 + SharpRPC:
+#	## Workers:
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
 #	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s -a sharp-node:20331
 #	make stop
 #	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 50 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+
+#	## Rate:
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 25 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 50 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 60 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 300 -z 5m -t 30s -a sharp-node:20331
+#	make stop
+#	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 1000 -z 5m -t 30s -a sharp-node:20331
 #	make stop
 
 ## Sharp x 4 + GoRPC:
