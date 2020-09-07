@@ -35,7 +35,7 @@ help:
 	@echo ''
 	@awk '/^#/{ comment = substr($$0,3) } comment && /^[a-zA-Z][a-zA-Z0-9_-]+ ?:/{ print "   ", $$1, comment }' $(MAKEFILE_LIST) | column -t -s ':' | grep -v 'IGNORE' | sort | uniq
 
-.PHONY: build push build.node.go build.node.sharp stop start deps gen
+.PHONY: build push build.node.go build.node.sharp stop start deps gen config
 
 # Build all images
 build: build.node.bench build.node.go build.node.sharp
@@ -113,18 +113,25 @@ gen: deps
 		&& cd cmd/ \
 		&& go run ./gen -out ../dump.txs
 
-dump.single: deps
+dump.single: deps config
 	@echo "=> Generate block dump for the single node network"
 	@set -x \
 		&& cd cmd/ \
 		&& go run ./dump -single -out ../$(BUILD_DIR)/single.acc
 
 # Generate `dump.acc` for the 4-node network
-dump: deps
+dump: deps config
 	@echo "=> Generate block dump for the 4-node network"
 	@set -x \
 		&& cd cmd/ \
 		&& go run ./dump -out ../$(BUILD_DIR)/dump.acc
+
+# Generate configurations for single-node and four-nodes networks from templates
+config: deps
+	@echo "=> Generate configurations for single-node and four-nodes networks from templates"
+	@set -x \
+		&& cd ./cmd \
+		&& go run ./config/ --go-template go.protocol.template.yml --sharp-template sharp.protocol.template.yml
 
 
 # Run benchmark (uncomment needed)

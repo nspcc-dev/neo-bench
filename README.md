@@ -115,6 +115,7 @@ TPS
   Targets:
 
     build    Build all images
+    config   Generate configurations for single-node and four-nodes networks from templates
     gen      Generate `dump.txs` (run it before any benchmarks)
     help     Show this help prompt
     pull     Pull images from registry
