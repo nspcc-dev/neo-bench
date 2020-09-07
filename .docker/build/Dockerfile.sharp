@@ -68,7 +68,6 @@ RUN for mod in ${MODULES}; do \
 # Copy RocksDBStore plugin with dependant dlls from Build
 COPY  --from=Build /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDBStore.dll \
     /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbSharp.dll \
-    /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbNative.dll \
     /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbNative.dll /neo-cli/Plugins/
 COPY --from=Build /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDBStore/ /neo-cli/Plugins/RocksDBStore/
 
