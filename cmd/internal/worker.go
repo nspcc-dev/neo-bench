@@ -362,7 +362,7 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 
 			// Timestamp is in milliseconds so we multiply numerator by 1000 to be more precise.
 			dt := blk.Timestamp - *lastTime
-			if tps = float64(cnt-1) * 1000 / float64(dt); math.IsNaN(tps) || tps < 0 {
+			if tps = float64(cnt) * 1000 / float64(dt); math.IsNaN(tps) || tps < 0 {
 				tps = 0
 			}
 
