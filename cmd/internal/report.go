@@ -17,9 +17,18 @@ type (
 		TxCount  int32
 		ErrCount int32
 		RPS      []float64
-		TPS      []float64
-		TPSPool  []float64
+		TPS      []tpsInfo
+		TPSPool  []tpsInfo
 		Stats    [][3]float64 // MillisecondsFromStart, CPU, Mem
+	}
+
+	// tpsInfo stores information useful for counting TPS
+	tpsInfo struct {
+		// DeltaTime is a time in milliseconds since the previous block timestamp
+		DeltaTime uint64
+		// TxCount is the number of transactions in block
+		TxCount int
+		TPS     float64
 	}
 
 	// Reporter interface.
@@ -28,7 +37,7 @@ type (
 		UpdateErr(v int32)
 		UpdateCnt(v int32)
 		UpdateRPS(v float64)
-		UpdateTPS(v float64)
+		UpdateTPS(deltaTime uint64, txCount int, v float64)
 		UpdateRes(start time.Time, cpu, mem float64)
 	}
 
@@ -119,7 +128,7 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 
 	tps := .0
 	for i := range r.TPS {
-		tps += r.TPS[i]
+		tps += r.TPS[i].TPS
 	}
 
 	cpu := .0
@@ -189,13 +198,13 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 		cnt += int64(num)
 	}
 
-	if num, err = fmt.Fprintln(out, "\nTPS"); err != nil {
+	if num, err = fmt.Fprintln(out, "\nDeltaTime, TransactionsCount, TPS"); err != nil {
 		return cnt + int64(num), err
 	}
 	cnt += int64(num)
 
 	for i := range r.TPS {
-		if num, err = fmt.Fprintf(out, "%0.3f\n", r.TPS[i]); err != nil {
+		if num, err = fmt.Fprintf(out, "%d, %d, %0.3f\n", r.TPS[i].DeltaTime, r.TPS[i].TxCount, r.TPS[i].TPS); err != nil {
 			return cnt + int64(num), err
 		}
 		cnt += int64(num)
@@ -241,7 +250,7 @@ func (r *reporter) UpdateErr(v int32) {
 }
 
 // UpdateTPS sets current tps rate
-func (r *reporter) UpdateTPS(v float64) {
+func (r *reporter) UpdateTPS(deltaTime uint64, txCount int, v float64) {
 	if v < 0 || math.IsNaN(v) {
 		return
 	}
@@ -251,10 +260,18 @@ func (r *reporter) UpdateTPS(v float64) {
 
 	if v > 0 {
 		r.TPS = append(r.TPS, r.TPSPool...)
-		r.TPS = append(r.TPS, v)
+		r.TPS = append(r.TPS, tpsInfo{
+			DeltaTime: deltaTime,
+			TxCount:   txCount,
+			TPS:       v,
+		})
 		r.TPSPool = nil
 	} else {
-		r.TPSPool = append(r.TPSPool, v)
+		r.TPSPool = append(r.TPSPool, tpsInfo{
+			DeltaTime: deltaTime,
+			TxCount:   txCount,
+			TPS:       v,
+		})
 	}
 }
 

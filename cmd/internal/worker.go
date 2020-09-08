@@ -45,7 +45,7 @@ type (
 		cntReporter func(cnt int32)
 		errReporter func(cnt int32)
 		rpsReporter func(rps float64)
-		tpsReporter func(tps float64)
+		tpsReporter func(deltaTime uint64, txCount int, tps float64)
 		stop        context.CancelFunc
 	}
 
@@ -122,7 +122,7 @@ func WorkerRPSReporter(reporter func(v float64)) WorkerOption {
 }
 
 // WorkerTPSReporter sets method that would be used to report current TPS.
-func WorkerTPSReporter(reporter func(v float64)) WorkerOption {
+func WorkerTPSReporter(reporter func(deltaTime uint64, txCount int, v float64)) WorkerOption {
 	return func(p *doerParams) {
 		// ignore empty func
 		if reporter == nil {
@@ -164,7 +164,7 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		cntReporter: func(_ int32) {},
 		errReporter: func(_ int32) {},
 		rpsReporter: func(_ float64) {},
-		tpsReporter: func(_ float64) {},
+		tpsReporter: func(_ uint64, _ int, _ float64) {},
 		stop:        func() { log.Fatal("default stopper") },
 	}
 
@@ -377,7 +377,7 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 			}
 
 			// report current tps
-			d.tpsReporter(tps)
+			d.tpsReporter(dt, len(blk.Transactions), tps)
 
 			for i := 0; i < cnt; i++ {
 				tx := blk.Transactions[i]

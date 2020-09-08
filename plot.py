@@ -95,7 +95,7 @@ def plot_data(path):
                         tpsStart = i + 2
                         break
                 for i in range(tpsStart, len(lines)):
-                    tpsFile.append(float(lines[i]))
+                    tpsFile.append(float(lines[i].split(', ')[2]))
             tps[fileCounter] = tpsFile
             cpu[fileCounter] = cpuFile
             mem[fileCounter] = memFile
