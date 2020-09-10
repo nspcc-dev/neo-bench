@@ -13,13 +13,13 @@ type (
 	reporter struct {
 		*sync.Mutex
 
-		name     string
-		TxCount  int32
-		ErrCount int32
-		RPS      []float64
-		TPS      []tpsInfo
-		TPSPool  []tpsInfo
-		Stats    [][3]float64 // MillisecondsFromStart, CPU, Mem
+		name       string
+		TxCount    int32
+		ErrCount   int32
+		AverageRPS float64
+		TPS        []tpsInfo
+		TPSPool    []tpsInfo
+		Stats      [][3]float64 // MillisecondsFromStart, CPU, Mem
 	}
 
 	// tpsInfo stores information useful for counting TPS
@@ -121,11 +121,6 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 
 	out := io.MultiWriter(rw, os.Stdout)
 
-	rps := .0
-	for i := range r.RPS {
-		rps += r.RPS[i]
-	}
-
 	tps := .0
 	for i := range r.TPS {
 		tps += r.TPS[i].TPS
@@ -146,7 +141,6 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 		cnt int64
 		err error
 
-		rpsCount = float64(len(r.RPS))
 		tpsCount = float64(len(r.TPS))
 		resCount = float64(len(r.Stats))
 		errRate  = float64(r.ErrCount*100) / float64(r.TxCount+r.ErrCount)
@@ -162,7 +156,7 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 	}
 	cnt += int64(num)
 
-	if _, err := fmt.Fprintf(out, "RPS ≈ %0.3f\n", rps/rpsCount); err != nil {
+	if _, err := fmt.Fprintf(out, "RPS ≈ %0.3f\n", r.AverageRPS); err != nil {
 		return cnt + int64(num), err
 	}
 	cnt += int64(num)
@@ -213,7 +207,7 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 	return cnt, nil
 }
 
-// UpdateRPS sets current rps rate.
+// UpdateRPS sets current average rps rate.
 func (r *reporter) UpdateRPS(v float64) {
 	if v <= 0 || math.IsNaN(v) {
 		return
@@ -222,7 +216,7 @@ func (r *reporter) UpdateRPS(v float64) {
 	r.Lock()
 	defer r.Unlock()
 
-	r.RPS = append(r.RPS, v)
+	r.AverageRPS = v
 }
 
 // UpdateCnt sets count of sent txs.
