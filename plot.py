@@ -68,6 +68,7 @@ def plot_data(path):
 
     for name, files in files_batch.items():
         tps = [[]]*len(files)
+        secondsFromStart = [[]]*len(files)
         cpu = [[]]*len(files)
         mem = [[]]*len(files)
         avgTps = []*len(files)
@@ -75,6 +76,7 @@ def plot_data(path):
         # extract data
         for fileCounter in range(len(files)):
             file = files[fileCounter]
+            secondsFromStartFile = []
             cpuFile = []
             memFile = []
             tpsFile = []
@@ -85,16 +87,19 @@ def plot_data(path):
                     line = lines[i]
                     cpumem = line.split('%,')
                     if len(cpumem) == 2:
-                        cpuFile.append(float(cpumem[0]))
+                        millisecondsFromStartcpu = cpumem[0].split(', ')
+                        secondsFromStartFile.append(float(millisecondsFromStartcpu[0])/1000)
+                        cpuFile.append(float(millisecondsFromStartcpu[1]))
                         memFile.append(float(cpumem[1].strip(' ').strip('\n').strip('MB')))
                     else:
                         tpsStart = i + 2
                         break
                 for i in range(tpsStart, len(lines)):
-                    tpsFile.append(float(lines[i]))
+                    tpsFile.append(float(lines[i].split(', ')[2]))
             tps[fileCounter] = tpsFile
             cpu[fileCounter] = cpuFile
             mem[fileCounter] = memFile
+            secondsFromStart[fileCounter] = secondsFromStartFile
 
         # plot tps for `name`
         for i in range(len(files)):
@@ -113,8 +118,8 @@ def plot_data(path):
         # plot cpu for `name`
         for i in range(len(files)):
             file = files[i]
-            plt.plot(cpu[i], label=file[1], color=file[2], linewidth=0.8)
-        plt.xlabel('Time')
+            plt.plot(secondsFromStart[i], cpu[i], label=file[1], color=file[2], linewidth=0.8)
+        plt.xlabel('Time, seconds')
         plt.ylabel('CPU, %')
         plt.title('cpu '+name)
         plt.legend()
@@ -126,8 +131,8 @@ def plot_data(path):
         # plot memory for `name`
         for i in range(len(files)):
             file = files[i]
-            plt.plot(mem[i], label=file[1], color=file[2], linewidth=0.8)
-        plt.xlabel('Time')
+            plt.plot(secondsFromStart[i], mem[i], label=file[1], color=file[2], linewidth=0.8)
+        plt.xlabel('Time, seconds')
         plt.ylabel('Memory, Mb')
         plt.title('memory '+name)
         plt.legend()
