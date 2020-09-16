@@ -72,6 +72,7 @@ def plot_data(path):
         cpu = [[]]*len(files)
         mem = [[]]*len(files)
         avgTps = []*len(files)
+        tpb = [[]]*len(files)
 
         # extract data
         for fileCounter in range(len(files)):
@@ -80,6 +81,7 @@ def plot_data(path):
             cpuFile = []
             memFile = []
             tpsFile = []
+            tpbFile = []
             with open(path + file[0], "r") as f:
                 lines = f.readlines()
                 avgTps.append(float(lines[5][6:]))
@@ -96,10 +98,12 @@ def plot_data(path):
                         break
                 for i in range(tpsStart, len(lines)):
                     tpsFile.append(float(lines[i].split(', ')[2]))
+                    tpbFile.append(int(lines[i].split(', ')[1]))
             tps[fileCounter] = tpsFile
             cpu[fileCounter] = cpuFile
             mem[fileCounter] = memFile
             secondsFromStart[fileCounter] = secondsFromStartFile
+            tpb[fileCounter] = tpbFile
 
         # plot tps for `name`
         for i in range(len(files)):
@@ -113,6 +117,19 @@ def plot_data(path):
         plt.xlim(left=0)
         plt.ylim(bottom=0)
         plt.savefig('./img/tps_' + name.replace(' ', '_') + '.png')
+        plt.close()
+
+        # plot tpb (transactions per block) for `name`
+        for i in range(len(files)):
+            file = files[i]
+            plt.plot(tpb[i], label=file[1], color=file[2], linewidth=0.8)
+        plt.xlabel('Blocks')
+        plt.ylabel('Transactions in block')
+        plt.title('tpb '+name)
+        plt.legend()
+        plt.xlim(left=0)
+        plt.ylim(bottom=0)
+        plt.savefig('./img/tpb_' + name.replace(' ', '_') + '.png')
         plt.close()
 
         # plot cpu for `name`
