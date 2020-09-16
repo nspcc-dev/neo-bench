@@ -26,8 +26,9 @@ import (
 // wifTo is a wif of the wallet where all NEO and GAS are sent.
 const wifTo = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
 
-// txPerBlock is a new policy value for maximum amount of transactions per block.
-const txPerBlock = 40000
+// txPerBlock is a new policy value for maximum amount of transactions per block
+// which is set to be uint16 max value - 1.
+const txPerBlock = 65534
 
 var (
 	isSingle = flag.Bool("single", false, "generate dump for a single node")
