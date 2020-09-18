@@ -67,6 +67,9 @@ ApplicationConfiguration:
   Pprof:
     Enabled: false
     Port: #@ data.values.nodes_info[i].node_pprof_port
+  Prometheus:
+    Enabled: false
+    Port: #@ data.values.nodes_info[i].node_prometheus_port
   UnlockWallet:
     Path: /config/wallet.json
     Password: #@ data.values.nodes_info[i].wallet_password
