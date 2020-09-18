@@ -1,17 +1,7 @@
-#! nodes_info format: [node_name, node_port, node_rpc_port, validator's_hash, wallet_password]
-#@ nodes_info = [
-#@    ["single", 20332, 20331, "02b3622bf4017bdfe317c58aed5f4c753f206b7db896046fa7d774bbc4bf7f8dc2", "one"],
-#@    ["one", 20333, 30333, "02b3622bf4017bdfe317c58aed5f4c753f206b7db896046fa7d774bbc4bf7f8dc2", "one"],
-#@    ["two", 20334, 30334, "02103a7f7dd016558597f7960d27c516a4394fd968b9e65155eb4b013e4040406e", "two"],
-#@    ["three", 20335, 30335, "03d90c07df63e690ce77912e10ab51acc944b66860237b608c4f8f8309e71ee699", "three"],
-#@    ["four", 20336, 30336, "02a7bc55fe8684e0119768d104ba30795bdcc86619e864add26156723ed185cd62", "four"],
-#@ ]
-#@ for i in range(0,len(nodes_info)):
+#@ load("@ytt:data", "data")
+#@ nodes_count = len(data.values.nodes_info)
+#@ for i in range(0,nodes_count):
 ---
-#@ node_name = nodes_info[i][0]
-#@ node_port = nodes_info[i][1]
-#@ node_rpc_port = nodes_info[i][2]
-#@ wallet_password = nodes_info[i][4]
   ApplicationConfiguration:
     Logger:
       Path: Logs_{0}
@@ -20,35 +10,35 @@
     Storage:
       Engine: LevelDBStore
     P2P:
-      Port: #@ node_port
+      Port: #@ data.values.nodes_info[i].node_port
       WsPort: 9999
     UnlockWallet:
       Path: wallet.json
-      Password: #@ wallet_password
+      Password: #@ data.values.nodes_info[i].wallet_password
       StartConsensus: true
       IsActive: true
     PluginURL: https://github.com/neo-project/neo-plugins/releases/download/v{1}/{0}.zip
   ProtocolConfiguration:
     Magic: 56753
-    #@ if node_name == "single":
+    #@ if data.values.nodes_info[i].node_name == "single":
     MillisecondsPerBlock: 1000
     MemoryPoolMaxTransactions: 500000
     ValidatorsCount: 1
     StandbyCommittee:
-      - #@ nodes_info[0][3]
+      - #@ data.values.nodes_info[i].validator_hash
     SeedList:
-      - #@ "node:{}".format(nodes_info[0][1])
+      - #@ "node:{}".format(data.values.nodes_info[i].node_port)
     #@ else:
     MillisecondsPerBlock: 15000
     MemoryPoolMaxTransactions: 50000
-    ValidatorsCount: #@ len(nodes_info) - 1
+    ValidatorsCount: #@ nodes_count - 1
     StandbyCommittee:
-      #@ for j in range(1,len(nodes_info)):
-      - #@ nodes_info[j][3]
+      #@ for j in range(1,nodes_count):
+      - #@ data.values.nodes_info[j].validator_hash
       #@ end
     SeedList:
-      #@ for j in range(1,len(nodes_info)):
-      - #@ "node_{}:{}".format(nodes_info[j][0], nodes_info[j][1])
+      #@ for j in range(1,nodes_count):
+      - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
         #@ end
     #@ end
 #@ end

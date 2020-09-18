@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	configPath     = "../.docker/ir/"
-	singleNodeName = "single"
+	configPath       = "../.docker/ir/"
+	templateDataFile = "template.data.yml"
+	singleNodeName   = "single"
 )
 
 var (
@@ -65,8 +66,9 @@ func main() {
 
 func convertTemplateToPlain(templatePath string, tempDir string) error {
 	filePath := configPath + templatePath
+	dataPath := configPath + templateDataFile
 	cmd := template.NewCmd(template.NewOptions())
-	cmd.SetArgs([]string{"-f", filePath, "--output-files", tempDir})
+	cmd.SetArgs([]string{"-f", filePath, "-f", dataPath, "--output-files", tempDir})
 	err := cmd.Execute()
 	if err != nil {
 		return err
