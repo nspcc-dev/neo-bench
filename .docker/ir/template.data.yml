@@ -1,6 +1,7 @@
 #@data/values
 ---
 nodes_info:
+#! the first position in nodes_info list is reserved for the single-node configuration
   - node_name: single
     node_port: 20332
     node_rpc_port: 20331
@@ -9,6 +10,7 @@ nodes_info:
     node_prometheus_port: 40001
     validator_hash: "02b3622bf4017bdfe317c58aed5f4c753f206b7db896046fa7d774bbc4bf7f8dc2"
     wallet_password: "one"
+#! the second position in nodes_info list is reserved for the RPC node configuration
   - node_name: rpc
     node_port: 20332
     node_rpc_port: 20331
