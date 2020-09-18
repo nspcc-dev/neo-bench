@@ -8,6 +8,13 @@ nodes_info:
     node_pprof_port: 20011
     validator_hash: "02b3622bf4017bdfe317c58aed5f4c753f206b7db896046fa7d774bbc4bf7f8dc2"
     wallet_password: "one"
+  - node_name: rpc
+    node_port: 20332
+    node_rpc_port: 20331
+    node_monitoring_port: 2112
+    node_pprof_port: 30005
+    validator_hash: ""
+    wallet_password: ""
   - node_name: one
     node_port: 20333
     node_rpc_port: 30333

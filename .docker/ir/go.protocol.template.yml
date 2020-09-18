@@ -15,13 +15,13 @@ ProtocolConfiguration:
   #@ else:
   MemPoolSize: 50000
   SecondsPerBlock: 5
-  ValidatorsCount: #@ nodes_count - 1
+  ValidatorsCount: #@ nodes_count - 2
   StandbyCommittee:
-    #@ for j in range(1,nodes_count):
+    #@ for j in range(2,nodes_count):
     - #@ data.values.nodes_info[j].validator_hash
       #@ end
   SeedList:
-    #@ for j in range(1,nodes_count):
+    #@ for j in range(2,nodes_count):
     - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
       #@ end
   #@ end
