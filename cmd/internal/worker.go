@@ -315,8 +315,6 @@ loop:
 	defer cancel()
 
 	d.parse(ctx, lastBlockIndx, &lastBlockTime)
-
-	log.Printf("Sent %v transactions in %v seconds", d.countTxs.Load(), lastBlockTime-blk.Timestamp)
 }
 
 func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (lastBlock int) {

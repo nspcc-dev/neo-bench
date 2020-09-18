@@ -19,6 +19,7 @@ import (
 
 const (
 	configPath       = "../.docker/ir/"
+	rpcConfigPath    = "../.docker/rpc/"
 	templateDataFile = "template.data.yml"
 	singleNodeName   = "single"
 )
@@ -92,15 +93,20 @@ func generateGoConfig(templatePath string) error {
 		if err != nil {
 			return fmt.Errorf("unable to decode node template #%d: %v", i, err)
 		}
+		var configFile string
 		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.NodePort, template.ProtocolConfiguration.SeedList)
 		if err != nil {
-			return err
+			// it's an RPC node then
+			configFile = rpcConfigPath + "go.protocol.yml"
+			template.ApplicationConfiguration.UnlockWallet.Path = ""
+		} else {
+			configFile = configPath + "go.protocol.privnet." + nodeName + ".yml"
 		}
 		bytes, err := yaml.Marshal(template)
 		if err != nil {
 			return fmt.Errorf("could not marshal config for node #%s: %v", nodeName, err)
 		}
-		err = ioutil.WriteFile(configPath+"go.protocol.privnet."+nodeName+".yml", bytes, 0644)
+		err = ioutil.WriteFile(configFile, bytes, 0644)
 		if err != nil {
 			return fmt.Errorf("could not write config for node #%s: %v", nodeName, err)
 		}
@@ -125,31 +131,40 @@ func generateSharpConfig(templatePath string) error {
 		if err != nil {
 			return fmt.Errorf("unable to decode node template #%d: %v", i, err)
 		}
+		var (
+			configFile   string
+			protocolFile string
+		)
 		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.P2P.Port, template.ProtocolConfiguration.SeedList)
 		if err != nil {
-			return err
-		}
-		if nodeName == singleNodeName {
-			protocols["sharp.protocol.single.json"] = SharpProtocol{
-				ProtocolConfiguration: template.ProtocolConfiguration,
-			}
+			// it's an RPC node then
+			configFile = rpcConfigPath + "sharp.config.json"
+			protocolFile = rpcConfigPath + "sharp.protocol.json"
+			template.ApplicationConfiguration.UnlockWallet = UnlockWallet{}
+
 		} else {
-			protocols["sharp.protocol.json"] = SharpProtocol{
-				ProtocolConfiguration: template.ProtocolConfiguration,
+			configFile = configPath + "sharp.config." + nodeName + ".json"
+			switch nodeName {
+			case singleNodeName:
+				protocolFile = configPath + "sharp.protocol.single.json"
+			default:
+				protocolFile = configPath + "sharp.protocol.json"
 			}
 		}
-		path := configPath + "sharp.config." + nodeName + ".json"
-		err = writeJSON(path, SharpConfig{
+		protocols[protocolFile] = SharpProtocol{
+			ProtocolConfiguration: template.ProtocolConfiguration,
+		}
+		err = writeJSON(configFile, SharpConfig{
 			ApplicationConfiguration: template.ApplicationConfiguration,
 		})
 		if err != nil {
 			return fmt.Errorf("could not write JSON config file for node #%s: %v", nodeName, err)
 		}
 	}
-	for protocolName, protocol := range protocols {
-		err := writeJSON(configPath+protocolName, protocol)
+	for protocolFile, protocol := range protocols {
+		err := writeJSON(protocolFile, protocol)
 		if err != nil {
-			return fmt.Errorf("could not write JSON protocol file %s: %v", protocolName, err)
+			return fmt.Errorf("could not write JSON protocol file %s: %v", protocolFile, err)
 		}
 	}
 	return nil

@@ -8,3 +8,5 @@ vendor
 .docker/ir/go.protocol.privnet.*.yml
 .docker/ir/sharp.protocol*.json
 .docker/ir/sharp.config.*.json
+.docker/rpc/go.protocol.yml
+.docker/rpc/sharp.*.json

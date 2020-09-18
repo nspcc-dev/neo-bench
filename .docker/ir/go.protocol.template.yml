@@ -15,13 +15,13 @@ ProtocolConfiguration:
   #@ else:
   MemPoolSize: 50000
   SecondsPerBlock: 5
-  ValidatorsCount: #@ nodes_count - 1
+  ValidatorsCount: #@ nodes_count - 2
   StandbyCommittee:
-    #@ for j in range(1,nodes_count):
+    #@ for j in range(2,nodes_count):
     - #@ data.values.nodes_info[j].validator_hash
       #@ end
   SeedList:
-    #@ for j in range(1,nodes_count):
+    #@ for j in range(2,nodes_count):
     - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
       #@ end
   #@ end
@@ -32,16 +32,17 @@ ApplicationConfiguration:
   #! LogPath could be set up in case you need stdout logs to some proper file.
   #! LogPath: "./log/neogo.log"
   DBConfiguration:
-    Type: "leveldb" #! other options: 'inmemory','redis','boltdb'.
-    #! DB type options. Uncomment those you need in case you want to switch DB type.
+    Type: "leveldb" #! other options: 'inmemory','redis','boltdb', 'badgerdb'.
     LevelDBOptions:
       DataDirectoryPath: "/chains/privnet"
-  #!    RedisDBOptions:
-  #!      Addr: "localhost:6379"
-  #!      Password: ""
-  #!      DB: 0
-  #!    BoltDBOptions:
-  #!      FilePath: "./chains/privnet.bolt"
+    RedisDBOptions:
+      Addr: "localhost:6379"
+      Password: ""
+      DB: 0
+    BoltDBOptions:
+      FilePath: "./chains/privnet.bolt"
+    BadgerDBOptions:
+      BadgerDir: "./chains/privnet.badger"
   #!  Uncomment in order to set up custom address for node.
   #!  Address: 127.0.0.1
   NodePort: #@ data.values.nodes_info[i].node_port
@@ -67,6 +68,9 @@ ApplicationConfiguration:
   Pprof:
     Enabled: false
     Port: #@ data.values.nodes_info[i].node_pprof_port
+  Prometheus:
+    Enabled: false
+    Port: #@ data.values.nodes_info[i].node_prometheus_port
   UnlockWallet:
     Path: /config/wallet.json
     Password: #@ data.values.nodes_info[i].wallet_password
