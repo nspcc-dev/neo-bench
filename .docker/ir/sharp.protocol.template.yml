@@ -1,0 +1,44 @@
+#@ load("@ytt:data", "data")
+#@ nodes_count = len(data.values.nodes_info)
+#@ for i in range(0,nodes_count):
+---
+  ApplicationConfiguration:
+    Logger:
+      Path: Logs_{0}
+      ConsoleOutput: true
+      Active: true
+    Storage:
+      Engine: LevelDBStore
+    P2P:
+      Port: #@ data.values.nodes_info[i].node_port
+      WsPort: 9999
+    UnlockWallet:
+      Path: wallet.json
+      Password: #@ data.values.nodes_info[i].wallet_password
+      StartConsensus: true
+      IsActive: true
+    PluginURL: https://github.com/neo-project/neo-plugins/releases/download/v{1}/{0}.zip
+  ProtocolConfiguration:
+    Magic: 56753
+    #@ if data.values.nodes_info[i].node_name == "single":
+    MillisecondsPerBlock: 1000
+    MemoryPoolMaxTransactions: 500000
+    ValidatorsCount: 1
+    StandbyCommittee:
+      - #@ data.values.nodes_info[i].validator_hash
+    SeedList:
+      - #@ "node:{}".format(data.values.nodes_info[i].node_port)
+    #@ else:
+    MillisecondsPerBlock: 15000
+    MemoryPoolMaxTransactions: 50000
+    ValidatorsCount: #@ nodes_count - 1
+    StandbyCommittee:
+      #@ for j in range(1,nodes_count):
+      - #@ data.values.nodes_info[j].validator_hash
+      #@ end
+    SeedList:
+      #@ for j in range(1,nodes_count):
+      - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
+        #@ end
+    #@ end
+#@ end

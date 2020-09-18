@@ -1,0 +1,73 @@
+#@ load("@ytt:data", "data")
+#@ nodes_count = len(data.values.nodes_info)
+#@ for i in range(0,nodes_count):
+---
+ProtocolConfiguration:
+  Magic: 56753
+  #@ if data.values.nodes_info[i].node_name == "single":
+  MemPoolSize: 500000
+  SecondsPerBlock: 1
+  ValidatorsCount: 1
+  StandbyCommittee:
+    - #@ data.values.nodes_info[i].validator_hash
+  SeedList:
+    - #@ "node:{}".format(data.values.nodes_info[i].node_port)
+  #@ else:
+  MemPoolSize: 50000
+  SecondsPerBlock: 5
+  ValidatorsCount: #@ nodes_count - 1
+  StandbyCommittee:
+    #@ for j in range(1,nodes_count):
+    - #@ data.values.nodes_info[j].validator_hash
+      #@ end
+  SeedList:
+    #@ for j in range(1,nodes_count):
+    - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
+      #@ end
+  #@ end
+  VerifyBlocks: true
+  VerifyTransactions: true
+
+ApplicationConfiguration:
+  #! LogPath could be set up in case you need stdout logs to some proper file.
+  #! LogPath: "./log/neogo.log"
+  DBConfiguration:
+    Type: "leveldb" #! other options: 'inmemory','redis','boltdb'.
+    #! DB type options. Uncomment those you need in case you want to switch DB type.
+    LevelDBOptions:
+      DataDirectoryPath: "/chains/privnet"
+  #!    RedisDBOptions:
+  #!      Addr: "localhost:6379"
+  #!      Password: ""
+  #!      DB: 0
+  #!    BoltDBOptions:
+  #!      FilePath: "./chains/privnet.bolt"
+  #!  Uncomment in order to set up custom address for node.
+  #!  Address: 127.0.0.1
+  NodePort: #@ data.values.nodes_info[i].node_port
+  Relay: true
+  DialTimeout: 3
+  ProtoTickInterval: 2
+  PingInterval: 30
+  PingTimeout: 90
+  MaxPeers: 10
+  AttemptConnPeers: 5
+  #@ if data.values.nodes_info[i].node_name == "single":
+  MinPeers: 0
+  #@ else:
+  MinPeers: 3
+  #@ end
+  RPC:
+    Enabled: true
+    EnableCORSWorkaround: false
+    Port: #@ data.values.nodes_info[i].node_rpc_port
+  Monitoring:
+    Enabled: false
+    Port: #@ data.values.nodes_info[i].node_monitoring_port
+  Pprof:
+    Enabled: false
+    Port: #@ data.values.nodes_info[i].node_pprof_port
+  UnlockWallet:
+    Path: /config/wallet.json
+    Password: #@ data.values.nodes_info[i].wallet_password
+#@ end

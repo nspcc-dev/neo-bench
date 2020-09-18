@@ -112,18 +112,66 @@ TPS
 ```
   make <target>
 
-  Targets:
-
-    build    Build all images
-    gen      Generate `dump.txs` (run it before any benchmarks)
-    help     Show this help prompt
-    pull     Pull images from registry
-    push     Push all images to registry
-    single   Bootup NeoGo single node
-    start    Run benchmark (uncomment needed)
-    stop     Stop all containers
-    test     Test local benchmark (go run) with NeoGo single node
+   Targets:
+   
+       build     Build all images
+       config    Generate configurations for single-node and four-nodes networks from templates
+       dump      Generate `dump.acc` for the 4-node network
+       gen       Generate `dump.txs` (run it before any benchmarks)
+       help      Show this help prompt
+       prepare   Generate transactions, dump and nodes configurations for four-nodes network
+       pull      Pull images from registry
+       push      Push all images to registry
+       start     Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
+       stop      Stop all containers
+       test      Test local benchmark (go run) with Neo single node
 ```
+
+The following default configurations are available:
+
+| Make target | Configuration description |
+| --- | --- |
+| `start` | Runs benchmark for all default single-node and four-nodes C# and Go networks. |
+| `start.GoSingle10wrk` | Runs benchmark for single-node Go privat network under the load of 10 workers. |
+| `start.GoSingle30wrk` | Runs benchmark for single-node Go privat network under the load of 30 workers. |
+| `start.GoSingle100wrk` | Runs benchmark for single-node Go privat network under the load of 100 workers. |
+| `start.GoSingle25rate` | Runs benchmark for single-node Go privat network under the load of 25 requests per second. |
+| `start.GoSingle50rate` | Runs benchmark for single-node Go privat network under the load of 50 requests per second. |
+| `start.GoSingle60rate` | Runs benchmark for single-node Go privat network under the load of 60 requests per second. |
+| `start.GoSingle300rate` | Runs benchmark for single-node Go privat network under the load of 300 requests per second. |
+| `start.GoSingle1000rate` | Runs benchmark for single-node Go privat network under the load of 1000 requests per second. |
+| `start.GoFourNodes10wrk` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 10 workers. |
+| `start.GoFourNodes30wrk` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 30 workers. |
+| `start.GoFourNodes100wrk` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 100 workers. |
+| `start.GoFourNodes25rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 25 requests per second. |
+| `start.GoFourNodes50rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 50 requests per second. |
+| `start.GoFoutNodes60rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 60 requests per second. |
+| `start.GoFoutNodes300rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 300 requests per second. |
+| `start.GoFoutNodes1000rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 1000 requests per second. |
+| `start.SharpSingle10wrk` | Runs benchmark for single-node C# privat network under the load of 10 workers. |
+| `start.SharpSingle30wrk` | Runs benchmark for single-node C# privat network under the load of 30 workers. |
+| `start.SharpSingle100wrk` | Runs benchmark for single-node C# privat network under the load of 100 workers. |
+| `start.SharpSingle25rate` | Runs benchmark for single-node C# privat network under the load of 25 requests per second. |
+| `start.SharpSingle50rate` | Runs benchmark for single-node C# privat network under the load of 50 requests per second. |
+| `start.SharpSingle60rate` | Runs benchmark for single-node C# privat network under the load of 60 requests per second. |
+| `start.SharpSingle300rate` | Runs benchmark for single-node C# privat network under the load of 300 requests per second. |
+| `start.SharpSingle1000rate` | Runs benchmark for single-node C# privat network under the load of 1000 requests per second. |
+| `start.SharpFourNodes10wrk` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 10 workers. |
+| `start.SharpFourNodes30wrk` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 30 workers. |
+| `start.SharpFourNodes100wrk` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 100 workers. |
+| `start.SharpFourNodes25rate` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 25 requests per second. |
+| `start.SharpFourNodes50rate` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 50 requests per second. |
+| `start.SharpFoutNodes60rate` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 60 requests per second. |
+| `start.SharpFoutNodes300rate` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 300 requests per second. |
+| `start.SharpFoutNodes1000rate` | Runs benchmark for four-nodes C# privat network with C# RPC node under the load of 1000 requests per second. |
+| `start.SharpFourNodesGoRPC10wrk` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 10 workers. |
+| `start.SharpFourNodesGoRPC30wrk` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 30 workers. |
+| `start.SharpFourNodesGoRPC100wrk` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 100 workers. |
+| `start.SharpFourNodesGoRPC25rate` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 25 requests per second. |
+| `start.SharpFourNodesGoRPC50rate` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 50 requests per second. |
+| `start.SharpFoutNodesGoRPC60rate` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 60 requests per second. |
+| `start.SharpFoutNodesGoRPC300rate` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 300 requests per second. |
+| `start.SharpFoutNodesGoRPC1000rate` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 1000 requests per second. |
 
 ## Runner usage (`.make/runner.sh`)
 

@@ -5,3 +5,6 @@ vendor
 !.docker/ir/out/.gitkeep
 *.txs
 *.log
+.docker/ir/go.protocol.privnet.*.yml
+.docker/ir/sharp.protocol*.json
+.docker/ir/sharp.config.*.json
