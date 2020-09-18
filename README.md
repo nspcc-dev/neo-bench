@@ -254,3 +254,29 @@ of C# node-sources Dockerfile.
    $   make build
    ```
 
+## Nodes configurations
+
+Nodes configuration files are built from templates for better maintenance and flexibility.
+Template files describe application and protocol settings for single node, four nodes and RPC node which are used to run benchmarks.
+[go.protocol.template.yml](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/ir/go.protocol.template.yml)
+is a configuration template for Golang Neo nodes, [sharp.protocol.template.yml](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/ir/sharp.protocol.template.yml)
+is a template for C# Neo node and [template.data.yml](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/ir/template.data.yml)
+contains a set of common data used by both Golang and C# node configurations.
+
+We use [Yaml Templating Tool](https://github.com/k14s/ytt) to generate plain YAML and JSON files from the given templates.
+It is quite intuitive, so if you'd like to change any node settings, just edit the corresponding configuration template and re-generate configuration files by using the following make command:
+```
+   $   make config
+```
+
+To add one more node configuration, provide all necessary information to the `node_info` list of [template.data.yml](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/ir/template.data.yml), e.g.:
+```
+- node_name: five
+    node_port: 20337
+    node_rpc_port: 30337
+    node_monitoring_port: 20005
+    node_pprof_port: 30005
+    node_prometheus_port: 40005
+    validator_hash: "02a7bc55fe8684e0119768d104ba30795bdcc86619e864add26156723ed185cd62"
+    wallet_password: "five"
+```
