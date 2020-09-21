@@ -26,7 +26,9 @@ const (
 
 var (
 	goTemplateFile    = flag.String("go-template", "", "configuration template file for Go node")
+	goDB              = flag.String("go-db", "leveldb", "database for Go node")
 	sharpTemplateFile = flag.String("sharp-template", "", "configuration template file for C# node")
+	sharpDB           = flag.String("sharp-db", "LevelDBStore", "database for C# node")
 )
 
 func main() {
@@ -48,7 +50,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to call ytt for Go template: %v", err)
 		}
-		err = generateGoConfig(tempDir + "/" + templateFile)
+		err = generateGoConfig(tempDir+"/"+templateFile, *goDB)
 		if err != nil {
 			log.Fatalf("failed to generate Go configurations: %v", err)
 		}
@@ -58,7 +60,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to call ytt for C# template: %v", err)
 		}
-		err = generateSharpConfig(tempDir + "/" + templateFile)
+		err = generateSharpConfig(tempDir+"/"+templateFile, *sharpDB)
 		if err != nil {
 			log.Fatalf("failed to generate C# configurations: %v", err)
 		}
@@ -77,7 +79,7 @@ func convertTemplateToPlain(templatePath string, tempDir string) error {
 	return nil
 }
 
-func generateGoConfig(templatePath string) error {
+func generateGoConfig(templatePath string, database string) error {
 	f, err := os.Open(templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to open template: %v", err)
@@ -93,6 +95,7 @@ func generateGoConfig(templatePath string) error {
 		if err != nil {
 			return fmt.Errorf("unable to decode node template #%d: %v", i, err)
 		}
+		template.ApplicationConfiguration.DBConfiguration.Type = database
 		var configFile string
 		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.NodePort, template.ProtocolConfiguration.SeedList)
 		if err != nil {
@@ -114,7 +117,7 @@ func generateGoConfig(templatePath string) error {
 	return nil
 }
 
-func generateSharpConfig(templatePath string) error {
+func generateSharpConfig(templatePath string, storageEngine string) error {
 	f, err := os.Open(templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to open template: %v", err)
@@ -131,6 +134,7 @@ func generateSharpConfig(templatePath string) error {
 		if err != nil {
 			return fmt.Errorf("unable to decode node template #%d: %v", i, err)
 		}
+		template.ApplicationConfiguration.Storage.Engine = storageEngine
 		var (
 			configFile   string
 			protocolFile string
