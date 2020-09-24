@@ -12,6 +12,8 @@
     P2P:
       Port: #@ data.values.nodes_info[i].node_port
       WsPort: 9999
+      MaxConnections: 10
+      MaxConnectionsPerAddress: 3
     UnlockWallet:
       Path: wallet.json
       Password: #@ data.values.nodes_info[i].wallet_password
@@ -29,7 +31,7 @@
     SeedList:
       - #@ "node:{}".format(data.values.nodes_info[i].node_port)
     #@ else:
-    MillisecondsPerBlock: 15000
+    MillisecondsPerBlock: 5000
     MemoryPoolMaxTransactions: 50000
     ValidatorsCount: #@ nodes_count - 2
     StandbyCommittee:
