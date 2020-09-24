@@ -137,6 +137,23 @@ func main() {
 		log.Fatalf("could not fetch last block: %v", err)
 	}
 
+	log.Println("Waiting for an empty block to be processed")
+	startBlockIndex := blk.Index
+	// 4*msPerBlock attempts
+	for attempt := 0; attempt < 16; attempt++ {
+		blk, err = client.GetLastBlock(ctx)
+		if err != nil {
+			log.Fatalf("could not fetch last block: %v", err)
+		}
+		if blk.Index > startBlockIndex {
+			break
+		}
+		time.Sleep(time.Duration(msPerBlock) * time.Millisecond / 4)
+	}
+	if blk.Index == startBlockIndex {
+		log.Fatalf("Timeout waiting for a new empty block")
+	}
+
 	log.Printf("Started test from block = %v at unix time = %v", blk.Index, blk.Timestamp)
 
 	if in := v.GetString("in"); in != "" {
