@@ -81,6 +81,24 @@ while test $# -gt 0; do
       shift
       ;;
 
+    -n)
+      shift
+      if test $# -gt 0; then
+        case "$1" in
+          "single"|"multiple")
+            ARGS="${ARGS} -n $1"
+            ;;
+          *)
+            echo "unknown network mode specified: $1"
+            exit 2
+        esac
+      else
+        echo "network mode should be specified"
+        exit 1
+      fi
+      shift
+      ;;
+
     -w)
       shift
       if test $# -gt 0; then

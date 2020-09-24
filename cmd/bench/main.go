@@ -37,15 +37,16 @@ func main() {
 	defer cancel()
 
 	var (
-		count     int
-		workers   int
-		rate      int
-		threshold time.Duration
-		dump      *internal.Dump
-		desc      = v.GetString("desc")
-		timeLimit = v.GetDuration("timeLimit")
-		mode      = internal.BenchMode(v.GetString("mode"))
-		client    *internal.RPCClient
+		count      int
+		workers    int
+		rate       int
+		msPerBlock int
+		threshold  time.Duration
+		dump       *internal.Dump
+		desc       = v.GetString("desc")
+		timeLimit  = v.GetDuration("timeLimit")
+		mode       = internal.BenchMode(v.GetString("mode"))
+		client     *internal.RPCClient
 	)
 
 	switch mode {
@@ -64,6 +65,13 @@ func main() {
 		client = internal.NewRPCClient(v, 1)
 	}
 
+	// fetch MSPerBlock value from config
+	c, err := internal.DecodeGoConfig("/go.protocol.privnet.yml")
+	if err != nil {
+		log.Fatalf("Failed to get MillisecondsPerBlock value from configuration: %v", err)
+	}
+	msPerBlock = c.ProtocolConfiguration.SecondsPerBlock * 1000
+
 	version, err := client.GetVersion(ctx)
 	if err != nil {
 		log.Fatalf("could not receive RPC Node version: %v", err)
@@ -79,7 +87,8 @@ func main() {
 		internal.ReportDescription(desc+" :: "+version),
 		internal.ReportTimeLimit(timeLimit),
 		internal.ReportWorkersCount(workers),
-		internal.ReportRate(rate))
+		internal.ReportRate(rate),
+		internal.ReportDefaultMSPerBlock(msPerBlock))
 
 	out, err := os.Create(v.GetString("out"))
 	if err != nil {
