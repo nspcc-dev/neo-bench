@@ -13,13 +13,14 @@ type (
 	reporter struct {
 		*sync.Mutex
 
-		name       string
-		TxCount    int32
-		ErrCount   int32
-		AverageRPS float64
-		TPS        []tpsInfo
-		TPSPool    []tpsInfo
-		Stats      [][3]float64 // MillisecondsFromStart, CPU, Mem
+		name              string
+		TxCount           int32
+		ErrCount          int32
+		AverageRPS        float64
+		TPS               []tpsInfo
+		TPSPool           []tpsInfo
+		Stats             [][3]float64 // MillisecondsFromStart, CPU, Mem
+		DefaultMSPerBlock int
 	}
 
 	// tpsInfo stores information useful for counting TPS
@@ -42,11 +43,12 @@ type (
 	}
 
 	reportParams struct {
-		description string
-		mode        BenchMode
-		wrkLimit    int
-		rateLimit   int
-		timeLimit   time.Duration
+		description       string
+		mode              BenchMode
+		wrkLimit          int
+		rateLimit         int
+		timeLimit         time.Duration
+		defaultMSPerBlock int
 	}
 
 	// ReportOption is an option type to configure reporter.
@@ -88,13 +90,21 @@ func ReportRate(rate int) ReportOption {
 	}
 }
 
+// ReportDefaultMSPerBlock sets default MillisecondsPerBlock value.
+func ReportDefaultMSPerBlock(value int) ReportOption {
+	return func(p *reportParams) {
+		p.defaultMSPerBlock = value
+	}
+}
+
 // NewReporter creates reporter.
 func NewReporter(opts ...ReportOption) Reporter {
 	p := reportParams{
-		description: "unknown",
-		mode:        "unknown",
-		wrkLimit:    -1,
-		timeLimit:   -1,
+		description:       "unknown",
+		mode:              "unknown",
+		wrkLimit:          -1,
+		timeLimit:         -1,
+		defaultMSPerBlock: -1,
 	}
 
 	for i := range opts {
@@ -109,8 +119,9 @@ func NewReporter(opts ...ReportOption) Reporter {
 		count = p.rateLimit
 	}
 	return &reporter{
-		Mutex: new(sync.Mutex),
-		name:  fmt.Sprintf("%s / %d %s / %s", p.description, count, p.mode, p.timeLimit),
+		Mutex:             new(sync.Mutex),
+		name:              fmt.Sprintf("%s / %d %s / %s", p.description, count, p.mode, p.timeLimit),
+		DefaultMSPerBlock: p.defaultMSPerBlock,
 	}
 }
 
@@ -141,9 +152,10 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 		cnt int64
 		err error
 
-		tpsCount = float64(len(r.TPS))
-		resCount = float64(len(r.Stats))
-		errRate  = float64(r.ErrCount*100) / float64(r.TxCount+r.ErrCount)
+		tpsCount          = float64(len(r.TPS))
+		resCount          = float64(len(r.Stats))
+		errRate           = float64(r.ErrCount*100) / float64(r.TxCount+r.ErrCount)
+		defaultMSPerBlock = r.DefaultMSPerBlock
 	)
 
 	if num, err = fmt.Fprintf(out, "%s\n\n", r.name); err != nil {
@@ -166,7 +178,12 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 	}
 	cnt += int64(num)
 
-	if num, err = fmt.Fprintf(out, "TPS ≈ %0.3f\n\n", tps/tpsCount); err != nil {
+	if num, err = fmt.Fprintf(out, "TPS ≈ %0.3f\n", tps/tpsCount); err != nil {
+		return cnt + int64(num), err
+	}
+	cnt += int64(num)
+
+	if num, err = fmt.Fprintf(out, "DefaultMSPerBlock = %d\n\n", defaultMSPerBlock); err != nil {
 		return cnt + int64(num), err
 	}
 	cnt += int64(num)

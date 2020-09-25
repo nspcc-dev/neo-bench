@@ -37,7 +37,7 @@ help:
 	start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
-	start.GoFourNodes25rate start.GoFourNodes50rate start.GoFoutNodes60rate start.GoFourNodes300rate start.GoFourNodes1000rate \
+	start.GoFourNodes25rate start.GoFourNodes50rate start.GoFourNodes60rate start.GoFourNodes300rate start.GoFourNodes1000rate \
 	start.SharpSingle10wrk start.SharpSingle30wrk start.SharpSingle100wrk \
 	start.SharpSingle25rate start.SharpSingle50rate start.SharpSingle60rate start.SharpSingle300rate start.SharpSingle1000rate \
 	start.SharpFourNodes10wrk start.SharpFourNodes30wrk start.SharpFourNodes100wrk \

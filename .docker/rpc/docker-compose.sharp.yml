@@ -38,3 +38,4 @@ services:
       - ./out:/out:rw
       - ../../dump.txs:/dump.txs
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./go.protocol.privnet.one.yml:/go.protocol.privnet.yml

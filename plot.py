@@ -73,6 +73,8 @@ def plot_data(path):
         mem = [[]]*len(files)
         avgTps = []*len(files)
         tpb = [[]]*len(files)
+        blockDeltaTime = [[]]*len(files)
+        defaultMSPerBlock = -1
 
         # extract data
         for fileCounter in range(len(files)):
@@ -82,10 +84,17 @@ def plot_data(path):
             memFile = []
             tpsFile = []
             tpbFile = []
+            blockDeltaTimeFile = []
             with open(path + file[0], "r") as f:
                 lines = f.readlines()
                 avgTps.append(float(lines[5][6:]))
-                for i in range(11, len(lines)):
+                msPerBlock = int(lines[6][20:])
+                if defaultMSPerBlock == -1:
+                    defaultMSPerBlock = msPerBlock
+                elif defaultMSPerBlock != msPerBlock:
+                    print("Error: file {} has bad DefaultMSPerBlock value. Please, check that all nodes configurations has the same MillisecondPerBlock value.".format(file[0]))
+                    exit(1)
+                for i in range(12, len(lines)):
                     line = lines[i]
                     cpumem = line.split('%,')
                     if len(cpumem) == 2:
@@ -99,11 +108,13 @@ def plot_data(path):
                 for i in range(tpsStart, len(lines)):
                     tpsFile.append(float(lines[i].split(', ')[2]))
                     tpbFile.append(int(lines[i].split(', ')[1]))
+                    blockDeltaTimeFile.append(int(lines[i].split(', ')[0]))
             tps[fileCounter] = tpsFile
             cpu[fileCounter] = cpuFile
             mem[fileCounter] = memFile
             secondsFromStart[fileCounter] = secondsFromStartFile
             tpb[fileCounter] = tpbFile
+            blockDeltaTime[fileCounter] = blockDeltaTimeFile
 
         # plot tps for `name`
         for i in range(len(files)):
@@ -130,6 +141,20 @@ def plot_data(path):
         plt.xlim(left=0)
         plt.ylim(bottom=0)
         plt.savefig('./img/tpb_' + name.replace(' ', '_') + '.png')
+        plt.close()
+
+        # plot milliseconds per block for `name`
+        for i in range(len(files)):
+            file = files[i]
+            plt.plot(blockDeltaTime[i], label=file[1], color=file[2], linewidth=0.8)
+        plt.axhline(y=defaultMSPerBlock, label='target value',linestyle='--', color='red', linewidth=0.8)
+        plt.xlabel('Blocks')
+        plt.ylabel('Milliseconds per block')
+        plt.title('Milliseconds per block, '+name)
+        plt.legend()
+        plt.xlim(left=-1)
+        plt.ylim(bottom=defaultMSPerBlock-1000)
+        plt.savefig('./img/ms_per_block_' + name.replace(' ', '_') + '.png')
         plt.close()
 
         # plot cpu for `name`

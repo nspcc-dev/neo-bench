@@ -2,11 +2,14 @@ package internal
 
 import (
 	"compress/gzip"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
 
+	"github.com/nspcc-dev/neo-go/pkg/config"
 	"github.com/nspcc-dev/neo-go/pkg/io"
+	"gopkg.in/yaml.v2"
 )
 
 // ReadDump used to open dump of transactions.
@@ -57,4 +60,18 @@ func ReadDump(from string) *Dump {
 
 	log.Printf("Done %s", time.Since(start))
 	return dump
+}
+
+// DecodeGoConfig decodes Golang node configuration from yaml file.
+func DecodeGoConfig(path string) (config.Config, error) {
+	var config = config.Config{}
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return config, err
+	}
+	err = yaml.Unmarshal(bytes, &config)
+	if err != nil {
+		return config, err
+	}
+	return config, nil
 }
