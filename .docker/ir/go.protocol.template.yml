@@ -62,6 +62,7 @@ ApplicationConfiguration:
     Enabled: true
     EnableCORSWorkaround: false
     Port: #@ data.values.nodes_info[i].node_rpc_port
+    MaxGasInvoke: 50
   Monitoring:
     Enabled: false
     Port: #@ data.values.nodes_info[i].node_monitoring_port
