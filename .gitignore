@@ -10,3 +10,4 @@ vendor
 .docker/ir/sharp.config.*.json
 .docker/rpc/go.protocol.yml
 .docker/rpc/sharp.*.json
+.docker/build/*.acc

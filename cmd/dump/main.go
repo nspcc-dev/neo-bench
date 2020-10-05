@@ -79,10 +79,7 @@ func addBlock(bc *core.Blockchain, c *signer, txs ...*transaction.Transaction) e
 		Transactions: txs,
 	}
 
-	err = b.RebuildMerkleRoot()
-	if err != nil {
-		return err
-	}
+	b.RebuildMerkleRoot()
 
 	c.signBlock(b)
 	return bc.AddBlock(b)
@@ -175,7 +172,7 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	if *isSingle {
 		txUpdatePolicy.NetworkFee = 1500000
 	} else {
-		txUpdatePolicy.NetworkFee = 4500000
+		txUpdatePolicy.NetworkFee = 4600000
 	}
 	txUpdatePolicy.ValidUntilBlock = 1000
 	txUpdatePolicy.Signers = append(txUpdatePolicy.Signers, transaction.Signer{
