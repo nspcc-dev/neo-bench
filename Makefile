@@ -115,28 +115,35 @@ pull:
 	@docker pull $(HUB)-sharp:$(TAG)
 
 # Generate `dump.txs` (run it before any benchmarks)
-gen: deps dump.txs
-	@echo "=> Transactions dump is up-to-date"
+gen: dump.txs
 
 # IGNORE: create transactions dump
-dump.txs: cmd/gen/main.go
+dump.txs: deps cmd/gen/main.go
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
 		&& go run ./gen -out ../dump.txs
 
-dump.single: deps config .docker/build/single.acc cmd/dump/main.go cmd/dump/chain.go
+# Generate both block dumps used for tests.
+dumps: ../$(BUILD_DIR)/single.acc ../$(BUILD_DIR)/dump.acc
+
+# Generate `single.acc` for single-node network
+dump.single: ../$(BUILD_DIR)/single.acc
+
+../$(BUILD_DIR)/single.acc: deps config cmd/dump/main.go cmd/dump/chain.go
 	@echo "=> Generate block dump for the single node network"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./dump -single -out ../$(BUILD_DIR)/single.acc
+		&& go run ./dump -single -out $@
 
 # Generate `dump.acc` for the 4-node network
-dump: deps config .docker/build/dump.acc cmd/dump/main.go cmd/dump/chain.go
+dump: ../$(BUILD_DIR)/dump.acc
+
+../$(BUILD_DIR)/dump.acc: deps config cmd/dump/main.go cmd/dump/chain.go
 	@echo "=> Generate block dump for the 4-node network"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./dump -out ../$(BUILD_DIR)/dump.acc
+		&& go run ./dump -out $@
 
 # Generate configurations for single-node and four-nodes networks from templates
 config: deps
