@@ -125,25 +125,25 @@ $(BUILD_DIR)/dump.txs: deps cmd/gen/main.go
 		&& go run ./gen -out ../$@
 
 # Generate both block dumps used for tests.
-dumps: ../$(BUILD_DIR)/single.acc ../$(BUILD_DIR)/dump.acc
+dumps: $(BUILD_DIR)/single.acc $(BUILD_DIR)/dump.acc
 
 # Generate `single.acc` for single-node network
-dump.single: ../$(BUILD_DIR)/single.acc
+dump.single: $(BUILD_DIR)/single.acc
 
-../$(BUILD_DIR)/single.acc: deps config cmd/dump/main.go cmd/dump/chain.go
+$(BUILD_DIR)/single.acc: deps config cmd/dump/main.go cmd/dump/chain.go
 	@echo "=> Generate block dump for the single node network"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./dump -single -out $@
+		&& go run ./dump -single -out ../$@
 
 # Generate `dump.acc` for the 4-node network
-dump: ../$(BUILD_DIR)/dump.acc
+dump: $(BUILD_DIR)/dump.acc
 
-../$(BUILD_DIR)/dump.acc: deps config cmd/dump/main.go cmd/dump/chain.go
+$(BUILD_DIR)/dump.acc: deps config cmd/dump/main.go cmd/dump/chain.go
 	@echo "=> Generate block dump for the 4-node network"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./dump -out $@
+		&& go run ./dump -out ../$@
 
 # Generate configurations for single-node and four-nodes networks from templates
 config: deps
