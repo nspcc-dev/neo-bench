@@ -82,7 +82,7 @@ test: single.go deps
 	@echo "=> Test Single node"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./bench -o ../single.log -i ../dump.txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
+		&& go run ./bench -o ../single.log -i ../$(BUILD_DIR)/dump.txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
 	@make stop
 
 # Bootup NeoGo single node
@@ -115,14 +115,14 @@ pull:
 	@docker pull $(HUB)-sharp:$(TAG)
 
 # Generate `dump.txs` (run it before any benchmarks)
-gen: dump.txs
+gen: $(BUILD_DIR)/dump.txs
 
 # IGNORE: create transactions dump
-dump.txs: deps cmd/gen/main.go
+$(BUILD_DIR)/dump.txs: deps cmd/gen/main.go
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./gen -out ../dump.txs
+		&& go run ./gen -out ../$@
 
 # Generate both block dumps used for tests.
 dumps: ../$(BUILD_DIR)/single.acc ../$(BUILD_DIR)/dump.acc
