@@ -46,7 +46,7 @@ help:
 	start.SharpFourNodesGoRPC25rate start.SharpFourNodesGoRPC50rate start.SharpFourNodesGoRPC60rate start.SharpFourNodesGoRPC300rate start.SharpFourNodesGoRPC1000rate
 
 # Build all images
-build: build.node.bench build.node.go build.node.sharp
+build: dumps gen build.node.bench build.node.go build.node.sharp
 
 # Push all images to registry
 push:
@@ -114,7 +114,7 @@ pull:
 	@docker pull $(HUB)-go:$(TAG)
 	@docker pull $(HUB)-sharp:$(TAG)
 
-# Generate `dump.txs` (run it before any benchmarks)
+# Generate `dump.txs`
 gen: $(BUILD_DIR)/dump.txs
 
 # IGNORE: create transactions dump
