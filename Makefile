@@ -75,7 +75,7 @@ build.node.go: deps
 # IGNORE: Build NeoSharp node image
 build.node.sharp:
 	@echo "=> Building Sharp Node image $(HUB)-sharp:$(TAG)"
-	@docker build -t $(HUB)-sharp:$(TAG) -f $(DF_SHARP) $(BUILD_DIR)
+	@docker build -q -t $(HUB)-sharp:$(TAG) -f $(DF_SHARP) $(BUILD_DIR)
 
 # Test local benchmark (go run) with Neo single node
 test: single.go deps
