@@ -44,7 +44,7 @@ func newTX(wif *keys.WIF) *transaction.Transaction {
 	emit.AppCallWithOperationAndArgs(w.BinWriter,
 		client.NeoContractHash, "transfer",
 		fromAddressHash, fromAddressHash, int64(1))
-	emit.Opcode(w.BinWriter, opcode.ASSERT)
+	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
 	tx := transaction.New(netmode.PrivNet, script, 10000000)
