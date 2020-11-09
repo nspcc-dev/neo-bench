@@ -9,7 +9,7 @@ RUN set -x \
 
 # Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-ENV CLIBRANCH="v3.0.0-preview3"
+ENV CLIBRANCH="90c7f396df2ac52c4ced880c433d286719e578ce"
 RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /tmp/neo-node/ /tmp/neo-cli.zip && \
     mkdir /build && \
@@ -21,7 +21,7 @@ RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${C
     rm -rf /build /tmp/neo-cli.zip /tmp/neo-node
 
 # Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
-ENV MODULESBRANCH="fed3f7a87d65d91bbe4e42bce94734cc76571d5c"
+ENV MODULESBRANCH="f88961d0c1348b1d5f01fc0c2a1ae25532c83f59"
 ENV MODULES="LevelDBStore RocksDBStore RpcServer"
 RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
     unzip -q -d /tmp/neo-modules/ /tmp/neo-modules.zip && \
@@ -43,7 +43,7 @@ RUN dotnet publish -c Release /tmp/neo-modules/*/src/RpcServer/ && \
     rm -rf /tmp/neo-modules.zip /tmp/neo-modules
 
 # Publish neo-vm from source as a self-contained deployment for linux-64 into /neo-vm folder (although neo-vm does not have dependant .dlls)
-ENV NEOVMBRANCH="1b14ec0c20e3a3cddc2263e007a264b3ef90fb62"
+ENV NEOVMBRANCH="a14b934f5b5c8779164e3b96b276984b3a57ccd4"
 RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
     unzip -q -d /tmp/neo-vm/ /tmp/neo-vm.zip && \
     dotnet restore /tmp/neo-vm/*/src/neo-vm/ && \
@@ -51,7 +51,7 @@ RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOV
     rm -rf /tmp/neo-vm.zip tmp/neo-vm
 
 # Publish neo from source as a self-contained deployment for linux-64 into /neo folder (all dependant .dlls are included)
-ENV NEOBRANCH="ab7ec04925c1e10c9338e3deb8880e93b75ff306"
+ENV NEOBRANCH="5d5bd0222a4d2f10cf90f3b9b72386ae77ca750f"
 RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /tmp/neo/ /tmp/neo.zip && \
     mkdir /build && \
@@ -96,9 +96,10 @@ COPY --from=Build /Plugins /neo-cli/Plugins/
 # Comment this step in case if you need neo.dll from neo-cli.
 # IMPORTANT: if there's a mismatch between neo-cli's and neo's version, be careful with their dependencies.
 # All neo dependent .dlls have version of neo-cli (as far as we copied the whole pack of neo-cli dependencies).
-# If you need any particular .dll to have version of neo (not neo-cli), just copy this neo dependent .dll from /neo/ into /neo-ci/ folder, e.g.:
+# If you need any particular .dll to have version of neo (not neo-cli), just copy this neo dependent .dll from /neo/ into /neo-cli/ folder, e.g.:
 # COPY --from-Build /neo/NeoDependentLibrary.dll /neo-cli/
 COPY --from=Build /neo/Neo.dll /neo-cli/
+COPY --from=Build /neo/BouncyCastle.Crypto.dll /neo-cli/
 
 # Replace existing Neo.VM.dll (it's one of the neo-cli dependencies) with the built one from /neo-vm/ folder of Build.
 # Comment this step in case if you need Neo.VM.dll from neo-cli.
