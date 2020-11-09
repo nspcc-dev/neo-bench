@@ -129,7 +129,7 @@ func initChain(single bool) (*core.Blockchain, *signer, error) {
 func newNEP5Transfer(sc util.Uint160, from, to util.Uint160, amount int64) *transaction.Transaction {
 	w := io.NewBufBinWriter()
 	emit.AppCallWithOperationAndArgs(w.BinWriter, sc, "transfer", from, to, amount)
-	emit.Opcode(w.BinWriter, opcode.ASSERT)
+	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
 	tx := transaction.New(netmode.PrivNet, script, 10000000)
@@ -152,8 +152,8 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 		return err
 	}
 
-	txMoveNeo := newNEP5Transfer(client.NeoContractHash, c.addr, priv.GetScriptHash(), native.NEOTotalSupply)
-	txMoveGas := newNEP5Transfer(client.GasContractHash, c.addr, priv.GetScriptHash(), native.GASFactor*29000000)
+	txMoveNeo := newNEP5Transfer(bc.GoverningTokenHash(), c.addr, priv.GetScriptHash(), native.NEOTotalSupply)
+	txMoveGas := newNEP5Transfer(bc.UtilityTokenHash(), c.addr, priv.GetScriptHash(), native.GASFactor*29000000)
 	c.signTx(txMoveNeo, txMoveGas)
 
 	err = addBlock(bc, c, txMoveNeo, txMoveGas)
@@ -164,9 +164,9 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	// update max tx per block
 	w := io.NewBufBinWriter()
 	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxTransactionsPerBlock", int64(txPerBlock))
-	emit.Opcode(w.BinWriter, opcode.ASSERT)
+	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxBlockSize", int64(payload.MaxSize/2))
-	emit.Opcode(w.BinWriter, opcode.ASSERT)
+	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	script := w.Bytes()
 	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 10000000)
 	if *isSingle {

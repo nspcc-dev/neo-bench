@@ -3,8 +3,8 @@ package internal
 import (
 	"context"
 	crand "crypto/rand"
+	"encoding/base64"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -179,7 +179,7 @@ func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, erro
 	}
 
 	blk := block.New(netmode.PrivNet)
-	body, err := hex.DecodeString(res)
+	body, err := base64.StdEncoding.DecodeString(res)
 	if err != nil {
 		return nil, err
 	}
