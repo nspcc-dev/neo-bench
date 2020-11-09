@@ -175,7 +175,7 @@ func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, erro
 	res := ""
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "getblock", "params": [%v]}`, index)
 	if err := c.doRPCCall(ctx, rpc, &res, c.blockRequester); err != nil {
-
+		return nil, err
 	}
 
 	blk := block.New(netmode.PrivNet)
