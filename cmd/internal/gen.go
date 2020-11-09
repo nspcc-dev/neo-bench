@@ -10,7 +10,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
+	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
 	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
 	"github.com/nspcc-dev/neo-go/pkg/wallet"
@@ -39,12 +39,13 @@ func getWif() (*keys.WIF, error) {
 // newTX returns Invocation transaction with some random attributes in order to have different hashes.
 func newTX(wif *keys.WIF) *transaction.Transaction {
 	fromAddressHash := wif.PrivateKey.GetScriptHash()
+	neoContractHash, _ := util.Uint160DecodeStringBE("25059ecb4878d3a875f91c51ceded330d4575fde")
 
 	w := io.NewBufBinWriter()
 	emit.AppCallWithOperationAndArgs(w.BinWriter,
-		client.NeoContractHash, "transfer",
+		neoContractHash, "transfer",
 		fromAddressHash, fromAddressHash, int64(1))
-	emit.Opcode(w.BinWriter, opcode.ASSERT)
+	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
 	tx := transaction.New(netmode.PrivNet, script, 10000000)
