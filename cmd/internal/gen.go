@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	"encoding/hex"
+	"encoding/base64"
 	"log"
 	"time"
 
@@ -101,7 +101,7 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		}
 
 		hash := tx.Hash().String()
-		blob := hex.EncodeToString(buf.Bytes())
+		blob := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 		dump.Hashes[hash] = struct{}{}
 		dump.Transactions = append(dump.Transactions, blob)

@@ -9,7 +9,7 @@ RUN set -x \
 
 # Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-ENV CLIBRANCH="90c7f396df2ac52c4ced880c433d286719e578ce"
+ENV CLIBRANCH="cc7307c5eef5c7f77772c037f4b7619dae55a6bb"
 RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /tmp/neo-node/ /tmp/neo-cli.zip && \
     mkdir /build && \
@@ -21,7 +21,7 @@ RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${C
     rm -rf /build /tmp/neo-cli.zip /tmp/neo-node
 
 # Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
-ENV MODULESBRANCH="f88961d0c1348b1d5f01fc0c2a1ae25532c83f59"
+ENV MODULESBRANCH="e8a69c460be235cd9f10de3d1a2667b150252a52"
 ENV MODULES="LevelDBStore RocksDBStore RpcServer"
 RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
     unzip -q -d /tmp/neo-modules/ /tmp/neo-modules.zip && \
@@ -51,7 +51,7 @@ RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOV
     rm -rf /tmp/neo-vm.zip tmp/neo-vm
 
 # Publish neo from source as a self-contained deployment for linux-64 into /neo folder (all dependant .dlls are included)
-ENV NEOBRANCH="5d5bd0222a4d2f10cf90f3b9b72386ae77ca750f"
+ENV NEOBRANCH="54eff7e3662085a86a5e6cfefdc3e019215830f4"
 RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /tmp/neo/ /tmp/neo.zip && \
     mkdir /build && \
