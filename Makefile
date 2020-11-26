@@ -14,7 +14,8 @@ DC_SHARP_RPC=.docker/rpc/docker-compose.sharp.yml
 DF_GO=.docker/build/Dockerfile.golang
 DF_BENCH=.docker/build/Dockerfile.bench
 DF_SHARP=.docker/build/Dockerfile.sharp
-#DF_SHARP=.docker/build/Dockerfile.sharp.sources
+#DF_SHARP=.docker/build/Dockerfile.sharp.sources.from_binaries
+#DF_SHARP=.docker/build/Dockerfile.sharp.sources.from_local_dependencies
 
 TAG=bench
 HUB=nspccdev/neo-node
