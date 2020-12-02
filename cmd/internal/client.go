@@ -178,7 +178,7 @@ func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, erro
 		return nil, err
 	}
 
-	blk := block.New(netmode.PrivNet)
+	blk := block.New(netmode.PrivNet, false)
 	body, err := base64.StdEncoding.DecodeString(res)
 	if err != nil {
 		return nil, err

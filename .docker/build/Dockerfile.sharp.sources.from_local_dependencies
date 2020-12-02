@@ -1,0 +1,113 @@
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS Build
+
+# Install system dependencies.
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y \
+        unzip \
+        wget
+
+# Download and unpack neo-node, neo-modules, neo-vm and neo source code.
+# The main project structure is:
+# /
+# └── neo-project
+#           ├── neo
+#           ├── neo-node
+#           │    ├── neo-cli
+#           │    ├── neo-gui
+#           │    └── Neo.ConsoleService
+#           │
+#           ├── neo-modules
+#           └── neo-vm
+# Use ENV variables to specify branch, version or revision to download.
+ENV CLIBRANCH="cc7307c5eef5c7f77772c037f4b7619dae55a6bb"
+ENV MODULESBRANCH="e8a69c460be235cd9f10de3d1a2667b150252a52"
+ENV MODULES="LevelDBStore RocksDBStore RpcServer"
+ENV NEOVMBRANCH="a14b934f5b5c8779164e3b96b276984b3a57ccd4"
+ENV NEOBRANCH="54eff7e3662085a86a5e6cfefdc3e019215830f4"
+RUN mkdir /neo-project && \
+    wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
+    unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
+    mv /neo-project/neo-node-${CLIBRANCH} /neo-project/neo-node/ && \
+    wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
+    unzip -q -d /neo-project/ /tmp/neo-modules.zip && \
+    mv /neo-project/neo-modules-${MODULESBRANCH} /neo-project/neo-modules/ && \
+    wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
+    unzip -q -d /neo-project/ /tmp/neo-vm.zip && \
+    mv /neo-project/neo-vm-${NEOVMBRANCH} /neo-project/neo-vm/ && \
+    wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
+    unzip -q -d /neo-project/ /tmp/neo.zip && \
+    mv /neo-project/neo-${NEOBRANCH} /neo-project/neo/
+
+# Update project references in order to include local projects instead of MyGet NuGet packages.
+RUN sed -i '/PackageReference Include="Neo" Version=/c \    <ProjectReference Include="..\\..\\neo\\src\\neo\\neo.csproj" \/>' /neo-project/neo-node/neo-cli/neo-cli.csproj && \
+    sed -i '/<PackageReference Include="Neo.VM" Version=/c \    <ProjectReference Include="..\\..\\..\\neo-vm\\src\\neo-vm\\neo-vm.csproj" \/>' /neo-project/neo/src/neo/neo.csproj && \
+    sed -i '/<PackageReference Include="Neo" Version=/c \    <ProjectReference Include="..\\..\\..\\neo\\src\\neo\\neo.csproj" \/>' /neo-project/neo-modules/src/Directory.Build.props
+
+# Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
+# See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
+RUN dotnet publish -c Release -r linux-x64 /neo-project/neo-node/neo-cli -o /neo-cli
+
+# Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
+RUN mkdir /Plugins && \
+    for mod in ${MODULES}; do \
+        dotnet restore /neo-project/neo-modules/src/${mod}/; \
+        dotnet build -c Release /neo-project/neo-modules/src/${mod}/; \
+        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/netstandard2.1/* /Plugins/; \
+    done
+
+# Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
+# Use `dotnet publish` instead of `dotnet build` and copy all necessary .dlls from `publish` folder.
+# For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
+RUN dotnet publish -c Release /neo-project/neo-modules/src/RpcServer/ && \
+    cp /neo-project/neo-modules/src/RpcServer/bin/Release/netstandard2.1/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
+    dotnet publish -c Release /neo-project/neo-modules/src/RocksDBStore/ && \
+    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbSharp.dll /Plugins/ && \
+    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbNative.dll /Plugins/
+
+# All things are published, so build the final image by copying binaries from Build
+FROM microsoft/dotnet:3.0-runtime-stretch-slim as Final
+
+# Frontend non-interactive
+ENV DEBIAN_FRONTEND noninteractive
+
+# Disable dotnet usage information collection
+# https://docs.microsoft.com/en-us/dotnet/core/tools/telemetry#behavior
+ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
+
+# Install system dependencies. always should be done in one line
+# https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#run
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y \
+        libleveldb-dev \
+        screen \
+        jq \
+        libssl-dev \
+        libunwind8 \
+        librocksdb-dev \
+        libc6-dev \
+    # APT cleanup to reduce image size
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy neo-cli and all dependant .dlls from Build
+COPY --from=Build /neo-cli /neo-cli/
+
+# Copy Plugins without dependant .dlls from Build
+COPY --from=Build /Plugins /neo-cli/Plugins/
+
+# A welcome message for bash users
+RUN echo "printf \"\n* Consensus nodes are running in screen sessions, check 'screen -ls'\"" >> /root/.bashrc
+RUN echo "printf \"\n* Please report issues to https://github.com/CityOfZion/neo-local\n\n\"" >> /root/.bashrc
+
+WORKDIR /neo-cli
+
+RUN chmod +x /neo-cli/neo-cli
+
+COPY ./dump.acc /
+COPY ./single.acc /
+COPY ./sharp.entrypoint.sh /entrypoint.sh
+COPY ./sharp.healthcheck.sh /healthcheck.sh
+COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
+
+ENTRYPOINT [ "/entrypoint.sh" ]
