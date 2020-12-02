@@ -56,7 +56,9 @@ push:
 	docker push $(HUB)-sharp:$(TAG)
 
 # IGNORE
-deps:
+deps: cmd/vendor
+
+cmd/vendor:
 	@echo "=> Fetch deps"
 	@set -x \
 		&& cd cmd/ \
@@ -119,7 +121,7 @@ pull:
 gen: $(BUILD_DIR)/dump.txs
 
 # IGNORE: create transactions dump
-$(BUILD_DIR)/dump.txs: deps cmd/gen/main.go
+$(BUILD_DIR)/dump.txs: cmd/vendor cmd/gen/main.go
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
@@ -151,7 +153,7 @@ config: deps
 	@echo "=> Generate configurations for single-node and four-nodes networks from templates"
 	@set -x \
 		&& cd ./cmd \
-		&& go run ./config/ --go-template go.protocol.template.yml --go-db leveldb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
+		&& go run ./config/ --go-template go.protocol.template.yml --go-db boltdb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
