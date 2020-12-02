@@ -5,6 +5,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    logging:
+      driver: "none"
     container_name: neo-cli-node-one
     command: --rpc
     volumes:
@@ -27,6 +29,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    logging:
+      driver: "none"
     container_name: neo-cli-node-two
     command: --rpc
     volumes:
@@ -49,6 +53,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    logging:
+      driver: "none"
     container_name: neo-cli-node-three
     command: --rpc
     volumes:
@@ -71,6 +77,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    logging:
+      driver: "none"
     container_name: neo-cli-node-four
     command: --rpc
     volumes:

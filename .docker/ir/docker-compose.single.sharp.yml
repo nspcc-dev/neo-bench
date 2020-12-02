@@ -5,6 +5,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    logging:
+      driver: "none"
     command: --rpc
     ports: [ "20331:20331" ]
     environment:
