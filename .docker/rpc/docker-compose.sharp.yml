@@ -5,6 +5,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    logging:
+      driver: "none"
     container_name: sharp-node
     command: --rpc
     depends_on: [ "healthy" ]

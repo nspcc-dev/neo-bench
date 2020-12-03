@@ -5,6 +5,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-go:bench
+    logging:
+      driver: "none"
     command: "node --config-path /config --privnet"
     ports: [ "20331:20331" ]
     healthcheck:
