@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Workiva/go-datastructures/queue"
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
@@ -19,8 +20,8 @@ import (
 type (
 	// Dump contains hashes and marshaled transactions.
 	Dump struct {
-		Hashes       map[string]struct{}
-		Transactions []string
+		Hashes            map[string]struct{}
+		TransactionsQueue *queue.RingBuffer
 	}
 
 	// GenerateCallback used to do something with hash and marshaled transactions when generates.
@@ -66,8 +67,8 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 	start := time.Now()
 
 	dump := Dump{
-		Hashes:       make(map[string]struct{}, count),
-		Transactions: make([]string, 0, count),
+		Hashes:            make(map[string]struct{}, count),
+		TransactionsQueue: queue.NewRingBuffer(uint64(count)),
 	}
 
 	log.Printf("Generate %d txs", count)
@@ -107,7 +108,10 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		blob := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 		dump.Hashes[hash] = struct{}{}
-		dump.Transactions = append(dump.Transactions, blob)
+		err := dump.TransactionsQueue.Put(blob)
+		if err != nil {
+			log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
+		}
 
 		for j := range callback {
 			if err := callback[j](hash, blob); err != nil {

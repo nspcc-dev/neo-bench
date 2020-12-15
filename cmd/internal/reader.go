@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Workiva/go-datastructures/queue"
 	"github.com/nspcc-dev/neo-go/pkg/config"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"gopkg.in/yaml.v2"
@@ -40,8 +41,8 @@ func ReadDump(from string) *Dump {
 	count := rd.ReadU64LE()
 
 	dump := &Dump{
-		Hashes:       make(map[string]struct{}, count),
-		Transactions: make([]string, 0, count),
+		Hashes:            make(map[string]struct{}, count),
+		TransactionsQueue: queue.NewRingBuffer(count),
 	}
 
 	start := time.Now()
@@ -55,7 +56,10 @@ func ReadDump(from string) *Dump {
 		}
 
 		dump.Hashes[hash] = struct{}{}
-		dump.Transactions = append(dump.Transactions, blob)
+		err := dump.TransactionsQueue.Put(blob)
+		if err != nil {
+			log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
+		}
 	}
 
 	log.Printf("Done %s", time.Since(start))

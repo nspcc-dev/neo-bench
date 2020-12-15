@@ -158,7 +158,7 @@ func main() {
 
 	if in := v.GetString("in"); in != "" {
 		dump = internal.ReadDump(in)
-		count = len(dump.Transactions)
+		count = int(dump.TransactionsQueue.Len())
 	} else {
 		dump = internal.Generate(ctx, count)
 	}

@@ -177,7 +177,7 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		return nil, errors.New("workers count could not be empty")
 	case p.dump == nil:
 		return nil, errors.New("dump could not be empty")
-	case len(p.dump.Transactions) < 1:
+	case p.dump.TransactionsQueue.Len() < 1:
 		return nil, errors.New("txs could not be empty")
 	case len(p.dump.Hashes) < 1:
 		return nil, errors.New("hashes could not be empty")
@@ -185,7 +185,7 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		return nil, errors.New("blockchain client count could not be empty")
 	}
 
-	ln := len(p.dump.Transactions)
+	ln := int(p.dump.TransactionsQueue.Len())
 
 	switch p.mode {
 	case ModeRate:
@@ -212,10 +212,10 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 	return w, nil
 }
 
+// idx defines the order of the transaction being sent and can be more than overall transactions count, because retransmission is supported.
 func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 	var (
 		done  = ctx.Done()
-		ln    = int64(d.txCount)
 		timer = time.NewTimer(d.timeLimit)
 	)
 
@@ -233,12 +233,25 @@ loop:
 			return
 		default:
 			i := idx.Inc()
-			if i >= ln {
+			if d.dump.TransactionsQueue.Len() == 0 {
 				return
 			}
-
-			if err := d.cli.SendTX(ctx, d.dump.Transactions[i]); err != nil {
-				d.countErr.Inc()
+			tx, err := d.dump.TransactionsQueue.Get()
+			if err != nil {
+				log.Fatalf("cannot dequeue transaction: %s", err)
+				return
+			}
+			if err := d.cli.SendTX(ctx, tx.(string)); err != nil {
+				if errors.Is(err, ErrMempoolOOM) {
+					err := d.dump.TransactionsQueue.Put(tx.(string))
+					if err != nil {
+						log.Printf("failed to re-enqueue transaction: %s\n", err)
+						d.countErr.Inc()
+					}
+					time.Sleep(100 * time.Millisecond)
+				} else {
+					d.countErr.Inc()
+				}
 				continue loop
 				//d.stop()
 				//return
