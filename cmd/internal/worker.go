@@ -423,5 +423,5 @@ func (d *doer) Sender(ctx context.Context) {
 		log.Println("All transactions have been sent successfully")
 	}
 
-	log.Printf("RPC Errors: %d / %0.3f%%", errCount, (float64(errCount)/float64(count))*100)
+	log.Printf("RPC Errors: %d / %0.3f%%", errCount, (float64(errCount)/float64(count+errCount))*100)
 }
