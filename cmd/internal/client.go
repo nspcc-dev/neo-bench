@@ -6,44 +6,25 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/rpc/response"
 	"github.com/nspcc-dev/neo-go/pkg/util"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/atomic"
 )
 
 type (
-	// rpcResponse is base JSON RPC response
-	// easyjson:json
-	rpcResponse struct {
-		ID      int             `json:"id"`
-		Version string          `json:"jsonrpc"`
-		Result  json.RawMessage `json:"result"`
-		*errorResponse
-	}
-
-	// errorResponse struct for RPC error response.
-	// easyjson:json
-	errorResponse struct {
-		ErrorResult struct {
-			Code    int    `json:"code"`
-			Data    string `json:"data"`
-			Message string `json:"message"`
-		} `json:"error"`
-	}
-
 	// versionResponse struct for RPC version response.
 	// easyjson:json
 	versionResponse struct {
@@ -72,15 +53,12 @@ type (
 // DefaultTimeout used for requests.
 const DefaultTimeout = time.Second * 30
 
-var reg = regexp.MustCompile(`[^\w.-]+`)
+var (
+	// ErrMempoolOOM is returned from `sendrawtransaction` when node cannot process transaction due to mempool OOM
+	ErrMempoolOOM = errors.New("node cannot process transaction due to mempool OOM")
 
-func (v errorResponse) Error() string {
-	if v.ErrorResult.Code == 0 {
-		return ""
-	}
-
-	return "Error #" + strconv.Itoa(v.ErrorResult.Code) + ": " + v.ErrorResult.Message + " " + v.ErrorResult.Data
-}
+	reg = regexp.MustCompile(`[^\w.-]+`)
+)
 
 // NewRPCClient creates new client for RPC communications.
 func NewRPCClient(v *viper.Viper, maxConnsPerHost int) *RPCClient {
@@ -162,6 +140,9 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
 
 	if err := c.doRPCCall(ctx, rpc, &res, c.txSender); err != nil {
+		if respErr, ok := err.(*response.Error); ok && (respErr.Message == "The memory pool is full and no more transactions can be sent." || respErr.Message == "OutOfMemory") {
+			return ErrMempoolOOM
+		}
 		return err
 	} else if res.Hash.Equals(util.Uint256{}) {
 		return errors.New("SendTX request failed")
@@ -214,17 +195,17 @@ func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}
 	// reqData, _ := httputil.DumpRequest(req, true)
 	// fmt.Println(string(reqData))
 
-	resp := new(rpcResponse)
+	resp := new(response.Raw)
 	if err := client.Do(req, res); err != nil {
-		return errors.Errorf("error after calling rpc server %s", err)
+		return fmt.Errorf("error after calling rpc server %s", err)
 	} else if body, code := res.Body(), res.StatusCode(); code != fasthttp.StatusOK && len(body) == 0 {
-		return errors.Errorf("http error: %d %s", code, res.String())
+		return fmt.Errorf("http error: %d %s", code, res.String())
 	} else if err := json.Unmarshal(body, &resp); err != nil {
-		return errors.Errorf("could not unmarshal response body: %q %v", string(body), err)
-	} else if resp.errorResponse != nil && resp.ErrorResult.Code != 0 {
-		return resp
+		return fmt.Errorf("could not unmarshal response body: %q %v", string(body), err)
+	} else if resp.Error != nil && resp.Error.Code != 0 {
+		return resp.Error
 	} else if err = json.Unmarshal(resp.Result, result); err != nil {
-		return errors.Errorf("could not unmarshal result body: %q %v", string(body), err)
+		return fmt.Errorf("could not unmarshal result body: %q %v", string(body), err)
 	}
 	return nil
 }

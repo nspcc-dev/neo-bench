@@ -13,7 +13,7 @@ require (
 	github.com/mailru/easyjson v0.7.1
 	github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201215152605-44b4c9299222
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
 	github.com/valyala/fasthttp v1.9.0
