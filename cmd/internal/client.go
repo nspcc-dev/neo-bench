@@ -18,37 +18,28 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/rpc/response"
+	"github.com/nspcc-dev/neo-go/pkg/rpc/response/result"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/atomic"
 )
 
-type (
-	// versionResponse struct for RPC version response.
-	// easyjson:json
-	versionResponse struct {
-		Port    int    `json:"port"`
-		Nonce   int    `json:"nonce"`
-		Version string `json:"useragent"`
-	}
+// RPCClient used in integration test.
+type RPCClient struct {
+	addr []string
+	len  int32
+	inc  *atomic.Int32
+	// The only txSender's duty is to send `sendrawtransaction` requests in
+	// order not to affect bench results by sending service requests via the
+	// same connection. txSender has different fasthttp settings than blockRequester.
+	txSender *fasthttp.Client
+	// blockRequester should do the rest of work, e.g. fetch blocks count, fetch
+	// blocks and etc.
+	blockRequester *fasthttp.Client
 
-	// RPCClient used in integration test.
-	RPCClient struct {
-		addr []string
-		len  int32
-		inc  *atomic.Int32
-		// The only txSender's duty is to send `sendrawtransaction` requests in
-		// order not to affect bench results by sending service requests via the
-		// same connection. txSender has different fasthttp settings than blockRequester.
-		txSender *fasthttp.Client
-		// blockRequester should do the rest of work, e.g. fetch blocks count, fetch
-		// blocks and etc.
-		blockRequester *fasthttp.Client
-
-		timeout time.Duration
-	}
-)
+	timeout time.Duration
+}
 
 // DefaultTimeout used for requests.
 const DefaultTimeout = time.Second * 30
@@ -123,13 +114,13 @@ func (c *RPCClient) GetLastBlock(ctx context.Context) (*block.Block, error) {
 }
 
 func (c *RPCClient) GetVersion(ctx context.Context) (string, error) {
-	res := new(versionResponse)
+	res := new(result.Version)
 	rpc := `{ "jsonrpc": "2.0", "id": 1, "method": "getversion", "params": [] }`
 	if err := c.doRPCCall(ctx, rpc, res, c.blockRequester); err != nil {
 		return "", err
 	}
 
-	return strings.Trim(reg.ReplaceAllString(res.Version, "_"), "_"), nil
+	return strings.Trim(reg.ReplaceAllString(res.UserAgent, "_"), "_"), nil
 }
 
 // SendTX sends transaction.
