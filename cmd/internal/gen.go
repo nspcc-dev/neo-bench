@@ -44,8 +44,11 @@ func newTX(wif *keys.WIF) *transaction.Transaction {
 	w := io.NewBufBinWriter()
 	emit.AppCallWithOperationAndArgs(w.BinWriter,
 		neoContractHash, "transfer",
-		fromAddressHash, fromAddressHash, int64(1))
+		fromAddressHash, fromAddressHash, int64(1), nil)
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
+	if w.Err != nil {
+		panic(w.Err)
+	}
 
 	script := w.Bytes()
 	tx := transaction.New(netmode.PrivNet, script, 10000000)

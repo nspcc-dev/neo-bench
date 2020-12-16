@@ -16,7 +16,6 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/network/payload"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
 	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
@@ -128,11 +127,11 @@ func initChain(single bool) (*core.Blockchain, *signer, error) {
 
 func newNEP5Transfer(sc util.Uint160, from, to util.Uint160, amount int64) *transaction.Transaction {
 	w := io.NewBufBinWriter()
-	emit.AppCallWithOperationAndArgs(w.BinWriter, sc, "transfer", from, to, amount)
+	emit.AppCallWithOperationAndArgs(w.BinWriter, sc, "transfer", from, to, amount, nil)
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
-	tx := transaction.New(netmode.PrivNet, script, 10000000)
+	tx := transaction.New(netmode.PrivNet, script, 11000000)
 	if *isSingle {
 		tx.NetworkFee = 1500000
 	} else {
@@ -162,10 +161,11 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	}
 
 	// update max tx per block
+	var policyHash, _ = util.Uint160DecodeStringLE("dde31084c0fdbebc7f5ed5f53a38905305ccee14")
 	w := io.NewBufBinWriter()
-	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxTransactionsPerBlock", int64(txPerBlock))
+	emit.AppCallWithOperationAndArgs(w.BinWriter, policyHash, "setMaxTransactionsPerBlock", int64(txPerBlock))
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
-	emit.AppCallWithOperationAndArgs(w.BinWriter, client.PolicyContractHash, "setMaxBlockSize", int64(payload.MaxSize/2))
+	emit.AppCallWithOperationAndArgs(w.BinWriter, policyHash, "setMaxBlockSize", int64(payload.MaxSize/2))
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	script := w.Bytes()
 	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 10000000)
