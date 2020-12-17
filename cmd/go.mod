@@ -12,7 +12,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.1
-	github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201215152605-44b4c9299222
+	github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201216161315-f2365e239292
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/spf13/pflag v1.0.5
