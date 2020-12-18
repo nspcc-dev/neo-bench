@@ -132,9 +132,11 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 
 	out := io.MultiWriter(rw, os.Stdout)
 
-	tps := .0
+	overallblocksTime := uint64(0)
+	txCount := 0 // != r.TxCount in case of early benchmark interrupt, because some transactions can still be in mempool
 	for i := range r.TPS {
-		tps += r.TPS[i].TPS
+		overallblocksTime += r.TPS[i].DeltaTime
+		txCount += r.TPS[i].TxCount
 	}
 
 	cpu := .0
@@ -152,9 +154,8 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 		cnt int64
 		err error
 
-		tpsCount          = float64(len(r.TPS))
 		resCount          = float64(len(r.Stats))
-		errRate           = float64(r.ErrCount*100) / float64(r.TxCount+r.ErrCount)
+		errRate           = float64(r.ErrCount*100) / float64(int32(txCount)+r.ErrCount)
 		defaultMSPerBlock = r.DefaultMSPerBlock
 	)
 
@@ -163,7 +164,7 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 	}
 	cnt += int64(num)
 
-	if _, err := fmt.Fprintf(out, "TXs ≈ %d\n", r.TxCount); err != nil {
+	if _, err := fmt.Fprintf(out, "TXs ≈ %d\n", txCount); err != nil {
 		return cnt + int64(num), err
 	}
 	cnt += int64(num)
@@ -178,7 +179,7 @@ func (r *reporter) WriteTo(rw io.Writer) (int64, error) {
 	}
 	cnt += int64(num)
 
-	if num, err = fmt.Fprintf(out, "TPS ≈ %0.3f\n", tps/tpsCount); err != nil {
+	if num, err = fmt.Fprintf(out, "TPS ≈ %0.3f\n", float64(txCount)/float64(overallblocksTime)*1000); err != nil {
 		return cnt + int64(num), err
 	}
 	cnt += int64(num)

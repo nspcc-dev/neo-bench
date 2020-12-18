@@ -334,13 +334,6 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 		return
 	}
 
-	ln := d.countTxs.Load() - int32(lastBlock-startBlock)
-	if ln < 0 {
-		ln = 0
-	}
-
-	// log.Printf("%d txs left to parse", ln)
-
 	for i := startBlock; i < lastBlock; i++ {
 		parsedCount = 0
 
