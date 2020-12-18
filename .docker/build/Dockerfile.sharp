@@ -18,7 +18,7 @@ RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/arch
 FROM microsoft/dotnet:3.0-runtime-stretch-slim
 
 # arguments to choose version of neo-cli to install (defaults to 2.10.3)
-ARG VERSION="3.0.0-preview3"
+ARG VERSION="3.0.0-preview4"
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
@@ -49,14 +49,15 @@ RUN set -x \
 # $VERSION is a build argument
 ENV URL="https://github.com/neo-project/neo-node/releases/download/v${VERSION}/neo-cli-linux-x64.zip"
 RUN wget -O /opt/neo-cli.zip ${URL} && \
-    unzip -q -d /neo-cli /opt/neo-cli.zip && \
-    mv /neo-cli/linux-x64/* /neo-cli && \
-    rm -r /neo-cli/linux-x64 && \
+    unzip -q -d /tmp /opt/neo-cli.zip && \
+    mkdir /neo-cli && \
+    mv /tmp/neo-cli/* /neo-cli && \
+    rm -r /tmp/neo-cli && \
     rm /opt/neo-cli.zip
 
 ENV MODULES="RpcServer"
 # RocksDBStore SimplePolicy ApplicationLogs"
-ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}-00"
+ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}"
 
 # Download, add and decompress version-dependant plugin packages. At the end, delete the zip files.
 RUN for mod in ${MODULES}; do \
