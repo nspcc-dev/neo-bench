@@ -40,7 +40,7 @@ func getWif() (*keys.WIF, error) {
 // newTX returns Invocation transaction with some random attributes in order to have different hashes.
 func newTX(wif *keys.WIF) *transaction.Transaction {
 	fromAddressHash := wif.PrivateKey.GetScriptHash()
-	neoContractHash, _ := util.Uint160DecodeStringBE("25059ecb4878d3a875f91c51ceded330d4575fde")
+	neoContractHash, _ := util.Uint160DecodeStringLE("0a46e2e37c9987f570b4af253fb77e7eef0f72b6")
 
 	w := io.NewBufBinWriter()
 	emit.AppCallWithOperationAndArgs(w.BinWriter,
