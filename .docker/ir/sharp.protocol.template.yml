@@ -24,7 +24,7 @@
     Magic: 56753
     #@ if data.values.nodes_info[i].node_name == "single":
     MillisecondsPerBlock: 1000
-    MemoryPoolMaxTransactions: 500000
+    MemoryPoolMaxTransactions: 50000
     ValidatorsCount: 1
     StandbyCommittee:
       - #@ data.values.nodes_info[i].validator_hash
