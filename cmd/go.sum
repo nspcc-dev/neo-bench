@@ -214,14 +214,11 @@ github.com/nspcc-dev/dbft v0.0.0-20200117124306-478e5cfbf03a/go.mod h1:/YFK+XOxx
 github.com/nspcc-dev/dbft v0.0.0-20200219114139-199d286ed6c1 h1:yEx9WznS+rjE0jl0dLujCxuZSIb+UTjF+005TJu/nNI=
 github.com/nspcc-dev/dbft v0.0.0-20200219114139-199d286ed6c1/go.mod h1:O0qtn62prQSqizzoagHmuuKoz8QMkU3SzBoKdEvm3aQ=
 github.com/nspcc-dev/dbft v0.0.0-20200219114139-199d286ed6c1/go.mod h1:O0qtn62prQSqizzoagHmuuKoz8QMkU3SzBoKdEvm3aQ=
-github.com/nspcc-dev/dbft v0.0.0-20201109143252-cd27d76617ed h1:T4qjutPMqjnYDQFyrbCew3lGeJt6MIbNyNn7gRx0o/g=
-github.com/nspcc-dev/dbft v0.0.0-20201109143252-cd27d76617ed/go.mod h1:I5D0W3tu3epdt2RMCTxS//HDr4S+OHRqajouQTOAHI8=
+github.com/nspcc-dev/dbft v0.0.0-20201216144126-a4bc58feae87 h1:sKV7BKdp2iDW39AkGp0GPGHRDuR9vgQT7gDdMKMkuOI=
 github.com/nspcc-dev/dbft v0.0.0-20201216144126-a4bc58feae87/go.mod h1:I5D0W3tu3epdt2RMCTxS//HDr4S+OHRqajouQTOAHI8=
 github.com/nspcc-dev/neo-go v0.73.1-pre.0.20200303142215-f5a1b928ce09/go.mod h1:pPYwPZ2ks+uMnlRLUyXOpLieaDQSEaf4NM3zHVbRjmg=
-github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201215152605-44b4c9299222 h1:NSaZt2XhaCIYz3XOw9JBCu96aceRXOqF6yKt2aOOhFk=
-github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201215152605-44b4c9299222/go.mod h1:FKxIACIW0+Fp0HvMV0AKB1oTlxGBdWZTdC+hNlepie0=
-github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201216161315-f2365e239292 h1:Kl9dg4pWYNgJw2zAR2H6I16IfvMz8zhfLLipNULA9e4=
-github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201216161315-f2365e239292/go.mod h1:NqMguMgSPlPDdtkytDzAXTb2gIXK5fRi4fedFeI7wys=
+github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201221073654-dee97d854217 h1:pyMdxPkEdsitUVe4y5JgIfOxdU482uOLk2nZ2m6qfpI=
+github.com/nspcc-dev/neo-go v0.91.1-pre.0.20201221073654-dee97d854217/go.mod h1:NqMguMgSPlPDdtkytDzAXTb2gIXK5fRi4fedFeI7wys=
 github.com/nspcc-dev/neofs-crypto v0.2.0/go.mod h1:F/96fUzPM3wR+UGsPi3faVNmFlA9KAEAUQR7dMxZmNA=
 github.com/nspcc-dev/neofs-crypto v0.2.3 h1:aca3X2aly92ENRbFK+kH6Hd+J9EQ4Eu6XMVoITSIKtc=
 github.com/nspcc-dev/neofs-crypto v0.2.3/go.mod h1:8w16GEJbH6791ktVqHN9YRNH3s9BEEKYxGhlFnp0cDw=
@@ -303,7 +300,6 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
-github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
