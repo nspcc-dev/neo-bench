@@ -153,7 +153,7 @@ config: deps
 	@echo "=> Generate configurations for single-node and four-nodes networks from templates"
 	@set -x \
 		&& cd ./cmd \
-		&& go run ./config/ --go-template go.protocol.template.yml --go-db boltdb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
+		&& go run ./config/ --go-template go.protocol.template.yml --go-db leveldb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
