@@ -317,3 +317,21 @@ To add one more node configuration, provide all necessary information to the `no
     validator_hash: "02a7bc55fe8684e0119768d104ba30795bdcc86619e864add26156723ed185cd62"
     wallet_password: "five"
 ```
+
+## Benchmark results visualisation
+
+There's a Python plotting script available for benchmark data visualisation. 
+We are mostly concerned about transactions per second (TPS), transactions per block (TPB), 
+milliseconds per block, CPU and Memory dependencies during benchmarking, so these are five types
+of plots to be visualised.
+
+### How to plot
+
+1. Check that all benchmark logs are placed into the `.docker/ir/out/` folder (that's a default location for log files).
+
+2. Edit `files_batch` variable in the [plot.py](https://github.com/nspcc-dev/neo-bench/blob/master/plot.py)
+python script in order to include desired benchmark logs from the step 1 with the corresponding names.
+   
+3. Run the command `$    python3 plot.py .docker/ir/out/` where `.docker/ir/out/` is the logs source folder from step 1.
+
+The resulting images will be saved to `./img/` folder.
