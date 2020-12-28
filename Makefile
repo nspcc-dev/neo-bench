@@ -13,9 +13,9 @@ DC_SHARP_RPC=.docker/rpc/docker-compose.sharp.yml
 
 DF_GO=.docker/build/Dockerfile.golang
 DF_BENCH=.docker/build/Dockerfile.bench
-#DF_SHARP=.docker/build/Dockerfile.sharp
+DF_SHARP=.docker/build/Dockerfile.sharp
 #DF_SHARP=.docker/build/Dockerfile.sharp.sources.from_binaries
-DF_SHARP=.docker/build/Dockerfile.sharp.sources.from_local_dependencies
+#DF_SHARP=.docker/build/Dockerfile.sharp.sources.from_local_dependencies
 
 TAG=bench
 HUB=nspccdev/neo-node
@@ -153,7 +153,7 @@ config: deps
 	@echo "=> Generate configurations for single-node and four-nodes networks from templates"
 	@set -x \
 		&& cd ./cmd \
-		&& go run ./config/ --go-template go.protocol.template.yml --go-db boltdb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
+		&& go run ./config/ --go-template go.protocol.template.yml --go-db leveldb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
