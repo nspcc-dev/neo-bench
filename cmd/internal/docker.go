@@ -185,8 +185,8 @@ loop:
 
 func usage(s *types.Stats) (cpu, mem float64) {
 	var (
-		ds = float64(s.CPUStats.SystemUsage - s.PreCPUStats.SystemUsage)
-		dt = float64(s.CPUStats.CPUUsage.TotalUsage - s.PreCPUStats.CPUUsage.TotalUsage)
+		systemDelta = float64(s.CPUStats.SystemUsage - s.PreCPUStats.SystemUsage)
+		cpuDelta    = float64(s.CPUStats.CPUUsage.TotalUsage - s.PreCPUStats.CPUUsage.TotalUsage)
 	)
 
 	mem = float64(s.MemoryStats.Usage)
@@ -197,8 +197,8 @@ func usage(s *types.Stats) (cpu, mem float64) {
 
 	mem = mem / 1024 / 1024
 
-	if dt > 0 && ds > 0 {
-		cpu = (dt / ds) * 100
+	if systemDelta > 0 && cpuDelta > 0 {
+		cpu = (cpuDelta / systemDelta) * float64(len(s.CPUStats.CPUUsage.PercpuUsage)) * 100
 	}
 
 	return
