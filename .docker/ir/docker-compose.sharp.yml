@@ -8,7 +8,8 @@ services:
     logging:
       driver: "none"
     container_name: neo-cli-node-one
-    command: --rpc
+    stdin_open: true
+    tty: true
     volumes:
       - ./wallet.one.json:/neo-cli/wallet.json
       - ./sharp.config.one.json:/neo-cli/config.json
@@ -32,7 +33,8 @@ services:
     logging:
       driver: "none"
     container_name: neo-cli-node-two
-    command: --rpc
+    stdin_open: true
+    tty: true
     volumes:
       - ./wallet.two.json:/neo-cli/wallet.json
       - ./sharp.config.two.json:/neo-cli/config.json
@@ -56,7 +58,8 @@ services:
     logging:
       driver: "none"
     container_name: neo-cli-node-three
-    command: --rpc
+    stdin_open: true
+    tty: true
     volumes:
       - ./wallet.three.json:/neo-cli/wallet.json
       - ./sharp.config.three.json:/neo-cli/config.json
@@ -80,7 +83,8 @@ services:
     logging:
       driver: "none"
     container_name: neo-cli-node-four
-    command: --rpc
+    stdin_open: true
+    tty: true
     volumes:
       - ./wallet.four.json:/neo-cli/wallet.json
       - ./sharp.config.four.json:/neo-cli/config.json

@@ -10,6 +10,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
@@ -43,8 +44,8 @@ func newTX(wif *keys.WIF) *transaction.Transaction {
 	neoContractHash, _ := util.Uint160DecodeStringLE("0a46e2e37c9987f570b4af253fb77e7eef0f72b6")
 
 	w := io.NewBufBinWriter()
-	emit.AppCallWithOperationAndArgs(w.BinWriter,
-		neoContractHash, "transfer",
+	emit.AppCall(w.BinWriter,
+		neoContractHash, "transfer", callflag.All,
 		fromAddressHash, fromAddressHash, int64(1), nil)
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	if w.Err != nil {
