@@ -1,6 +1,8 @@
 #!/bin/bash
 
-BIN=/neo-cli/neo-cli
+if [ -z "$BIN" ]; then
+  BIN=/neo-cli/neo-cli
+fi
 
 if [ -z "$ACC" ]; then
   ACC=single.acc
