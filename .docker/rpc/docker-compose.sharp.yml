@@ -8,7 +8,8 @@ services:
     logging:
       driver: "none"
     container_name: sharp-node
-    command: --rpc
+    stdin_open: true
+    tty: true
     depends_on: [ "healthy" ]
     healthcheck:
       interval: 5s

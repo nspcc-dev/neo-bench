@@ -15,7 +15,7 @@
       MaxConnections: 10
       MaxConnectionsPerAddress: 3
     UnlockWallet:
-      Path: wallet.json
+      Path: /neo-cli/wallet.json
       Password: #@ data.values.nodes_info[i].wallet_password
       StartConsensus: true
       IsActive: true

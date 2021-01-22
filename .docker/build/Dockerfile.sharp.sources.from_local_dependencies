@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS Build
 
 # Install system dependencies.
 RUN set -x \
@@ -20,11 +20,11 @@ RUN set -x \
 #           ├── neo-modules
 #           └── neo-vm
 # Use ENV variables to specify branch, version or revision to download.
-ENV CLIBRANCH="5809bd5998c9ca56b723629742d057433b51a65d"
-ENV MODULESBRANCH="78e30fd7d12fdecfca73f491a35ead6a7460d832"
-ENV MODULES="LevelDBStore RocksDBStore RpcServer"
-ENV NEOVMBRANCH="a14b934f5b5c8779164e3b96b276984b3a57ccd4"
-ENV NEOBRANCH="414dab140025f46898a3afee3a59a4e18b72d2b2"
+ENV CLIBRANCH="28ddf7621196b63fa6e075554e582006ef5fb514"
+ENV MODULESBRANCH="2942a29fa2017eefd0c438a5c5e833955ee0e46e"
+ENV MODULES="dBFT LevelDBStore RocksDBStore RpcServer"
+ENV NEOVMBRANCH="be1470d433b8f9cee2f8f83f02dc31219c76134f"
+ENV NEOBRANCH="cb7023932c063ab038254b92dccb2a0e204ddc24"
 RUN mkdir /neo-project && \
     wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
@@ -53,20 +53,19 @@ RUN mkdir /Plugins && \
     for mod in ${MODULES}; do \
         dotnet restore /neo-project/neo-modules/src/${mod}/; \
         dotnet build -c Release /neo-project/neo-modules/src/${mod}/; \
-        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/netstandard2.1/* /Plugins/; \
+        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/net5.0/* /Plugins/; \
     done
 
 # Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
 # Use `dotnet publish` instead of `dotnet build` and copy all necessary .dlls from `publish` folder.
 # For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
 RUN dotnet publish -c Release /neo-project/neo-modules/src/RpcServer/ && \
-    cp /neo-project/neo-modules/src/RpcServer/bin/Release/netstandard2.1/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
     dotnet publish -c Release /neo-project/neo-modules/src/RocksDBStore/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbSharp.dll /Plugins/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbNative.dll /Plugins/
+    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/ && \
+    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbNative.dll /Plugins/
 
 # All things are published, so build the final image by copying binaries from Build
-FROM microsoft/dotnet:3.0-runtime-stretch-slim as Final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
@@ -81,6 +80,7 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y \
         libleveldb-dev \
+        curl \
         screen \
         jq \
         libssl-dev \
@@ -109,5 +109,6 @@ COPY ./single.acc /
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
+COPY ./sharp.dbft.config.json /neo-cli/Plugins/dBFT/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
