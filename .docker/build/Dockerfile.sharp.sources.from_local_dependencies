@@ -20,11 +20,11 @@ RUN set -x \
 #           ├── neo-modules
 #           └── neo-vm
 # Use ENV variables to specify branch, version or revision to download.
-ENV CLIBRANCH="28ddf7621196b63fa6e075554e582006ef5fb514"
-ENV MODULESBRANCH="2942a29fa2017eefd0c438a5c5e833955ee0e46e"
-ENV MODULES="dBFT LevelDBStore RocksDBStore RpcServer"
-ENV NEOVMBRANCH="be1470d433b8f9cee2f8f83f02dc31219c76134f"
-ENV NEOBRANCH="cb7023932c063ab038254b92dccb2a0e204ddc24"
+ENV CLIBRANCH="6389ab70592c5188a1bb88a5ce8aa8084a144cc5"
+ENV MODULESBRANCH="cc8c218163dd3c86c23dfa7e8b6adc411c4d545c"
+ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
+ENV NEOVMBRANCH="f1aff0d89cda2580371521b3323f310155150655"
+ENV NEOBRANCH="604541c91b3151ee40a8613cb8534ebc0540fd27"
 RUN mkdir /neo-project && \
     wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
@@ -109,6 +109,6 @@ COPY ./single.acc /
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
-COPY ./sharp.dbft.config.json /neo-cli/Plugins/dBFT/config.json
+COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
