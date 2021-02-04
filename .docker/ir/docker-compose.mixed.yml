@@ -1,0 +1,110 @@
+version: '2.4'
+
+networks:
+  neo_go_network:
+    name: neo_go_network
+    ipam:
+      config:
+        - subnet: 172.200.0.0/24
+          gateway: 172.200.0.254
+
+services:
+  node_one:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+#    logging:
+#      driver: "none"
+    container_name: neo-cli-node-one
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./wallet.one.json:/neo-cli/wallet.json
+      - ./sharp.config.one.json:/neo-cli/config.json
+      - ./sharp.protocol.json:/neo-cli/protocol.json
+    healthcheck:
+      interval: 5s
+      retries: 50
+      test:
+        - CMD
+        - bash
+        - '-c'
+        - /healthcheck.sh
+      timeout: 10s
+    environment:
+      - ACC=dump.acc
+
+  node_two:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+#    logging:
+#      driver: "none"
+    container_name: neo-cli-node-two
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./wallet.two.json:/neo-cli/wallet.json
+      - ./sharp.config.two.json:/neo-cli/config.json
+      - ./sharp.protocol.json:/neo-cli/protocol.json
+    healthcheck:
+      interval: 5s
+      retries: 50
+      test:
+        - CMD
+        - bash
+        - '-c'
+        - /healthcheck.sh
+      timeout: 10s
+    environment:
+      - ACC=dump.acc
+
+  node_three:
+    labels:
+      - stats
+    container_name: neo_go_node_three
+    image: registry.nspcc.ru/neo-bench/neo-go:bench
+#    logging:
+#      driver: "none"
+    command: "node --config-path /config --privnet"
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30335']
+      timeout: 10s
+    environment:
+      - ACC=dump.acc
+    volumes:
+      - ./wallet.three.json:/config/wallet.json
+      - ./go.protocol.privnet.three.yml:/config/protocol.privnet.yml
+
+  node_four:
+    labels:
+      - stats
+    container_name: neo_go_node_four
+    image: registry.nspcc.ru/neo-bench/neo-go:bench
+#    logging:
+#      driver: "none"
+    command: "node --config-path /config --privnet"
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30336']
+      timeout: 10s
+    environment:
+      - ACC=dump.acc
+    volumes:
+      - ./wallet.four.json:/config/wallet.json
+      - ./go.protocol.privnet.four.yml:/config/protocol.privnet.yml
+
+  healthy:
+    image: alpine
+    depends_on:
+      node_one:
+        condition: service_healthy
+      node_two:
+        condition: service_healthy
+      node_three:
+        condition: service_healthy
+      node_four:
+        condition: service_healthy

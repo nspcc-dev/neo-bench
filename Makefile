@@ -11,6 +11,8 @@ DC_SHARP_IR_SINGLE=.docker/ir/docker-compose.single.sharp.yml
 DC_SHARP_IR=.docker/ir/docker-compose.sharp.yml
 DC_SHARP_RPC=.docker/rpc/docker-compose.sharp.yml
 
+DC_MIXED_IR=.docker/ir/docker-compose.mixed.yml
+
 DF_GO=.docker/build/Dockerfile.golang
 DF_BENCH=.docker/build/Dockerfile.bench
 DF_SHARP=.docker/build/Dockerfile.sharp
@@ -353,4 +355,14 @@ start.SharpFourNodesGoRPC300rate: prepare
 
 start.SharpFourNodesGoRPC1000rate: prepare
 	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 1000 -z 5m -t 30s -a go-node:20331
+	make stop
+
+## Mixed setup
+#
+start.MixedFourNodesGoRPC50rate: prepare
+	.make/runner.sh -f $(DC_MIXED_IR) -f $(DC_GO_RPC) -i /dump.txs -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s -a go-node:20331
+	make stop
+
+start.MixedFourNodesSharpRPC50rate: prepare
+	.make/runner.sh -f $(DC_MIXED_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "MixedSharpRPC4x1" -m rate -q 50 -z 5m -t 30s -a sharp-node:20331
 	make stop
