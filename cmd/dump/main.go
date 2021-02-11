@@ -162,12 +162,10 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	}
 
 	// update max tx per block
-	var policyHash, _ = util.Uint160DecodeStringLE("c939a4af1c762e5edca36d4b61c06ba82c4c6ff5")
+	var policyHash, _ = util.Uint160DecodeStringLE("79bcd398505eb779df6e67e4be6c14cded08e2f2")
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter, policyHash, "setMaxTransactionsPerBlock", callflag.All, int64(txPerBlock))
-	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	emit.AppCall(w.BinWriter, policyHash, "setMaxBlockSize", callflag.All, int64(payload.MaxSize/2))
-	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	script := w.Bytes()
 	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 10000000)
 	if *isSingle {

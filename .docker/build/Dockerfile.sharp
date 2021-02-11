@@ -1,6 +1,5 @@
 # NEO private network - Dockerfile
-# build RocksDBStore plugin from source
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as Build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS Build
 
 RUN set -x \
     && apt-get update \
@@ -10,15 +9,10 @@ RUN set -x \
     # APT cleanup to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/master.zip && \
-    unzip -q -d /tmp/ /tmp/neo-modules.zip && \
-    dotnet restore /tmp/neo-modules-master/src/RocksDBStore/ --source https://www.myget.org/F/neo/api/v3/index.json --source https://api.nuget.org/v3/index.json  && \
-    dotnet publish -c Release /tmp/neo-modules-master/src/RocksDBStore/
-
-FROM microsoft/dotnet:3.0-runtime-stretch-slim
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
 
 # arguments to choose version of neo-cli to install (defaults to 2.10.3)
-ARG VERSION="3.0.0-preview4"
+ARG VERSION="3.0.0-preview5"
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
@@ -55,7 +49,7 @@ RUN wget -O /opt/neo-cli.zip ${URL} && \
     rm -r /tmp/neo-cli && \
     rm /opt/neo-cli.zip
 
-ENV MODULES="RpcServer"
+ENV MODULES="DBFTPlugin RocksDBStore LevelDBStore RpcServer"
 # RocksDBStore SimplePolicy ApplicationLogs"
 ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}"
 
@@ -65,12 +59,6 @@ RUN for mod in ${MODULES}; do \
         unzip -q -d /neo-cli /tmp/${mod}.zip; \
         rm /tmp/${mod}.zip; \
     done
-
-# Copy RocksDBStore plugin with dependant dlls from Build
-COPY  --from=Build /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDBStore.dll \
-    /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbSharp.dll \
-    /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbNative.dll /neo-cli/Plugins/
-COPY --from=Build /tmp/neo-modules-master/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDBStore/ /neo-cli/Plugins/RocksDBStore/
 
 # A welcome message for bash users
 RUN echo "printf \"\n* Consensus nodes are running in screen sessions, check 'screen -ls'\"" >> /root/.bashrc
@@ -86,5 +74,6 @@ COPY ./single.acc /
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
+COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
