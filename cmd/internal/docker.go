@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 )
 
 type (
@@ -85,9 +86,9 @@ func NewStats(ctx context.Context, opts ...StatOption) (DockerStater, error) {
 		opts[i](p)
 	}
 
-	cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.WithVersion("1.40")) // version mey need to be downgraded on different hosts
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("docker client init: %w", err)
 	}
 
 	criteria := filters.NewArgs()
@@ -185,8 +186,8 @@ loop:
 
 func usage(s *types.Stats) (cpu, mem float64) {
 	var (
-		ds = float64(s.CPUStats.SystemUsage - s.PreCPUStats.SystemUsage)
-		dt = float64(s.CPUStats.CPUUsage.TotalUsage - s.PreCPUStats.CPUUsage.TotalUsage)
+		systemDelta = float64(s.CPUStats.SystemUsage - s.PreCPUStats.SystemUsage)
+		cpuDelta    = float64(s.CPUStats.CPUUsage.TotalUsage - s.PreCPUStats.CPUUsage.TotalUsage)
 	)
 
 	mem = float64(s.MemoryStats.Usage)
@@ -197,8 +198,8 @@ func usage(s *types.Stats) (cpu, mem float64) {
 
 	mem = mem / 1024 / 1024
 
-	if dt > 0 && ds > 0 {
-		cpu = (dt / ds) * 100
+	if systemDelta > 0 && cpuDelta > 0 {
+		cpu = (cpuDelta / systemDelta) * 100
 	}
 
 	return
