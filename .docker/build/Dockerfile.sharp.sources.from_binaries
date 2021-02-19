@@ -77,7 +77,6 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y \
         libleveldb-dev \
-        screen \
         jq \
         libssl-dev \
         libunwind8 \
@@ -106,7 +105,6 @@ COPY --from=Build /neo/BouncyCastle.Crypto.dll /neo-cli/
 COPY --from=Build /neo-vm/Neo.VM.dll /neo-cli/
 
 # A welcome message for bash users
-RUN echo "printf \"\n* Consensus nodes are running in screen sessions, check 'screen -ls'\"" >> /root/.bashrc
 RUN echo "printf \"\n* Please report issues to https://github.com/CityOfZion/neo-local\n\n\"" >> /root/.bashrc
 
 WORKDIR /neo-cli
