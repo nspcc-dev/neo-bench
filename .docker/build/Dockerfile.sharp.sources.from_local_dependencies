@@ -110,5 +110,6 @@ COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
 COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/config.json
+#COPY ./sharp.statesdumper.config.json /neo-cli/Plugins/StatesDumper/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
