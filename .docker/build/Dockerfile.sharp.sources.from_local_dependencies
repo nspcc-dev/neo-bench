@@ -61,8 +61,7 @@ RUN mkdir /Plugins && \
 # For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
 RUN dotnet publish -c Release /neo-project/neo-modules/src/RpcServer/ && \
     dotnet publish -c Release /neo-project/neo-modules/src/RocksDBStore/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbNative.dll /Plugins/
+    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/
 
 # All things are published, so build the final image by copying binaries from Build
 FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
@@ -81,7 +80,6 @@ RUN set -x \
     && apt-get install -y \
         libleveldb-dev \
         curl \
-        screen \
         jq \
         libssl-dev \
         libunwind8 \
@@ -97,7 +95,6 @@ COPY --from=Build /neo-cli /neo-cli/
 COPY --from=Build /Plugins /neo-cli/Plugins/
 
 # A welcome message for bash users
-RUN echo "printf \"\n* Consensus nodes are running in screen sessions, check 'screen -ls'\"" >> /root/.bashrc
 RUN echo "printf \"\n* Please report issues to https://github.com/CityOfZion/neo-local\n\n\"" >> /root/.bashrc
 
 WORKDIR /neo-cli
@@ -110,5 +107,6 @@ COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
 COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/config.json
+#COPY ./sharp.statesdumper.config.json /neo-cli/Plugins/StatesDumper/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]

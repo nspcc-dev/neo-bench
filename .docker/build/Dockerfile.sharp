@@ -27,7 +27,6 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y \
         unzip \
-        screen \
         libleveldb-dev \
         wget \
         curl \
@@ -50,7 +49,7 @@ RUN wget -O /opt/neo-cli.zip ${URL} && \
     rm /opt/neo-cli.zip
 
 ENV MODULES="DBFTPlugin RocksDBStore LevelDBStore RpcServer"
-# RocksDBStore SimplePolicy ApplicationLogs"
+# RocksDBStore SimplePolicy ApplicationLogs StatesDumper"
 ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}"
 
 # Download, add and decompress version-dependant plugin packages. At the end, delete the zip files.
@@ -61,7 +60,6 @@ RUN for mod in ${MODULES}; do \
     done
 
 # A welcome message for bash users
-RUN echo "printf \"\n* Consensus nodes are running in screen sessions, check 'screen -ls'\"" >> /root/.bashrc
 RUN echo "printf \"\n* Please report issues to https://github.com/CityOfZion/neo-local\n\n\"" >> /root/.bashrc
 
 WORKDIR /neo-cli
@@ -75,5 +73,6 @@ COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
 COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/config.json
+#COPY ./sharp.statesdumper.config.json /neo-cli/Plugins/StatesDumper/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
