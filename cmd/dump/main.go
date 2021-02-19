@@ -11,6 +11,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/core/native"
+	"github.com/nspcc-dev/neo-go/pkg/core/native/nativenames"
 	"github.com/nspcc-dev/neo-go/pkg/core/storage"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
@@ -162,7 +163,7 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	}
 
 	// update max tx per block
-	var policyHash, _ = util.Uint160DecodeStringLE("79bcd398505eb779df6e67e4be6c14cded08e2f2")
+	policyHash, _ := bc.GetNativeContractScriptHash(nativenames.Policy)
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter, policyHash, "setMaxTransactionsPerBlock", callflag.All, int64(txPerBlock))
 	emit.AppCall(w.BinWriter, policyHash, "setMaxBlockSize", callflag.All, int64(payload.MaxSize/2))
