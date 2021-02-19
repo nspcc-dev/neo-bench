@@ -61,8 +61,7 @@ RUN mkdir /Plugins && \
 # For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
 RUN dotnet publish -c Release /neo-project/neo-modules/src/RpcServer/ && \
     dotnet publish -c Release /neo-project/neo-modules/src/RocksDBStore/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbNative.dll /Plugins/
+    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/
 
 # All things are published, so build the final image by copying binaries from Build
 FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
