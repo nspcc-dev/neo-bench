@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS Build
 
 # Install system dependencies.
 RUN set -x \
@@ -9,7 +9,7 @@ RUN set -x \
 
 # Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-ENV CLIBRANCH="5809bd5998c9ca56b723629742d057433b51a65d"
+ENV CLIBRANCH="6389ab70592c5188a1bb88a5ce8aa8084a144cc5"
 RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /tmp/neo-node/ /tmp/neo-cli.zip && \
     mkdir /build && \
@@ -21,29 +21,28 @@ RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${C
     rm -rf /build /tmp/neo-cli.zip /tmp/neo-node
 
 # Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
-ENV MODULESBRANCH="78e30fd7d12fdecfca73f491a35ead6a7460d832"
-ENV MODULES="LevelDBStore RocksDBStore RpcServer"
+ENV MODULESBRANCH="cc8c218163dd3c86c23dfa7e8b6adc411c4d545c"
+ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
 RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
     unzip -q -d /tmp/neo-modules/ /tmp/neo-modules.zip && \
     mkdir /Plugins && \
     for mod in ${MODULES}; do \
             dotnet restore /tmp/neo-modules/*/src/${mod}/; \
             dotnet build -c Release /tmp/neo-modules/*/src/${mod}/; \
-            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/netstandard2.1/* /Plugins/; \
+            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/net5.0/* /Plugins/; \
         done
 
 # Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
 # Use `dotnet publish` instead of `dotnet build` and copy all necessary .dlls from `publish` folder.
 # For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
 RUN dotnet publish -c Release /tmp/neo-modules/*/src/RpcServer/ && \
-    cp /tmp/neo-modules/*/src/RpcServer/bin/Release/netstandard2.1/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
+#    cp /tmp/neo-modules/*/src/RpcServer/bin/Release/net5.0/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
     dotnet publish -c Release /tmp/neo-modules/*/src/RocksDBStore/ && \
-    cp /tmp/neo-modules/*/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbSharp.dll /Plugins/ && \
-    cp /tmp/neo-modules/*/src/RocksDBStore/bin/Release/netstandard2.1/publish/RocksDbNative.dll /Plugins/ && \
+    cp /tmp/neo-modules/*/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/ && \
     rm -rf /tmp/neo-modules.zip /tmp/neo-modules
 
 # Publish neo-vm from source as a self-contained deployment for linux-64 into /neo-vm folder (although neo-vm does not have dependant .dlls)
-ENV NEOVMBRANCH="a14b934f5b5c8779164e3b96b276984b3a57ccd4"
+ENV NEOVMBRANCH="f1aff0d89cda2580371521b3323f310155150655"
 RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
     unzip -q -d /tmp/neo-vm/ /tmp/neo-vm.zip && \
     dotnet restore /tmp/neo-vm/*/src/neo-vm/ && \
@@ -51,7 +50,7 @@ RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOV
     rm -rf /tmp/neo-vm.zip tmp/neo-vm
 
 # Publish neo from source as a self-contained deployment for linux-64 into /neo folder (all dependant .dlls are included)
-ENV NEOBRANCH="414dab140025f46898a3afee3a59a4e18b72d2b2"
+ENV NEOBRANCH="604541c91b3151ee40a8613cb8534ebc0540fd27"
 RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /tmp/neo/ /tmp/neo.zip && \
     mkdir /build && \
@@ -62,7 +61,7 @@ RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}
     rm -rf /build /tmp/neo.zip tmp/neo
 
 # All things are published, so build the final image by copying binaries from Build
-FROM microsoft/dotnet:3.0-runtime-stretch-slim as Final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
@@ -116,6 +115,7 @@ COPY ./single.acc /
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
+COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/config.json
 #COPY ./sharp.statesdumper.config.json /neo-cli/Plugins/StatesDumper/config.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
