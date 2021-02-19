@@ -24,7 +24,7 @@ ENV CLIBRANCH="6389ab70592c5188a1bb88a5ce8aa8084a144cc5"
 ENV MODULESBRANCH="cc8c218163dd3c86c23dfa7e8b6adc411c4d545c"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
 ENV NEOVMBRANCH="f1aff0d89cda2580371521b3323f310155150655"
-ENV NEOBRANCH="604541c91b3151ee40a8613cb8534ebc0540fd27"
+ENV NEOBRANCH="e2c68778c921c7ba6d49a1b7bcce627b4f6d3228"
 RUN mkdir /neo-project && \
     wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
