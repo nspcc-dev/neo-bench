@@ -14,6 +14,7 @@ require (
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.1
 	github.com/moby/moby v20.10.3+incompatible
+	github.com/nspcc-dev/dbft v0.0.0-20210301163451-a80dea23ed9a // indirect
 	github.com/nspcc-dev/neo-go v0.94.0-pre.0.20210301142026-10cc19b33c94
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
