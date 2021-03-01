@@ -1,12 +1,12 @@
 # Builder layer
-FROM golang:1.15-alpine as builder
+FROM golang:1.16-alpine as builder
 
 WORKDIR /neo-go
 
 # Install deps:
 RUN apk add --no-cache git
 
-ARG REV="10cc19b33c94a7e5fbce401c2658555addfb8c37"
+ARG REV="5e91c6a9460460166b14c1bda5e8a7921efcd59f"
 ARG REPO="github.com/nspcc-dev/neo-go"
 
 # Clone and build repo:
