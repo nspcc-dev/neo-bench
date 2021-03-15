@@ -42,6 +42,7 @@ type SharpProtocol struct {
 
 type ProtocolConfiguration struct {
 	Magic                     uint32   `yaml:"Magic"`
+	MaxTransactionsPerBlock   int32    `yaml:"MaxTransactionsPerBlock"`
 	MillisecondsPerBlock      int      `yaml:"MillisecondsPerBlock"`
 	ValidatorsCount           int      `yaml:"ValidatorsCount"`
 	MemoryPoolMaxTransactions int      `yaml:"MemoryPoolMaxTransactions"`

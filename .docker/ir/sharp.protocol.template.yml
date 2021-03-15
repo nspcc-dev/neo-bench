@@ -43,4 +43,5 @@
       - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
         #@ end
     #@ end
+    MaxTransactionsPerBlock: 65534
 #@ end

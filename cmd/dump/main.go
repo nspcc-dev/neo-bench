@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"os"
@@ -11,14 +12,14 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/core/native"
-	"github.com/nspcc-dev/neo-go/pkg/core/native/nativenames"
 	"github.com/nspcc-dev/neo-go/pkg/core/storage"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
-	"github.com/nspcc-dev/neo-go/pkg/network/payload"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract/trigger"
 	"github.com/nspcc-dev/neo-go/pkg/util"
+	"github.com/nspcc-dev/neo-go/pkg/vm"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
 	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
 	"go.uber.org/zap"
@@ -26,10 +27,6 @@ import (
 
 // wifTo is a wif of the wallet where all NEO and GAS are sent.
 const wifTo = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-
-// txPerBlock is a new policy value for maximum amount of transactions per block
-// which is set to be uint16 max value - 1.
-const txPerBlock = 65534
 
 var (
 	isSingle = flag.Bool("single", false, "generate dump for a single node")
@@ -66,16 +63,13 @@ func addBlock(bc *core.Blockchain, c *signer, txs ...*transaction.Transaction) e
 
 	index := uint32(height + 1)
 	b := &block.Block{
-		Base: block.Base{
+		Header: block.Header{
 			Network:       netmode.PrivNet,
 			PrevHash:      hdr.Hash(),
 			Timestamp:     uint64(time.Now().UTC().Unix())*1000 + uint64(index),
 			Index:         index,
 			NextConsensus: c.addr,
-		},
-		ConsensusData: block.ConsensusData{
-			PrimaryIndex: 0,
-			Nonce:        1111,
+			PrimaryIndex:  0,
 		},
 		Transactions: txs,
 	}
@@ -162,30 +156,10 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 		return err
 	}
 
-	// update max tx per block
-	policyHash, _ := bc.GetNativeContractScriptHash(nativenames.Policy)
-	w := io.NewBufBinWriter()
-	emit.AppCall(w.BinWriter, policyHash, "setMaxTransactionsPerBlock", callflag.All, int64(txPerBlock))
-	emit.AppCall(w.BinWriter, policyHash, "setMaxBlockSize", callflag.All, int64(payload.MaxSize/2))
-	script := w.Bytes()
-	txUpdatePolicy := transaction.New(netmode.PrivNet, script, 10000000)
-	if *isSingle {
-		txUpdatePolicy.NetworkFee = 1500000
-	} else {
-		txUpdatePolicy.NetworkFee = 4600000
+	st, _ := bc.GetAppExecResults(txMoveGas.Hash(), trigger.Application)
+	if st[0].VMState != vm.HaltState {
+		return errors.New(st[0].FaultException)
 	}
-	txUpdatePolicy.ValidUntilBlock = 1000
-	txUpdatePolicy.Signers = append(txUpdatePolicy.Signers, transaction.Signer{
-		Account: c.addr,
-		Scopes:  transaction.CalledByEntry,
-	})
-	c.signTx(txUpdatePolicy)
-
-	err = addBlock(bc, c, txUpdatePolicy)
-	if err != nil {
-		return err
-	}
-
 	return addBlock(bc, c)
 }
 
