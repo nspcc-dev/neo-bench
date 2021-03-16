@@ -13,7 +13,6 @@ services:
     volumes:
       - ./wallet.one.json:/neo-cli/wallet.json
       - ./sharp.config.one.json:/neo-cli/config.json
-      - ./sharp.protocol.json:/neo-cli/protocol.json
     healthcheck:
       interval: 5s
       retries: 50
@@ -38,7 +37,6 @@ services:
     volumes:
       - ./wallet.two.json:/neo-cli/wallet.json
       - ./sharp.config.two.json:/neo-cli/config.json
-      - ./sharp.protocol.json:/neo-cli/protocol.json
     healthcheck:
       interval: 5s
       retries: 50
@@ -63,7 +61,6 @@ services:
     volumes:
       - ./wallet.three.json:/neo-cli/wallet.json
       - ./sharp.config.three.json:/neo-cli/config.json
-      - ./sharp.protocol.json:/neo-cli/protocol.json
     healthcheck:
       interval: 5s
       retries: 50
@@ -88,7 +85,6 @@ services:
     volumes:
       - ./wallet.four.json:/neo-cli/wallet.json
       - ./sharp.config.four.json:/neo-cli/config.json
-      - ./sharp.protocol.json:/neo-cli/protocol.json
     healthcheck:
       interval: 5s
       retries: 50

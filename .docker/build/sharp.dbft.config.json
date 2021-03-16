@@ -3,6 +3,7 @@
     "RecoveryLogs": "ConsensusState",
     "IgnoreRecoveryLogs": false,
     "AutoStart": true,
+    "Network": 56753,
     "MaxBlockSize": 16777216
   }
 }

@@ -24,7 +24,6 @@ services:
     volumes:
       - ../rpc/sharp.config.json:/neo-cli/config.json
       - ../rpc/sharp.wallet.json:/neo-cli/wallet.json
-      - ../rpc/sharp.protocol.json:/neo-cli/protocol.json
     ports: [ "20331:20331" ]
 
   node_healthy:
