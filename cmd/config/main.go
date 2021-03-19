@@ -123,7 +123,6 @@ func generateSharpConfig(templatePath string, storageEngine string) error {
 		return fmt.Errorf("failed to open template: %v", err)
 	}
 	defer f.Close()
-	protocols := map[string]SharpProtocol{}
 	decoder := yaml.NewDecoder(bufio.NewReader(f))
 	for i := 0; ; i++ {
 		var template SharpTemplate
@@ -135,40 +134,22 @@ func generateSharpConfig(templatePath string, storageEngine string) error {
 			return fmt.Errorf("unable to decode node template #%d: %v", i, err)
 		}
 		template.ApplicationConfiguration.Storage.Engine = storageEngine
-		var (
-			configFile   string
-			protocolFile string
-		)
+		var configFile string
 		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.P2P.Port, template.ProtocolConfiguration.SeedList)
 		if err != nil {
 			// it's an RPC node then
 			configFile = rpcConfigPath + "sharp.config.json"
-			protocolFile = rpcConfigPath + "sharp.protocol.json"
 			template.ApplicationConfiguration.UnlockWallet = UnlockWallet{}
 
 		} else {
 			configFile = configPath + "sharp.config." + nodeName + ".json"
-			switch nodeName {
-			case singleNodeName:
-				protocolFile = configPath + "sharp.protocol.single.json"
-			default:
-				protocolFile = configPath + "sharp.protocol.json"
-			}
-		}
-		protocols[protocolFile] = SharpProtocol{
-			ProtocolConfiguration: template.ProtocolConfiguration,
 		}
 		err = writeJSON(configFile, SharpConfig{
 			ApplicationConfiguration: template.ApplicationConfiguration,
+			ProtocolConfiguration:    template.ProtocolConfiguration,
 		})
 		if err != nil {
 			return fmt.Errorf("could not write JSON config file for node #%s: %v", nodeName, err)
-		}
-	}
-	for protocolFile, protocol := range protocols {
-		err := writeJSON(protocolFile, protocol)
-		if err != nil {
-			return fmt.Errorf("could not write JSON protocol file %s: %v", protocolFile, err)
 		}
 	}
 	return nil

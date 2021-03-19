@@ -2,6 +2,8 @@
   "PluginConfiguration": {
     "RecoveryLogs": "ConsensusState",
     "IgnoreRecoveryLogs": false,
-    "AutoStart": true
+    "AutoStart": true,
+    "Network": 56753,
+    "MaxBlockSize": 16777216
   }
 }

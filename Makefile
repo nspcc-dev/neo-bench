@@ -249,7 +249,7 @@ start.GoFourNodes1000rate: prepare
 ## Go×4 + SharpRPC
 #
 start.GoFourNodesSharpRpc10wrk: prepare
-	make/runner.sh -f $(DC_GO_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
+	.make/runner.sh -f $(DC_GO_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
 	make stop
 
 ## SharpSingle:

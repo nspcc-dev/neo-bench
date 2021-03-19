@@ -15,7 +15,6 @@ services:
     volumes:
       - ./wallet.one.json:/neo-cli/wallet.json
       - ./sharp.config.single.json:/neo-cli/config.json
-      - ./sharp.protocol.single.json:/neo-cli/protocol.json
     healthcheck:
       interval: 5s
       retries: 50

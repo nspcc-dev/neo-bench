@@ -10,8 +10,9 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
-	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
+	"github.com/nspcc-dev/neo-go/pkg/interop/native/neo"
 	"github.com/nspcc-dev/neo-go/pkg/io"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
 	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
@@ -41,7 +42,7 @@ func getWif() (*keys.WIF, error) {
 // newTX returns Invocation transaction with some random attributes in order to have different hashes.
 func newTX(wif *keys.WIF) *transaction.Transaction {
 	fromAddressHash := wif.PrivateKey.GetScriptHash()
-	neoContractHash, _ := util.Uint160DecodeStringLE("f61eebf573ea36593fd43aa150c055ad7906ab83")
+	neoContractHash, _ := util.Uint160DecodeBytesBE([]byte(neo.Hash))
 
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter,

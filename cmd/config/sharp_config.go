@@ -1,7 +1,8 @@
 package main
 
 type SharpConfig struct {
-	ApplicationConfiguration ApplicationConfiguration
+	ApplicationConfiguration ApplicationConfiguration `yaml:"ApplicationConfiguration"`
+	ProtocolConfiguration    ProtocolConfiguration    `yaml:"ProtocolConfiguration"`
 }
 
 type ApplicationConfiguration struct {
@@ -30,18 +31,14 @@ type P2P struct {
 }
 
 type UnlockWallet struct {
-	Path           string `yaml:"Path"`
-	Password       string `yaml:"Password"`
-	StartConsensus bool   `yaml:"StartConsensus"`
-	IsActive       bool   `yaml:"IsActive"`
-}
-
-type SharpProtocol struct {
-	ProtocolConfiguration ProtocolConfiguration
+	Path     string `yaml:"Path"`
+	Password string `yaml:"Password"`
+	IsActive bool   `yaml:"IsActive"`
 }
 
 type ProtocolConfiguration struct {
 	Magic                     uint32   `yaml:"Magic"`
+	MaxTransactionsPerBlock   int32    `yaml:"MaxTransactionsPerBlock"`
 	MillisecondsPerBlock      int      `yaml:"MillisecondsPerBlock"`
 	ValidatorsCount           int      `yaml:"ValidatorsCount"`
 	MemoryPoolMaxTransactions int      `yaml:"MemoryPoolMaxTransactions"`
