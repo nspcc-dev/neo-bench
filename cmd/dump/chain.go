@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/hash"
@@ -40,21 +41,20 @@ func newSigner(wifs ...string) (*signer, error) {
 
 func (c *signer) signTx(txs ...*transaction.Transaction) {
 	for _, tx := range txs {
-		data := tx.GetSignedPart()
 		tx.Scripts = []transaction.Witness{{
-			InvocationScript:   c.sign(data),
+			InvocationScript:   c.sign(tx),
 			VerificationScript: c.script,
 		}}
 	}
 }
 
 func (c *signer) signBlock(b *block.Block) {
-	data := b.GetSignedPart()
-	b.Script.InvocationScript = c.sign(data)
+	b.Script.InvocationScript = c.sign(b)
 	b.Script.VerificationScript = c.script
 }
 
-func (c *signer) sign(data []byte) []byte {
+func (c *signer) sign(item hash.Hashable) []byte {
+	h := hash.NetSha256(uint32(netmode.PrivNet), item)
 	buf := io.NewBufBinWriter()
 	for i := range c.privs {
 		// It's kludgy, but we either sign for single node (1 out of 1)
@@ -63,7 +63,7 @@ func (c *signer) sign(data []byte) []byte {
 		if i == 3 {
 			break
 		}
-		s := c.privs[i].Sign(data)
+		s := c.privs[i].SignHash(h)
 		if len(s) != 64 {
 			panic("wrong signature length")
 		}

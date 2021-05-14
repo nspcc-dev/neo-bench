@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/config"
-	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/core/native"
@@ -64,7 +63,6 @@ func addBlock(bc *core.Blockchain, c *signer, txs ...*transaction.Transaction) e
 	index := uint32(height + 1)
 	b := &block.Block{
 		Header: block.Header{
-			Network:       netmode.PrivNet,
 			PrevHash:      hdr.Hash(),
 			Timestamp:     uint64(time.Now().UTC().Unix())*1000 + uint64(index),
 			Index:         index,
@@ -127,7 +125,7 @@ func newNEP5Transfer(sc util.Uint160, from, to util.Uint160, amount int64) *tran
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
-	tx := transaction.New(netmode.PrivNet, script, 11000000)
+	tx := transaction.New(script, 11000000)
 	if *isSingle {
 		tx.NetworkFee = 1500000
 	} else {
