@@ -4,11 +4,12 @@
 ---
   ApplicationConfiguration:
     Logger:
-      Path: Logs_{0}
+      Path: Logs
       ConsoleOutput: true
       Active: true
     Storage:
       Engine: LevelDBStore
+      Path: Data_LevelDB_{0}
     P2P:
       Port: #@ data.values.nodes_info[i].node_port
       WsPort: 9999
@@ -20,7 +21,7 @@
       IsActive: true
     PluginURL: https://github.com/neo-project/neo-plugins/releases/download/v{1}/{0}.zip
   ProtocolConfiguration:
-    Magic: 56753
+    Network: 56753
     #@ if data.values.nodes_info[i].node_name == "single":
     MillisecondsPerBlock: 1000
     MemoryPoolMaxTransactions: 50000
