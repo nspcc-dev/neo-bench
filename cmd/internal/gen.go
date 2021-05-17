@@ -54,7 +54,7 @@ func newTX(wif *keys.WIF) *transaction.Transaction {
 	}
 
 	script := w.Bytes()
-	tx := transaction.New(netmode.PrivNet, script, 10000000)
+	tx := transaction.New(script, 10000000)
 	tx.NetworkFee = 1500000 // hardcoded for now
 	tx.ValidUntilBlock = 1200
 	tx.Signers = append(tx.Signers, transaction.Signer{
@@ -96,7 +96,7 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		tx := *tx
 		tx.Nonce = uint32(i)
 
-		if err := acc.SignTx(&tx); err != nil {
+		if err := acc.SignTx(netmode.PrivNet, &tx); err != nil {
 			log.Fatalf("Could not sign tx: %v", err)
 		}
 

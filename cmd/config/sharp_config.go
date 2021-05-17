@@ -21,6 +21,7 @@ type Logger struct {
 
 type Storage struct {
 	Engine string `yaml:"Engine"`
+	Path   string `yaml:"Path"`
 }
 
 type P2P struct {
@@ -37,7 +38,7 @@ type UnlockWallet struct {
 }
 
 type ProtocolConfiguration struct {
-	Magic                     uint32   `yaml:"Magic"`
+	Network                   uint32   `yaml:"Network"`
 	MaxTransactionsPerBlock   int32    `yaml:"MaxTransactionsPerBlock"`
 	MillisecondsPerBlock      int      `yaml:"MillisecondsPerBlock"`
 	ValidatorsCount           int      `yaml:"ValidatorsCount"`
