@@ -17,7 +17,7 @@ require (
 	github.com/moby/moby v20.10.3+incompatible
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/nspcc-dev/neo-go v0.94.2-pre.0.20210514073131-ea49c6b63741
+	github.com/nspcc-dev/neo-go v0.95.5-pre.0.20210720151411-bf176fb6376f
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/spf13/pflag v1.0.5
