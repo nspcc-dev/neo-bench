@@ -51,8 +51,8 @@ ApplicationConfiguration:
   Relay: true
   DialTimeout: 3
   ProtoTickInterval: 2
-  PingInterval: 30
-  PingTimeout: 90
+  PingInterval: 10
+  PingTimeout: 30
   MaxPeers: 10
   AttemptConnPeers: 5
   #@ if data.values.nodes_info[i].node_name == "single":
