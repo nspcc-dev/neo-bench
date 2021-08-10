@@ -306,11 +306,16 @@ loop:
 			log.Println("time limit for parsing blocks exceeded...")
 			break loop
 		case <-ticker.C:
+			tickTime := time.Now()
 			// parse new blocks:
 			lastBlockIndx = d.parse(ctx, lastBlockIndx, &lastBlockTime)
 
+			newPeriod := period - time.Since(tickTime)
+			if newPeriod <= 0 {
+				newPeriod = time.Microsecond
+			}
 			// reset timer:
-			ticker.Reset(period)
+			ticker.Reset(newPeriod)
 
 			if int32(d.parsedCount) >= d.countTxs.Load() {
 				select {
