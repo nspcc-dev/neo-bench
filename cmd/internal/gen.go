@@ -22,7 +22,6 @@ import (
 type (
 	// Dump contains hashes and marshaled transactions.
 	Dump struct {
-		Hashes            map[string]struct{}
 		TransactionsQueue *queue.RingBuffer
 	}
 
@@ -69,7 +68,6 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 	start := time.Now()
 
 	dump := Dump{
-		Hashes:            make(map[string]struct{}, count),
 		TransactionsQueue: queue.NewRingBuffer(uint64(count)),
 	}
 
@@ -109,7 +107,6 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		hash := tx.Hash().String()
 		blob := base64.StdEncoding.EncodeToString(buf.Bytes())
 
-		dump.Hashes[hash] = struct{}{}
 		err := dump.TransactionsQueue.Put(blob)
 		if err != nil {
 			log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)

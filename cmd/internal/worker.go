@@ -179,8 +179,6 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		return nil, errors.New("dump could not be empty")
 	case p.dump.TransactionsQueue.Len() < 1:
 		return nil, errors.New("txs could not be empty")
-	case len(p.dump.Hashes) < 1:
-		return nil, errors.New("hashes could not be empty")
 	case p.cli == nil:
 		return nil, errors.New("blockchain client count could not be empty")
 	}
@@ -341,8 +339,6 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 		err error
 		tps float64
 		blk *block.Block
-
-		parsedCount int
 	)
 
 	lastBlock, err = d.cli.GetBlockCount(ctx)
@@ -353,8 +349,6 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 	}
 
 	for i := startBlock; i < lastBlock; i++ {
-		parsedCount = 0
-
 		if _, ok := d.parsedBlocks[i]; !ok {
 
 			d.parsedBlocks[i] = struct{}{}
@@ -363,7 +357,8 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 				continue
 			}
 
-			if cnt = len(blk.Transactions); cnt < 1 {
+			cnt = len(blk.Transactions)
+			if cnt < 1 {
 				log.Printf("empty block: %d", i)
 			} else if !d.hasStarted.Load() {
 				d.hasStarted.Store(true)
@@ -386,19 +381,9 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 			}
 
 			// report current tps
-			d.tpsReporter(dt, len(blk.Transactions), tps)
-
-			for i := 0; i < cnt; i++ {
-				tx := blk.Transactions[i]
-				if len(tx.Scripts) > 0 {
-					if _, ok := d.dump.Hashes[tx.Hash().String()]; ok {
-						parsedCount++
-					}
-				}
-			}
-
-			d.parsedCount += parsedCount
-			log.Printf("(#%d/%d) %d Tx's in %d ms %f tps", i, parsedCount, cnt, dt, tps)
+			d.tpsReporter(dt, cnt, tps)
+			d.parsedCount += cnt
+			log.Printf("#%d: %d transactions in %d ms - %f tps", i, cnt, dt, tps)
 		}
 	}
 
