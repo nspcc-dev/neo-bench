@@ -36,7 +36,7 @@ help:
 	@echo ''
 	@awk '/^#/{ comment = substr($$0,3) } comment && /^[a-zA-Z][a-zA-Z0-9_-]+ ?:/{ print "   ", $$1, comment }' $(MAKEFILE_LIST) | column -t -s ':' | grep -v 'IGNORE' | sort | uniq
 
-.PHONY: build push build.node.go build.node.sharp stop start deps config \
+.PHONY: build push build.node.go build.node.sharp stop start config \
 	start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
@@ -57,23 +57,13 @@ push:
 	docker push $(HUB)-go:$(TAG)
 	docker push $(HUB)-sharp:$(TAG)
 
-# IGNORE
-deps: cmd/vendor
-
-cmd/vendor:
-	@echo "=> Fetch deps"
-	@set -x \
-		&& cd cmd/ \
-		&& go mod tidy -v \
-		&& go mod vendor
-
 # IGNORE: Build Benchmark image
-build.node.bench: deps
+build.node.bench:
 	@echo "=> Building Bench image $(HUB)-bench:$(TAG)"
 	@docker build -q -t $(HUB)-bench:$(TAG) -f $(DF_BENCH) cmd/
 
 # IGNORE: Build NeoGo node image
-build.node.go: deps
+build.node.go:
 	@echo "=> Building Go Node image $(HUB)-go:$(TAG)"
 	@docker build -q -t $(HUB)-go:$(TAG) -f $(DF_GO) $(BUILD_DIR)
 
@@ -83,7 +73,7 @@ build.node.sharp:
 	@docker build -q -t $(HUB)-sharp:$(TAG) -f $(DF_SHARP) $(BUILD_DIR)
 
 # Test local benchmark (go run) with Neo single node
-test: single.go deps
+test: single.go
 	@echo "=> Test Single node"
 	@set -x \
 		&& cd cmd/ \
@@ -123,7 +113,7 @@ pull:
 gen: $(BUILD_DIR)/dump.txs
 
 # IGNORE: create transactions dump
-$(BUILD_DIR)/dump.txs: cmd/vendor cmd/gen/main.go
+$(BUILD_DIR)/dump.txs: cmd/gen/main.go
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
@@ -135,7 +125,7 @@ dumps: $(BUILD_DIR)/single.acc $(BUILD_DIR)/dump.acc
 # Generate `single.acc` for single-node network
 dump.single: $(BUILD_DIR)/single.acc
 
-$(BUILD_DIR)/single.acc: deps config cmd/dump/main.go cmd/dump/chain.go
+$(BUILD_DIR)/single.acc: config cmd/dump/main.go cmd/dump/chain.go
 	@echo "=> Generate block dump for the single node network"
 	@set -x \
 		&& cd cmd/ \
@@ -144,14 +134,14 @@ $(BUILD_DIR)/single.acc: deps config cmd/dump/main.go cmd/dump/chain.go
 # Generate `dump.acc` for the 4-node network
 dump: $(BUILD_DIR)/dump.acc
 
-$(BUILD_DIR)/dump.acc: deps config cmd/dump/main.go cmd/dump/chain.go
+$(BUILD_DIR)/dump.acc: config cmd/dump/main.go cmd/dump/chain.go
 	@echo "=> Generate block dump for the 4-node network"
 	@set -x \
 		&& cd cmd/ \
 		&& go run ./dump -out ../$@
 
 # Generate configurations for single-node and four-nodes networks from templates
-config: deps
+config:
 	@echo "=> Generate configurations for single-node and four-nodes networks from templates"
 	@set -x \
 		&& cd ./cmd \
@@ -159,10 +149,10 @@ config: deps
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
-prepare: stop gen dump
+prepare: stop $(BUILD_DIR)/dump.txs $(BUILD_DIR)/dump.acc
 
 # Generate transactions, dump and nodes configurations fore single-node network
-prepare.single: stop gen dump.single
+prepare.single: stop $(BUILD_DIR)/dump.txs $(BUILD_DIR)/single.acc
 
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \

@@ -18,7 +18,6 @@
     - bench - Benchmark command source code
     - gen - Transaction generator source code 
     - internal - common code, that used in bench tool and generator
-    - vendor - golang vendor folder
     - go.mod - golang modules file
     - go.sum - golang modules summary file
 - .gitignore

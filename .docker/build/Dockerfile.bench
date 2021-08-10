@@ -15,7 +15,6 @@ RUN set -x \
     && export GO111MODULE=on \
     && go build \
         -v \
-        -mod=vendor \
         -o /go/bin/neo-bench \
         -trimpath \
         ./bench
