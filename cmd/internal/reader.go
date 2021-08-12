@@ -41,21 +41,19 @@ func ReadDump(from string) *Dump {
 	count := rd.ReadU64LE()
 
 	dump := &Dump{
-		Hashes:            make(map[string]struct{}, count),
 		TransactionsQueue: queue.NewRingBuffer(count),
 	}
 
 	start := time.Now()
 	log.Printf("Read %d txs from %s", count, in.Name())
 	for i := uint64(0); i < count; i++ {
-		hash := rd.ReadString() // hash
+		_ = rd.ReadString()     // hash
 		blob := rd.ReadString() // blob
 
 		if rd.Err != nil {
 			log.Fatalf("Could not read tx: %d %v", i, rd.Err)
 		}
 
-		dump.Hashes[hash] = struct{}{}
 		err := dump.TransactionsQueue.Put(blob)
 		if err != nil {
 			log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
