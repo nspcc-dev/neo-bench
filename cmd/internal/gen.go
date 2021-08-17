@@ -38,8 +38,8 @@ func getWif() (*keys.WIF, error) {
 	return keys.WIFDecode(wifEncoded, version)
 }
 
-// newTX returns Invocation transaction with some random attributes in order to have different hashes.
-func newTX(wif *keys.WIF) *transaction.Transaction {
+// newNEOTransferTx returns NEO transfer transaction with random nonce.
+func newNEOTransferTx(wif *keys.WIF) *transaction.Transaction {
 	fromAddressHash := wif.PrivateKey.GetScriptHash()
 	neoContractHash, _ := util.Uint160DecodeBytesBE([]byte(neo.Hash))
 
@@ -85,7 +85,7 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 
 	buf := io.NewBufBinWriter()
 
-	tx := newTX(wif)
+	tx := newNEOTransferTx(wif)
 	for i := 0; i < count; i++ {
 		if ctx.Err() != nil {
 			log.Fatal(ctx.Err())
