@@ -160,7 +160,7 @@ func main() {
 		dump = internal.ReadDump(in)
 		count = int(dump.TransactionsQueue.Len())
 	} else {
-		dump = internal.Generate(ctx, count)
+		dump = internal.Generate(ctx, internal.NEOTransfer, count)
 	}
 
 	wrk, err := internal.NewWorkers(

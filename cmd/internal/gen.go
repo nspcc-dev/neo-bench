@@ -3,8 +3,10 @@ package internal
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
+	"github.com/nspcc-dev/neo-go/pkg/interop/native/gas"
 	"github.com/nspcc-dev/neo-go/pkg/interop/native/neo"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
@@ -35,6 +38,15 @@ type (
 	}
 )
 
+const (
+	// NEOTransfer is the type of NEO transfer tx.
+	NEOTransfer = "neo"
+	// GASTransfer is the type of GAS transfer tx.
+	GASTransfer = "gas"
+)
+
+var workerCount = runtime.NumCPU()
+
 // getWif returns Wif.
 func getWif() (*keys.WIF, error) {
 	var (
@@ -46,12 +58,22 @@ func getWif() (*keys.WIF, error) {
 
 // newNEOTransferTx returns NEO transfer transaction with random nonce.
 func newNEOTransferTx(wif *keys.WIF) *transaction.Transaction {
-	fromAddressHash := wif.PrivateKey.GetScriptHash()
 	neoContractHash, _ := util.Uint160DecodeBytesBE([]byte(neo.Hash))
+	return newTransferTx(wif, neoContractHash)
+}
+
+// newGASTransferTx returns GAS transfer transaction with random nonce.
+func newGASTransferTx(wif *keys.WIF) *transaction.Transaction {
+	gasContractHash, _ := util.Uint160DecodeBytesBE([]byte(gas.Hash))
+	return newTransferTx(wif, gasContractHash)
+}
+
+func newTransferTx(wif *keys.WIF, contractHash util.Uint160) *transaction.Transaction {
+	fromAddressHash := wif.PrivateKey.GetScriptHash()
 
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter,
-		neoContractHash, "transfer", callflag.All,
+		contractHash, "transfer", callflag.All,
 		fromAddressHash, fromAddressHash, int64(1), nil)
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	if w.Err != nil {
@@ -72,7 +94,7 @@ func newNEOTransferTx(wif *keys.WIF) *transaction.Transaction {
 var genWorkerCount = runtime.NumCPU()
 
 // Generate used to generate the specified number of transactions.
-func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dump {
+func Generate(ctx context.Context, typ string, count int, callback ...GenerateCallback) *Dump {
 	start := time.Now()
 
 	dump := Dump{
@@ -103,7 +125,16 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		}(i)
 	}
 
-	tx := newNEOTransferTx(wif)
+	var tx *transaction.Transaction
+	switch strings.ToLower(typ) {
+	case NEOTransfer:
+		tx = newNEOTransferTx(wif)
+	case GASTransfer:
+		tx = newGASTransferTx(wif)
+	default:
+		panic(fmt.Sprintf("invalid type: %s", typ))
+	}
+
 	finishCh := make(chan struct{})
 	go func() {
 		for i := 0; i < count; i++ {

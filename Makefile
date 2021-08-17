@@ -7,6 +7,7 @@ TAG=bench
 HUB=nspccdev/neo-node
 HUB=registry.nspcc.ru/neo-bench/neo
 BUILD_DIR=.docker/build
+NEOBENCH_TYPE ?= NEO
 
 .PHONY: help
 
@@ -20,7 +21,7 @@ help:
 	@echo ''
 	@awk '/^#/{ comment = substr($$0,3) } comment && /^[a-zA-Z][a-zA-Z0-9_-]+ ?:/{ print "   ", $$1, comment }' $(MAKEFILE_LIST) | column -t -s ':' | grep -v 'IGNORE' | sort | uniq
 
-.PHONY: build push build.node.go build.node.sharp stop start config \
+.PHONY: build push gen build.node.go build.node.sharp stop start config \
 	start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
@@ -61,7 +62,7 @@ test: single.go
 	@echo "=> Test Single node"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./bench -o ../single.log -i ../$(BUILD_DIR)/dump.txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
+		&& go run ./bench -o ../single.log -i ../$(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
 	@make stop
 
 # Bootup NeoGo single node
@@ -93,15 +94,14 @@ pull:
 	@docker pull $(HUB)-go:$(TAG)
 	@docker pull $(HUB)-sharp:$(TAG)
 
-# Generate `dump.txs`
-gen: $(BUILD_DIR)/dump.txs
+gen: $(BUILD_DIR)/dump.NEO.txs $(BUILD_DIR)/dump.GAS.txs
 
-# IGNORE: create transactions dump
-$(BUILD_DIR)/dump.txs: cmd/gen/main.go
+# Generate `dump.txs`
+$(BUILD_DIR)/dump.%.txs: cmd/gen/main.go
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./gen -out ../$@
+		&& go run ./gen -type $* -out ../$@
 
 # Generate both block dumps used for tests.
 dumps: $(BUILD_DIR)/single.acc $(BUILD_DIR)/dump.acc
@@ -133,10 +133,10 @@ config:
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
-prepare: stop $(BUILD_DIR)/dump.txs $(BUILD_DIR)/dump.acc
+prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs $(BUILD_DIR)/dump.acc
 
 # Generate transactions, dump and nodes configurations fore single-node network
-prepare.single: stop $(BUILD_DIR)/dump.txs $(BUILD_DIR)/single.acc
+prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs $(BUILD_DIR)/single.acc
 
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \

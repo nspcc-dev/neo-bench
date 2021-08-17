@@ -12,6 +12,7 @@ IR_TYPE=go
 RPC_TYPE=
 RPC_ADDR=()
 NEOBENCH_LOGGER=${NEOBENCH_LOGGER:-none}
+export NEOBENCH_TYPE=${NEOBENCH_TYPE:-NEO}
 
 show_help() {
 echo "Usage of benchmark runner:"
@@ -20,6 +21,8 @@ echo "   -n, --nodes                      Consensus node type."
 echo "                                    Possible values: go (default), mixed, sharp."
 echo "   -r, --rpc                        RPC node type. Default is the same as --nodes."
 echo "   -h, --help                       Show usage message."
+echo "   -b, --benchmark                  Benchmark type."
+echo "                                    Possible values: NEO (default) or GAS"
 echo "   -d                               Benchmark description."
 echo "   -m                               Benchmark mode."
 echo "                                    Example: -m wrk -m rate"
@@ -70,6 +73,12 @@ while test $# -gt 0; do
     -r|--rpc)
       test $# -gt 0 || fatal "RPC node type must be specified."
       RPC_TYPE=$1
+      shift
+      ;;
+
+    -b|--benchmark)
+      test $# -gt 0 || fatal "benchmark type must be specified"
+      export NEOBENCH_TYPE="$1"
       shift
       ;;
 
