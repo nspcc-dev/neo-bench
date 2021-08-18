@@ -14,7 +14,7 @@ require (
 	github.com/moby/moby v20.10.8+incompatible
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/nspcc-dev/neo-go v0.97.1
+	github.com/nspcc-dev/neo-go v0.97.2
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
 	github.com/valyala/fasthttp v1.9.0
