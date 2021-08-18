@@ -13,6 +13,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
 
 # arguments to choose version of neo-cli to install (defaults to 2.10.3)
 ARG VERSION="3.0.2"
+ARG MODVERSION="3.0.1"
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
@@ -50,7 +51,7 @@ RUN wget -O /opt/neo-cli.zip ${URL} && \
 
 ENV MODULES="DBFTPlugin RocksDBStore LevelDBStore RpcServer"
 # RocksDBStore SimplePolicy ApplicationLogs StatesDumper"
-ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}"
+ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${MODVERSION}"
 
 # Download, add and decompress version-dependant plugin packages. At the end, delete the zip files.
 RUN for mod in ${MODULES}; do \
