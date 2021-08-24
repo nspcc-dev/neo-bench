@@ -36,6 +36,7 @@ RUN set -x \
         libunwind8 \
         librocksdb-dev \
         libc6-dev \
+        iproute2 \
     # APT cleanup to reduce image size
     && rm -rf /var/lib/apt/lists/*
 

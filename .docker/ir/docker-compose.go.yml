@@ -16,6 +16,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-go:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     command: "node --config-path /config --privnet"
     healthcheck:
       interval: 5s
@@ -24,6 +26,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.one.json:/config/wallet.json
       - ./go.protocol.privnet.one.yml:/config/protocol.privnet.yml
@@ -35,6 +38,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-go:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     command: "node --config-path /config --privnet"
     healthcheck:
       interval: 5s
@@ -43,6 +48,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.two.json:/config/wallet.json
       - ./go.protocol.privnet.two.yml:/config/protocol.privnet.yml
@@ -54,6 +60,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-go:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     command: "node --config-path /config --privnet"
     healthcheck:
       interval: 5s
@@ -62,6 +70,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.three.json:/config/wallet.json
       - ./go.protocol.privnet.three.yml:/config/protocol.privnet.yml
@@ -73,6 +82,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-go:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     command: "node --config-path /config --privnet"
     healthcheck:
       interval: 5s
@@ -81,6 +92,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.four.json:/config/wallet.json
       - ./go.protocol.privnet.four.yml:/config/protocol.privnet.yml
