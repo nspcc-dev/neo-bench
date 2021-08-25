@@ -11,6 +11,7 @@ SINGLE=
 IR_TYPE=go
 RPC_TYPE=
 RPC_ADDR=()
+NEOBENCH_LOGGER=${NEOBENCH_LOGGER:-none}
 
 show_help() {
 echo "Usage of benchmark runner:"
@@ -36,6 +37,7 @@ echo "                                    Example -a 127.0.0.1:80 -a 127.0.0.2:8
 echo "   -t                               Request timeout."
 echo "                                    Used for RPC requests."
 echo "                                    Example: -t 30s"
+echo "   -l, --log                        Enable logging on consensus nodes."
 exit 0
 }
 
@@ -50,6 +52,7 @@ while test $# -gt 0; do
   case $_opt in
     -h|--help) show_help ;;
     -s|--single) SINGLE=1 ;;
+    -l|--log) export NEOBENCH_LOGGER=journald ;;
 
     -n|--nodes)
       if test $# -gt 0; then
