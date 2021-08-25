@@ -3,7 +3,7 @@
 source .env
 
 OUTPUT=""
-ARGS=""
+ARGS=()
 FILES=()
 MODE=""
 COUNT=""
@@ -76,7 +76,7 @@ while test $# -gt 0; do
       if test $# -gt 0; then
         case "$1" in
           "rate"|"wrk")
-            ARGS="${ARGS} -m $1"
+            ARGS+=(-m "$1")
             MODE="$1"
             ;;
           *)
@@ -92,7 +92,7 @@ while test $# -gt 0; do
 
     -d)
       if test $# -gt 0; then
-        ARGS="${ARGS} -d $1" # description contains no spaces
+        ARGS+=(-d "$1")
         OUTPUT="$1"
       else
         echo "benchmark description should be specified"
@@ -103,7 +103,7 @@ while test $# -gt 0; do
 
     -w)
       if test $# -gt 0; then
-        ARGS="${ARGS} -w $1"
+        ARGS+=(-w "$1")
         COUNT="$1"
       else
         echo "workers count should be specified"
@@ -114,7 +114,7 @@ while test $# -gt 0; do
 
     -z)
       if test $# -gt 0; then
-        ARGS="${ARGS} -z $1"
+        ARGS+=(-z "$1")
       else
         echo "benchmark time limit should be specified"
         exit 1
@@ -124,7 +124,7 @@ while test $# -gt 0; do
 
     -q)
       if test $# -gt 0; then
-        ARGS="${ARGS} -q $1"
+        ARGS+=(-q "$1")
         COUNT="$1"
       else
         echo "benchmark rate limit should be specified"
@@ -135,7 +135,7 @@ while test $# -gt 0; do
 
     -c)
       if test $# -gt 0; then
-        ARGS="${ARGS} -c $1"
+        ARGS+=(-c "$1")
       else
         echo "number of used CPU cores should be specified"
         exit 1
@@ -145,7 +145,7 @@ while test $# -gt 0; do
 
     -i)
       if test $# -gt 0; then
-        ARGS="${ARGS} -i $1"
+        ARGS+=(-i "$1")
       else
         echo "path to file with transactions dump should be specified"
         exit 1
@@ -165,7 +165,7 @@ while test $# -gt 0; do
 
     -t)
       if test $# -gt 0; then
-        ARGS="${ARGS} -t $1"
+        ARGS+=( -t "$1")
       else
         echo "request timeout should be specified"
         exit 1
@@ -201,10 +201,10 @@ if [ -z "$SINGLE" ]; then
 
   if [ "$RPC_TYPE" = go ]; then
     FILES+=(-f "$DC_GO_RPC")
-    DEFAULT_RPC_ADDR="-a go-node:20331"
+    DEFAULT_RPC_ADDR=(-a "go-node:20331")
   else
     FILES+=(-f "$DC_SHARP_RPC")
-    DEFAULT_RPC_ADDR="-a sharp-node:20331"
+    DEFAULT_RPC_ADDR=(-a "sharp-node:20331")
   fi
 else
   case "$IR_TYPE" in
@@ -220,11 +220,15 @@ else
       ;;
   esac
 
-  DEFAULT_RPC_ADDR="-a node:20331"
+  DEFAULT_RPC_ADDR=(-a "node:20331")
 fi
 
 OUTPUT="/out/${OUTPUT}_${MODE}_${COUNT}.log"
-ARGS="$ARGS ${RPC_ADDR[*]:-$DEFAULT_RPC_ADDR}"
+if [ ${#RPC_ADDR[@]} -eq 0 ]; then
+  ARGS+=("${DEFAULT_RPC_ADDR[@]}")
+else
+  ARGS+=("${RPC_ADDR[@]}")
+fi
 
 if [ -z "$SINGLE" ]; then
   make prepare
@@ -232,7 +236,6 @@ else
   make prepare.single
 fi
 
-# shellcheck disable=SC2086 # Intended splitting as variable contains multiple arguments.
-docker-compose ${FILES[*]} run bench neo-bench -o $OUTPUT $ARGS
+docker-compose "${FILES[@]}" run bench neo-bench -o "$OUTPUT" "${ARGS[@]}"
 
 make stop
