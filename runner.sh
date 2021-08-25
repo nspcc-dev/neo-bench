@@ -1,13 +1,23 @@
 #!/bin/bash
 
+source .env
+
 OUTPUT=""
 ARGS=""
-FILES=""
+FILES=()
 MODE=""
 COUNT=""
+SINGLE=
+IR_TYPE=go
+RPC_TYPE=
+RPC_ADDR=()
 
 show_help() {
 echo "Usage of benchmark runner:"
+echo "   -s, --single                     Use single consensus node."
+echo "   -n, --nodes                      Consensus node type."
+echo "                                    Possible values: go (default), mixed, sharp."
+echo "   -r, --rpc                        RPC node type. Default is the same as --nodes."
 echo "   -h, --help                       Show usage message."
 echo "   -d                               Benchmark description."
 echo "   -m                               Benchmark mode."
@@ -34,36 +44,32 @@ if [ $# == 0 ]; then
 fi
 
 while test $# -gt 0; do
-  case $1 in
-    -h|--help)
-      show_help
-      ;;
+  _opt=$1
+  shift
 
-    -f)
-      shift
+  case $_opt in
+    -h|--help) show_help ;;
+    -s|--single) SINGLE=1 ;;
+
+    -n|--nodes)
       if test $# -gt 0; then
-        FILES="${FILES} -f $1"
+        IR_TYPE=$1
       else
-        echo "docker-compose file should be specified"
-        exit 1
+        echo "Nodes type must be specified."
       fi
       shift
       ;;
 
-    -d)
-      shift
+    -r|--rpc)
       if test $# -gt 0; then
-        ARGS="${ARGS} -d $1" # description contains no spaces
-        OUTPUT="$1"
+        RPC_TYPE=$1
       else
-        echo "benchmark description should be specified"
-        exit 1
+        echo "RPC node type must be specified."
       fi
       shift
       ;;
 
     -m)
-      shift
       if test $# -gt 0; then
         case "$1" in
           "rate"|"wrk")
@@ -81,26 +87,18 @@ while test $# -gt 0; do
       shift
       ;;
 
-    -n)
-      shift
+    -d)
       if test $# -gt 0; then
-        case "$1" in
-          "single"|"multiple")
-            ARGS="${ARGS} -n $1"
-            ;;
-          *)
-            echo "unknown network mode specified: $1"
-            exit 2
-        esac
+        ARGS="${ARGS} -d $1" # description contains no spaces
+        OUTPUT="$1"
       else
-        echo "network mode should be specified"
+        echo "benchmark description should be specified"
         exit 1
       fi
       shift
       ;;
 
     -w)
-      shift
       if test $# -gt 0; then
         ARGS="${ARGS} -w $1"
         COUNT="$1"
@@ -112,7 +110,6 @@ while test $# -gt 0; do
       ;;
 
     -z)
-      shift
       if test $# -gt 0; then
         ARGS="${ARGS} -z $1"
       else
@@ -123,7 +120,6 @@ while test $# -gt 0; do
       ;;
 
     -q)
-      shift
       if test $# -gt 0; then
         ARGS="${ARGS} -q $1"
         COUNT="$1"
@@ -135,7 +131,6 @@ while test $# -gt 0; do
       ;;
 
     -c)
-      shift
       if test $# -gt 0; then
         ARGS="${ARGS} -c $1"
       else
@@ -146,7 +141,6 @@ while test $# -gt 0; do
       ;;
 
     -i)
-      shift
       if test $# -gt 0; then
         ARGS="${ARGS} -i $1"
       else
@@ -157,9 +151,8 @@ while test $# -gt 0; do
       ;;
 
     -a)
-      shift
       if test $# -gt 0; then
-        ARGS="${ARGS} -a $1"
+        RPC_ADDR+=(-a "$1")
       else
         echo "RPC address should be specified"
         exit 1
@@ -168,7 +161,6 @@ while test $# -gt 0; do
       ;;
 
     -t)
-      shift
       if test $# -gt 0; then
         ARGS="${ARGS} -t $1"
       else
@@ -185,7 +177,59 @@ while test $# -gt 0; do
   esac
 done
 
+RPC_TYPE=${RPC_TYPE:-$IR_TYPE}
+
+if [ -z "$SINGLE" ]; then
+  case "$IR_TYPE" in
+    go)
+      FILES+=(-f "$DC_GO_IR")
+      ;;
+    sharp)
+      FILES+=(-f "$DC_SHARP_IR")
+      ;;
+    mixed)
+      FILES+=(-f "$DC_MIXED_IR")
+      ;;
+    *)
+      echo "Unknown node type: $IR_TYPE"
+      exit 2
+      ;;
+  esac
+
+  if [ "$RPC_TYPE" = go ]; then
+    FILES+=(-f "$DC_GO_RPC")
+    DEFAULT_RPC_ADDR="-a go-node:20331"
+  else
+    FILES+=(-f "$DC_SHARP_RPC")
+    DEFAULT_RPC_ADDR="-a sharp-node:20331"
+  fi
+else
+  case "$IR_TYPE" in
+    go)
+      FILES+=(-f "$DC_GO_IR_SINGLE" -f "$DC_SINGLE")
+      ;;
+    sharp)
+      FILES+=(-f "$DC_SHARP_IR_SINGLE" -f "$DC_SINGLE")
+      ;;
+    *)
+      echo "Unknown single node type: $IR_TYPE"
+      exit 2
+      ;;
+  esac
+
+  DEFAULT_RPC_ADDR="-a node:20331"
+fi
+
 OUTPUT="/out/${OUTPUT}_${MODE}_${COUNT}.log"
+ARGS="$ARGS ${RPC_ADDR[*]:-$DEFAULT_RPC_ADDR}"
+
+if [ -z "$SINGLE" ]; then
+  make prepare
+else
+  make prepare.single
+fi
 
 # shellcheck disable=SC2086 # Intended splitting as variable contains multiple arguments.
-docker-compose ${FILES} run bench neo-bench -o $OUTPUT $ARGS
+docker-compose ${FILES[*]} run bench neo-bench -o $OUTPUT $ARGS
+
+make stop

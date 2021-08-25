@@ -1,23 +1,7 @@
 SHELL := /bin/bash
 
-DC_GO_IR=.docker/ir/docker-compose.go.yml
-DC_GO_RPC=.docker/rpc/docker-compose.go.yml
-
-DC_SINGLE=.docker/rpc/docker-compose.single.yml
-
-DC_GO_IR_SINGLE=.docker/ir/docker-compose.single.go.yml
-DC_SHARP_IR_SINGLE=.docker/ir/docker-compose.single.sharp.yml
-
-DC_SHARP_IR=.docker/ir/docker-compose.sharp.yml
-DC_SHARP_RPC=.docker/rpc/docker-compose.sharp.yml
-
-DC_MIXED_IR=.docker/ir/docker-compose.mixed.yml
-
-DF_GO=.docker/build/Dockerfile.golang
-DF_BENCH=.docker/build/Dockerfile.bench
-DF_SHARP=.docker/build/Dockerfile.sharp
-#DF_SHARP=.docker/build/Dockerfile.sharp.sources.from_binaries
-#DF_SHARP=.docker/build/Dockerfile.sharp.sources.from_local_dependencies
+include .env
+export
 
 TAG=bench
 HUB=nspccdev/neo-node
@@ -168,191 +152,148 @@ start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 
 ## GoSingle:
 #	## Workers:
-start.GoSingle10wrk: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m wrk -w 10 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle10wrk:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m wrk -w 10 -z 5m -t 30s
 
-start.GoSingle30wrk: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m wrk -w 30 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle30wrk:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m wrk -w 30 -z 5m -t 30s
 
-start.GoSingle100wrk: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m wrk -w 100 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle100wrk:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
-start.GoSingle25rate: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 25 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle25rate:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 25 -z 5m -t 30s
 
-start.GoSingle50rate: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 50 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle50rate:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 50 -z 5m -t 30s
 
-start.GoSingle60rate: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 60 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle60rate:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 60 -z 5m -t 30s
 
-start.GoSingle300rate: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 300 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle300rate:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 300 -z 5m -t 30s
 
-start.GoSingle1000rate: prepare.single
-	.make/runner.sh -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "GoSingle" -m rate -q 1000 -z 5m -t 30s -a node:20331
-	make stop
+start.GoSingle1000rate:
+	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 1000 -z 5m -t 30s
 
 ## Go x 4 + GoRPC:
 #	## Workers:
-start.GoFourNodes10wrk: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 10 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes10wrk:
+	./runner.sh -i /dump.txs -d "Go4x1" -m wrk -w 10 -z 5m -t 30s
 
-start.GoFourNodes30wrk: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 30 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes30wrk:
+	./runner.sh -i /dump.txs -d "Go4x1" -m wrk -w 30 -z 5m -t 30s
 
-start.GoFourNodes100wrk: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m wrk -w 100 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes100wrk:
+	./runner.sh -i /dump.txs -d "Go4x1" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
-start.GoFourNodes25rate: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 25 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes25rate:
+	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 25 -z 5m -t 30s
 
-start.GoFourNodes50rate: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 50 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes50rate:
+	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 50 -z 5m -t 30s
 
-start.GoFourNodes60rate: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 60 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes60rate:
+	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 60 -z 5m -t 30s
 
-start.GoFourNodes300rate: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 300 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes300rate:
+	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 300 -z 5m -t 30s
 
-start.GoFourNodes1000rate: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Go4x1" -m rate -q 1000 -z 5m -t 30s -a go-node:20331
-	make stop
+start.GoFourNodes1000rate:
+	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 1000 -z 5m -t 30s
 
 ## Go×4 + SharpRPC
 #
-start.GoFourNodesSharpRpc10wrk: prepare
-	.make/runner.sh -f $(DC_GO_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.GoFourNodesSharpRpc10wrk:
+	./runner.sh --sharp-rpc -i /dump.txs -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s
 
 ## SharpSingle:
 #	## Workers:
-start.SharpSingle10wrk: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle10wrk:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s
 
-start.SharpSingle30wrk: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m wrk -w 30 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle30wrk:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m wrk -w 30 -z 5m -t 30s
 
-start.SharpSingle100wrk: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m wrk -w 100 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle100wrk:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
-start.SharpSingle25rate: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 25 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle25rate:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 25 -z 5m -t 30s
 
-start.SharpSingle50rate: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 50 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle50rate:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 50 -z 5m -t 30s
 
-start.SharpSingle60rate: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 60 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle60rate:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 60 -z 5m -t 30s
 
-start.SharpSingle300rate: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 300 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle300rate:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 300 -z 5m -t 30s
 
-start.SharpSingle1000rate: prepare.single
-	.make/runner.sh -f $(DC_SHARP_IR_SINGLE) -f $(DC_SINGLE) -i /dump.txs -d "SharpSingle" -m rate -q 1000 -z 5m -t 30s -a node:20331
-	make stop
+start.SharpSingle1000rate:
+	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 1000 -z 5m -t 30s
 
 ## Sharp x 4 + SharpRPC:
 #	## Workers:
-start.SharpFourNodes10wrk: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes10wrk:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s
 
-start.SharpFourNodes30wrk: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes30wrk:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s
 
-start.SharpFourNodes100wrk: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 100 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes100wrk:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
-start.SharpFourNodes25rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 25 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes25rate:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 25 -z 5m -t 30s
 
-start.SharpFourNodes50rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 50 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes50rate:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 50 -z 5m -t 30s
 
-start.SharpFourNodes60rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 60 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes60rate:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 60 -z 5m -t 30s
 
-start.SharpFourNodes300rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 300 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes300rate:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 300 -z 5m -t 30s
 
-start.SharpFourNodes1000rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 1000 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.SharpFourNodes1000rate:
+	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 1000 -z 5m -t 30s
 
 ## Sharp x 4 + GoRPC:
 #	## Workers:
-start.SharpFourNodesGoRPC10wrk: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 10 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC10wrk:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 10 -z 5m -t 30s
 
-start.SharpFourNodesGoRPC30wrk: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 30 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC30wrk:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 30 -z 5m -t 30s
 
-start.SharpFourNodesGoRPC100wrk: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 100 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC100wrk:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
-start.SharpFourNodesGoRPC25rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 25 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC25rate:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 25 -z 5m -t 30s
 
-start.SharpFourNodesGoRPC50rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 50 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC50rate:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 50 -z 5m -t 30s
 
-start.SharpFourNodesGoRPC60rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 60 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC60rate:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 60 -z 5m -t 30s
 
-start.SharpFourNodesGoRPC300rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 300 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC300rate:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 300 -z 5m -t 30s
 
-start.SharpFourNodesGoRPC1000rate: prepare
-	.make/runner.sh -f $(DC_SHARP_IR) -f $(DC_GO_RPC) -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 1000 -z 5m -t 30s -a go-node:20331
-	make stop
+start.SharpFourNodesGoRPC1000rate:
+	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 1000 -z 5m -t 30s
 
 ## Mixed setup
 #
-start.MixedFourNodesGoRPC50rate: prepare
-	.make/runner.sh -f $(DC_MIXED_IR) -f $(DC_GO_RPC) -i /dump.txs -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s -a go-node:20331
-	make stop
+start.MixedFourNodesGoRPC50rate:
+	./runner.sh --nodes mixed -i /dump.txs -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
 
-start.MixedFourNodesSharpRPC50rate: prepare
-	.make/runner.sh -f $(DC_MIXED_IR) -f $(DC_SHARP_RPC) -i /dump.txs -d "MixedSharpRPC4x1" -m rate -q 50 -z 5m -t 30s -a sharp-node:20331
-	make stop
+start.MixedFourNodesSharpRPC50rate:
+	./runner.sh --nodes mixed --sharp-rpc -i /dump.txs -d "MixedSharpRPC4x1" -m rate -q 50 -z 5m -t 30s
