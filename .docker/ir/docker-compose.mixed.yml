@@ -1,7 +1,7 @@
 version: '2.4'
 
 networks:
-  neo_go_network:
+  default:
     name: neo_go_network
     ipam:
       config:
