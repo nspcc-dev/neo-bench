@@ -53,7 +53,7 @@ while test $# -gt 0; do
     -d)
       shift
       if test $# -gt 0; then
-        ARGS="${ARGS} -d \"$1\""
+        ARGS="${ARGS} -d $1" # description contains no spaces
         OUTPUT="$1"
       else
         echo "benchmark description should be specified"
@@ -187,4 +187,5 @@ done
 
 OUTPUT="/out/${OUTPUT}_${MODE}_${COUNT}.log"
 
+# shellcheck disable=SC2086 # Intended splitting as variable contains multiple arguments.
 docker-compose ${FILES} run bench neo-bench -o $OUTPUT $ARGS
