@@ -14,7 +14,7 @@ services:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
-      driver: "none"
+      driver: $NEOBENCH_LOGGER
     stdin_open: true
     tty: true
     ports: [ "20331:20331" ]

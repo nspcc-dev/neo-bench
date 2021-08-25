@@ -14,7 +14,7 @@ services:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
-      driver: "none"
+      driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-one
     stdin_open: true
     tty: true
@@ -34,7 +34,7 @@ services:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
-      driver: "none"
+      driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-two
     stdin_open: true
     tty: true
@@ -54,7 +54,7 @@ services:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
-      driver: "none"
+      driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-three
     stdin_open: true
     tty: true
@@ -74,7 +74,7 @@ services:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
-      driver: "none"
+      driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-four
     stdin_open: true
     tty: true
