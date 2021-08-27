@@ -41,6 +41,11 @@ echo "   -l, --log                        Enable logging on consensus nodes."
 exit 0
 }
 
+fatal() {
+  echo "$1"
+  exit 1
+}
+
 if [ $# == 0 ]; then
   show_help
 fi
@@ -55,128 +60,82 @@ while test $# -gt 0; do
     -l|--log) export NEOBENCH_LOGGER=journald ;;
 
     -n|--nodes)
-      if test $# -gt 0; then
-        IR_TYPE=$1
-      else
-        echo "Nodes type must be specified."
-      fi
+      test $# -gt 0 || fatal "Nodes type must be specified."
+      IR_TYPE=$1
       shift
       ;;
 
     -r|--rpc)
-      if test $# -gt 0; then
-        RPC_TYPE=$1
-      else
-        echo "RPC node type must be specified."
-      fi
+      test $# -gt 0 || fatal "RPC node type must be specified."
+      RPC_TYPE=$1
       shift
       ;;
 
     -m)
-      if test $# -gt 0; then
-        case "$1" in
-          "rate"|"wrk")
-            ARGS+=(-m "$1")
-            MODE="$1"
-            ;;
-          *)
-            echo "unknown benchmark mode specified: $1"
-            exit 2
-        esac
-      else
-        echo "benchmark mode should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "benchmark mode should be specified"
+      case "$1" in
+        "rate"|"wrk")
+          ARGS+=(-m "$1")
+          MODE="$1"
+          ;;
+        *)
+          fatal "unknown benchmark mode specified: $1"
+      esac
       shift
       ;;
 
     -d)
-      if test $# -gt 0; then
-        ARGS+=(-d "$1")
-        OUTPUT="$1"
-      else
-        echo "benchmark description should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "benchmark description should be specified"
+      ARGS+=(-d "$1")
+      OUTPUT="$1"
       shift
       ;;
 
     -w)
-      if test $# -gt 0; then
-        ARGS+=(-w "$1")
-        COUNT="$1"
-      else
-        echo "workers count should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "workers count should be specified"
+      ARGS+=(-w "$1")
+      COUNT="$1"
       shift
       ;;
 
     -z)
-      if test $# -gt 0; then
-        ARGS+=(-z "$1")
-      else
-        echo "benchmark time limit should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "benchmark time limit should be specified"
+      ARGS+=(-z "$1")
       shift
       ;;
 
     -q)
-      if test $# -gt 0; then
-        ARGS+=(-q "$1")
-        COUNT="$1"
-      else
-        echo "benchmark rate limit should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "benchmark rate limit should be specified"
+      ARGS+=(-q "$1")
+      COUNT="$1"
       shift
       ;;
 
     -c)
-      if test $# -gt 0; then
-        ARGS+=(-c "$1")
-      else
-        echo "number of used CPU cores should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "number of used CPU cores should be specified"
+      ARGS+=(-c "$1")
       shift
       ;;
 
     -i)
-      if test $# -gt 0; then
-        ARGS+=(-i "$1")
-      else
-        echo "path to file with transactions dump should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "path to file with transactions dump should be specified"
+      ARGS+=(-i "$1")
       shift
       ;;
 
     -a)
-      if test $# -gt 0; then
-        RPC_ADDR+=(-a "$1")
-      else
-        echo "RPC address should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "RPC address should be specified"
+      RPC_ADDR+=(-a "$1")
       shift
       ;;
 
     -t)
-      if test $# -gt 0; then
-        ARGS+=( -t "$1")
-      else
-        echo "request timeout should be specified"
-        exit 1
-      fi
+      test $# -gt 0 || fatal "request timeout should be specified"
+      ARGS+=( -t "$1")
       shift
       ;;
 
-    *)
-      echo "Unknown option: $1"
-      exit 2
-      ;;
+    *) fatal "Unknown option: $1" ;;
   esac
 done
 
