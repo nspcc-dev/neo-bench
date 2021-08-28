@@ -3,7 +3,7 @@
 source .env
 
 OUTPUT=""
-ARGS=()
+ARGS=(-i "/dump.txs")
 FILES=()
 MODE=""
 COUNT=""
@@ -125,12 +125,6 @@ while test $# -gt 0; do
     -c)
       test $# -gt 0 || fatal "number of used CPU cores should be specified"
       ARGS+=(-c "$1")
-      shift
-      ;;
-
-    -i)
-      test $# -gt 0 || fatal "path to file with transactions dump should be specified"
-      ARGS+=(-i "$1")
       shift
       ;;
 
