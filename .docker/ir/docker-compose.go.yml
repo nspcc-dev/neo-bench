@@ -17,6 +17,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
+    expose: [ "30333" ]
     healthcheck:
       interval: 5s
       retries: 15
@@ -36,6 +37,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
+    expose: [ "30334" ]
     healthcheck:
       interval: 5s
       retries: 15
@@ -55,6 +57,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
+    expose: [ "30335" ]
     healthcheck:
       interval: 5s
       retries: 15
@@ -74,6 +77,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
+    expose: [ "30336" ]
     healthcheck:
       interval: 5s
       retries: 15

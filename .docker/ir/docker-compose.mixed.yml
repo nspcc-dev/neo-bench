@@ -16,6 +16,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-one
+    expose: [ "20331" ]
     stdin_open: true
     tty: true
     volumes:
@@ -36,6 +37,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-two
+    expose: [ "20331" ]
     stdin_open: true
     tty: true
     volumes:
@@ -57,6 +59,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
+    expose: [ "30335" ]
     healthcheck:
       interval: 5s
       retries: 15
@@ -76,6 +79,7 @@ services:
     logging:
       driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
+    expose: [ "30336" ]
     healthcheck:
       interval: 5s
       retries: 15
