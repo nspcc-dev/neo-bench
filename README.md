@@ -317,6 +317,12 @@ To add one more node configuration, provide all necessary information to the `no
     wallet_password: "five"
 ```
 
+## Environment variables
+
+Name|Description|Default|Example
+---|---|---|---
+NEOBENCH_LOGGER|Container logging facility|`none`|`none`, `journald`, `syslog`
+
 ## Benchmark results visualisation
 
 There's a Python plotting script available for benchmark data visualisation. 
