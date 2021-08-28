@@ -43,6 +43,8 @@ const (
 	NEOTransfer = "neo"
 	// GASTransfer is the type of GAS transfer tx.
 	GASTransfer = "gas"
+	// ContractTransfer is the type of deployed NEP17 contract transfer tx.
+	ContractTransfer = "nep17"
 )
 
 var workerCount = runtime.NumCPU()
@@ -81,7 +83,7 @@ func newTransferTx(wif *keys.WIF, contractHash util.Uint160) *transaction.Transa
 	}
 
 	script := w.Bytes()
-	tx := transaction.New(script, 10000000)
+	tx := transaction.New(script, 15000000)
 	tx.NetworkFee = 1500000 // hardcoded for now
 	tx.ValidUntilBlock = 1200
 	tx.Signers = append(tx.Signers, transaction.Signer{
@@ -131,6 +133,9 @@ func Generate(ctx context.Context, typ string, count int, callback ...GenerateCa
 		tx = newNEOTransferTx(wif)
 	case GASTransfer:
 		tx = newGASTransferTx(wif)
+	case ContractTransfer:
+		h, _ := util.Uint160DecodeStringLE("ceb508fc02abc2dc27228e21976699047bbbcce0")
+		tx = newTransferTx(wif, h)
 	default:
 		panic(fmt.Sprintf("invalid type: %s", typ))
 	}

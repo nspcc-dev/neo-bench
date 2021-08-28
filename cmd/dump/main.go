@@ -1,26 +1,34 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/config"
+	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
 	"github.com/nspcc-dev/neo-go/pkg/core"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
+	"github.com/nspcc-dev/neo-go/pkg/core/blockchainer"
 	"github.com/nspcc-dev/neo-go/pkg/core/native"
+	"github.com/nspcc-dev/neo-go/pkg/core/state"
 	"github.com/nspcc-dev/neo-go/pkg/core/storage"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract/nef"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/trigger"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
 	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
+	"github.com/nspcc-dev/neo-go/pkg/wallet"
 	"go.uber.org/zap"
 )
 
@@ -119,6 +127,44 @@ func initChain(single bool) (*core.Blockchain, *signer, error) {
 	return bc, c, nil
 }
 
+func newDeployTx(bc blockchainer.Blockchainer, priv *keys.PrivateKey, nefName, manifestName string) (*transaction.Transaction, error) {
+	rawNef, err := ioutil.ReadFile(nefName)
+	if err != nil {
+		return nil, err
+	}
+
+	rawManifest, err := ioutil.ReadFile(manifestName)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := io.NewBufBinWriter()
+	emit.AppCall(buf.BinWriter, bc.ManagementContractHash(), "deploy", callflag.All, rawNef, rawManifest)
+	if buf.Err != nil {
+		return nil, buf.Err
+	}
+
+	tx := transaction.New(buf.Bytes(), 100*native.GASFactor)
+	tx.Signers = []transaction.Signer{{Account: priv.GetScriptHash(), Scopes: transaction.Global}}
+	tx.ValidUntilBlock = 1000
+	tx.NetworkFee = 10_000000
+
+	// Contract hash is immutable so we calculate it once and then reuse during tx generation.
+	ne, err := nef.FileFromBytes(rawNef)
+	if err != nil {
+		return nil, err
+	}
+	m := new(manifest.Manifest)
+	if err := json.Unmarshal(rawManifest, m); err != nil {
+		return nil, err
+	}
+	h := state.CreateContractHash(tx.Sender(), ne.Checksum, m.Name)
+	log.Printf("Contract hash: %s\n", h.StringLE())
+
+	acc := wallet.NewAccountFromPrivateKey(priv)
+	return tx, acc.SignTx(netmode.PrivNet, tx)
+}
+
 func newNEP5Transfer(sc util.Uint160, from, to util.Uint160, amount int64) *transaction.Transaction {
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter, sc, "transfer", callflag.All, from, to, amount, nil)
@@ -150,6 +196,20 @@ func fillChain(bc *core.Blockchain, c *signer) error {
 	c.signTx(txMoveNeo, txMoveGas)
 
 	err = addBlock(bc, c, txMoveNeo, txMoveGas)
+	if err != nil {
+		return err
+	}
+
+	// We deploy contract from priv to avoid having different hashes for single/4-node benchmarks.
+	// The contract is taken from `examples/token` of neo-go with 2 minor corrections:
+	// 1. Owner address is replaced with the address of WIF we use.
+	// 2. All funds are minted to owner in `_deploy`.
+	txDeploy, err := newDeployTx(bc, priv, "./dump/tokencontract/token.nef",
+		"./dump/tokencontract/token.manifest.json")
+	if err != nil {
+		return err
+	}
+	err = addBlock(bc, c, txDeploy)
 	if err != nil {
 		return err
 	}

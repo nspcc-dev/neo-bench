@@ -94,7 +94,7 @@ pull:
 	@docker pull $(HUB)-go:$(TAG)
 	@docker pull $(HUB)-sharp:$(TAG)
 
-gen: $(BUILD_DIR)/dump.NEO.txs $(BUILD_DIR)/dump.GAS.txs
+gen: $(BUILD_DIR)/dump.NEO.txs $(BUILD_DIR)/dump.GAS.txs $(BUILD_DIR)/dump.NEP17.txs
 
 # Generate `dump.txs`
 $(BUILD_DIR)/dump.%.txs: cmd/gen/main.go
