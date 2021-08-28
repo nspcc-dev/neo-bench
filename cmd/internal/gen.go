@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"log"
+	"runtime"
+	"sync"
 	"time"
 
 	"github.com/Workiva/go-datastructures/queue"
@@ -27,6 +29,10 @@ type (
 
 	// GenerateCallback used to do something with hash and marshaled transactions when generates.
 	GenerateCallback func(hash, blob string) error
+
+	txBlob struct {
+		hash, blob string
+	}
 )
 
 // getWif returns Wif.
@@ -63,6 +69,8 @@ func newNEOTransferTx(wif *keys.WIF) *transaction.Transaction {
 	return tx
 }
 
+var genWorkerCount = runtime.NumCPU()
+
 // Generate used to generate the specified number of transactions.
 func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dump {
 	start := time.Now()
@@ -83,44 +91,80 @@ func Generate(ctx context.Context, count int, callback ...GenerateCallback) *Dum
 		log.Fatalf("Could not create account: %v", err)
 	}
 
-	buf := io.NewBufBinWriter()
+	txCh := make(chan *transaction.Transaction, genWorkerCount)
+	result := make(chan txBlob, genWorkerCount)
+
+	var wg sync.WaitGroup
+	wg.Add(genWorkerCount)
+	for i := 0; i < genWorkerCount; i++ {
+		go func(i int) {
+			defer wg.Done()
+			genTxWorker(i, acc, txCh, result)
+		}(i)
+	}
 
 	tx := newNEOTransferTx(wif)
+	finishCh := make(chan struct{})
+	go func() {
+		for i := 0; i < count; i++ {
+			if ctx.Err() != nil {
+				log.Fatal(ctx.Err())
+			}
+
+			txCh <- tx
+		}
+		close(txCh)
+		close(finishCh)
+	}()
+
 	for i := 0; i < count; i++ {
-		if ctx.Err() != nil {
-			log.Fatal(ctx.Err())
-		}
+		r := <-result
 
-		tx := *tx
-		tx.Nonce = uint32(i)
-
-		if err := acc.SignTx(netmode.PrivNet, &tx); err != nil {
-			log.Fatalf("Could not sign tx: %v", err)
-		}
-
-		tx.EncodeBinary(buf.BinWriter)
-
-		if buf.Err != nil {
-			log.Fatalf("Could not prepare transaction: %d %v", i, err)
-		}
-
-		hash := tx.Hash().String()
-		blob := base64.StdEncoding.EncodeToString(buf.Bytes())
-
-		err := dump.TransactionsQueue.Put(blob)
+		err := dump.TransactionsQueue.Put(r.blob)
 		if err != nil {
 			log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
 		}
 
 		for j := range callback {
-			if err := callback[j](hash, blob); err != nil {
+			if err := callback[j](r.hash, r.blob); err != nil {
 				log.Fatalf("Callback returns error: %d %v", i, err)
 			}
 		}
-
-		buf.Reset()
 	}
+
+	<-finishCh
+	wg.Wait()
+	close(result)
 
 	log.Printf("Done: %s", time.Since(start))
 	return &dump
+}
+
+func genTxWorker(n int, acc *wallet.Account, ch <-chan *transaction.Transaction, out chan<- txBlob) {
+	baseNonce := n << 24 // 255 possible workers and 16M transactions should be enough
+	i := 0
+
+	buf := io.NewBufBinWriter()
+	for tx := range ch {
+		tx := *tx
+		tx.Nonce = uint32(baseNonce | i)
+
+		if err := acc.SignTx(netmode.PrivNet, &tx); err != nil {
+			log.Fatalf("Could not sign tx: %v", err)
+		}
+
+		buf.Reset()
+		tx.EncodeBinary(buf.BinWriter)
+
+		if buf.Err != nil {
+			log.Fatalf("Could not prepare transaction: %d %v", i, buf.Err)
+		}
+
+		out <- txBlob{
+			hash: tx.Hash().String(),
+			blob: base64.StdEncoding.EncodeToString(buf.Bytes()),
+		}
+
+		i++
+	}
 }
