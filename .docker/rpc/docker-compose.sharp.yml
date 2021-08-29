@@ -14,11 +14,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 50
-      test:
-        - CMD
-        - bash
-        - '-c'
-        - /healthcheck.sh
+      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
     environment:
       - ACC=/dump.acc
     volumes:

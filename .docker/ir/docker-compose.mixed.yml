@@ -1,7 +1,7 @@
 version: '2.4'
 
 networks:
-  neo_go_network:
+  default:
     name: neo_go_network
     ipam:
       config:
@@ -13,8 +13,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-#    logging:
-#      driver: "none"
+    logging:
+      driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-one
     stdin_open: true
     tty: true
@@ -24,11 +24,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 50
-      test:
-        - CMD
-        - bash
-        - '-c'
-        - /healthcheck.sh
+      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
       timeout: 10s
     environment:
       - ACC=dump.acc
@@ -37,8 +33,8 @@ services:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-#    logging:
-#      driver: "none"
+    logging:
+      driver: $NEOBENCH_LOGGER
     container_name: neo-cli-node-two
     stdin_open: true
     tty: true
@@ -48,11 +44,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 50
-      test:
-        - CMD
-        - bash
-        - '-c'
-        - /healthcheck.sh
+      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
       timeout: 10s
     environment:
       - ACC=dump.acc
@@ -62,8 +54,8 @@ services:
       - stats
     container_name: neo_go_node_three
     image: registry.nspcc.ru/neo-bench/neo-go:bench
-#    logging:
-#      driver: "none"
+    logging:
+      driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
     healthcheck:
       interval: 5s
@@ -81,8 +73,8 @@ services:
       - stats
     container_name: neo_go_node_four
     image: registry.nspcc.ru/neo-bench/neo-go:bench
-#    logging:
-#      driver: "none"
+    logging:
+      driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
     healthcheck:
       interval: 5s

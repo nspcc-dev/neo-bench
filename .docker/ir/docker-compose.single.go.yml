@@ -1,12 +1,20 @@
 version: '2.4'
 
+networks:
+  default:
+    name: neo_go_network
+    ipam:
+      config:
+        - subnet: 172.200.0.0/24
+          gateway: 172.200.0.254
+
 services:
   node:
     labels:
       - stats
     image: registry.nspcc.ru/neo-bench/neo-go:bench
     logging:
-      driver: "none"
+      driver: $NEOBENCH_LOGGER
     command: "node --config-path /config --privnet"
     ports: [ "20331:20331" ]
     healthcheck:
