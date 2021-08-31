@@ -15,6 +15,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     container_name: neo-cli-node-one
     expose: [ "20331" ]
     stdin_open: true
@@ -29,6 +31,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_two:
     labels:
@@ -36,6 +39,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     container_name: neo-cli-node-two
     expose: [ "20331" ]
     stdin_open: true
@@ -50,6 +55,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_three:
     labels:
@@ -57,6 +63,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     container_name: neo-cli-node-three
     expose: [ "20331" ]
     stdin_open: true
@@ -71,6 +79,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_four:
     labels:
@@ -78,6 +87,8 @@ services:
     image: registry.nspcc.ru/neo-bench/neo-sharp:bench
     logging:
       driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
     container_name: neo-cli-node-four
     expose: [ "20331" ]
     stdin_open: true
@@ -92,6 +103,7 @@ services:
       timeout: 10s
     environment:
       - ACC=dump.acc
+      - NEOBENCH_TC=$NEOBENCH_TC
 
   healthy:
     image: alpine

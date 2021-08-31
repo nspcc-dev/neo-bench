@@ -29,6 +29,8 @@ RUN set -x \
 # Executable layer
 FROM alpine
 
+RUN apk add --no-cache iproute2-tc
+
 WORKDIR /neo-go
 
 WORKDIR /

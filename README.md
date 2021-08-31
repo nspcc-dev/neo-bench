@@ -322,6 +322,7 @@ To add one more node configuration, provide all necessary information to the `no
 Name|Description|Default|Example
 ---|---|---|---
 NEOBENCH_LOGGER|Container logging facility|`none`|`none`, `journald`, `syslog`
+NEOBENCH_TC|Parameters passed to the `tc qdisc` (netem discipline) on container startup| |`delay 100ms`
 
 ## Benchmark results visualisation
 

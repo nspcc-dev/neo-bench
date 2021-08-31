@@ -38,6 +38,8 @@ echo "   -t                               Request timeout."
 echo "                                    Used for RPC requests."
 echo "                                    Example: -t 30s"
 echo "   -l, --log                        Enable logging on consensus nodes."
+echo "       --tc                         Arguments to pass to 'tc qdisc netem' inside the container."
+echo "                                    Example: 'delay 100ms'"
 exit 0
 }
 
@@ -132,6 +134,12 @@ while test $# -gt 0; do
     -t)
       test $# -gt 0 || fatal "request timeout should be specified"
       ARGS+=( -t "$1")
+      shift
+      ;;
+
+    --tc)
+      test $# -gt 0 || fatal "tc arguments should be specified"
+      export NEOBENCH_TC="$1"
       shift
       ;;
 
