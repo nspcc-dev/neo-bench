@@ -33,7 +33,7 @@ services:
     depends_on: [ "node_healthy" ]
     volumes:
       - ./out:/out:rw
-      - ../build/dump.$NEOBENCH_TYPE.txs:/dump.txs
+      - ../build/dump.$NEOBENCH_TYPE.$NEOBENCH_FROM_COUNT.$NEOBENCH_TO_COUNT.txs:/dump.txs
       - /var/run/docker.sock:/var/run/docker.sock
       - ../rpc/tokencontract/token.nef:/tokencontract/token.nef:ro
       - ../rpc/tokencontract/token.manifest.json:/tokencontract/token.manifest.json:ro

@@ -9,6 +9,7 @@ import (
 type BenchOptions struct {
 	TransferType string
 	TxCount      uint64
+	ToCount      int
 	Senders      []*keys.PrivateKey
 }
 
@@ -18,6 +19,7 @@ func (o *BenchOptions) EncodeBinary(w *io.BinWriter) {
 	for _, p := range o.Senders {
 		w.WriteBytes(p.Bytes())
 	}
+	w.WriteVarUint(uint64(o.ToCount))
 	w.WriteU64LE(uint64(o.TxCount))
 }
 
@@ -40,5 +42,6 @@ func (o *BenchOptions) DecodeBinary(r *io.BinReader) {
 		o.Senders[i] = p
 	}
 
+	o.ToCount = int(r.ReadVarUint())
 	o.TxCount = r.ReadU64LE()
 }

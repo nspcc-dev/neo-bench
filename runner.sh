@@ -13,6 +13,8 @@ RPC_TYPE=
 RPC_ADDR=()
 NEOBENCH_LOGGER=${NEOBENCH_LOGGER:-none}
 export NEOBENCH_TYPE=${NEOBENCH_TYPE:-NEO}
+NEOBENCH_FROM_COUNT=${NEOBENCH_FROM_COUNT:-1}
+NEOBENCH_TO_COUNT=${NEOBENCH_TO_COUNT:-1}
 
 show_help() {
 echo "Usage of benchmark runner:"
@@ -23,6 +25,8 @@ echo "   -r, --rpc                        RPC node type. Default is the same as 
 echo "   -h, --help                       Show usage message."
 echo "   -b, --benchmark                  Benchmark type."
 echo "                                    Possible values: NEO (default) or GAS"
+echo "       --from                       Number of tx senders (default: 1)"
+echo "       --to                         Number of fund receivers (default: 1)"
 echo "   -d                               Benchmark description."
 echo "   -m                               Benchmark mode."
 echo "                                    Example: -m wrk -m rate"
@@ -63,6 +67,18 @@ while test $# -gt 0; do
     -h|--help) show_help ;;
     -s|--single) SINGLE=1 ;;
     -l|--log) export NEOBENCH_LOGGER=journald ;;
+
+    --from)
+      test $# -gt 0 || fatal "Amount must be specified for --from."
+      NEOBENCH_FROM_COUNT=$1
+      shift
+      ;;
+
+    --to)
+      test $# -gt 0 || fatal "Amount must be specified for --to."
+      NEOBENCH_TO_COUNT=$1
+      shift
+      ;;
 
     -n|--nodes)
       test $# -gt 0 || fatal "Nodes type must be specified."

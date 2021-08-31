@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"runtime"
@@ -37,6 +38,11 @@ type (
 	txBlob struct {
 		hash, blob string
 	}
+
+	txRequest struct {
+		tx  *transaction.Transaction
+		acc *wallet.Account
+	}
 )
 
 const (
@@ -49,24 +55,23 @@ const (
 )
 
 // newNEOTransferTx returns NEO transfer transaction with random nonce.
-func newNEOTransferTx(p *keys.PrivateKey) *transaction.Transaction {
+func newNEOTransferTx(p *keys.PrivateKey, to util.Uint160) *transaction.Transaction {
 	neoContractHash, _ := util.Uint160DecodeBytesBE([]byte(neo.Hash))
-	return newTransferTx(p, neoContractHash)
+	return newTransferTx(p, neoContractHash, to)
 }
 
 // newGASTransferTx returns GAS transfer transaction with random nonce.
-func newGASTransferTx(p *keys.PrivateKey) *transaction.Transaction {
+func newGASTransferTx(p *keys.PrivateKey, to util.Uint160) *transaction.Transaction {
 	gasContractHash, _ := util.Uint160DecodeBytesBE([]byte(gas.Hash))
-	return newTransferTx(p, gasContractHash)
+	return newTransferTx(p, gasContractHash, to)
 }
 
-func newTransferTx(p *keys.PrivateKey, contractHash util.Uint160) *transaction.Transaction {
+func newTransferTx(p *keys.PrivateKey, contractHash, toAddr util.Uint160) *transaction.Transaction {
 	fromAddressHash := p.GetScriptHash()
-
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter,
 		contractHash, "transfer", callflag.All,
-		fromAddressHash, fromAddressHash, int64(1), nil)
+		fromAddressHash, toAddr, int64(1), nil)
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	if w.Err != nil {
 		panic(w.Err)
@@ -96,8 +101,7 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 
 	log.Printf("Generate %d txs", count)
 
-	acc := wallet.NewAccountFromPrivateKey(opts.Senders[0])
-	txCh := make(chan *transaction.Transaction, genWorkerCount)
+	txCh := make(chan txRequest, genWorkerCount)
 	result := make(chan txBlob, genWorkerCount)
 
 	var wg sync.WaitGroup
@@ -105,21 +109,44 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 	for i := 0; i < genWorkerCount; i++ {
 		go func(i int) {
 			defer wg.Done()
-			genTxWorker(i, acc, txCh, result)
+			genTxWorker(i, txCh, result)
 		}(i)
 	}
 
-	var tx *transaction.Transaction
-	switch strings.ToLower(opts.TransferType) {
-	case NEOTransfer:
-		tx = newNEOTransferTx(opts.Senders[0])
-	case GASTransfer:
-		tx = newGASTransferTx(opts.Senders[0])
-	case ContractTransfer:
-		h, _ := util.Uint160DecodeStringLE("ceb508fc02abc2dc27228e21976699047bbbcce0")
-		tx = newTransferTx(opts.Senders[0], h)
-	default:
-		panic(fmt.Sprintf("invalid type: %s", opts.TransferType))
+	// We support both N-to-1 and 1-to-N cases, thus these index calculations.
+	max := len(opts.Senders)
+	if max < opts.ToCount {
+		max = opts.ToCount
+	}
+
+	txR := make([]txRequest, max)
+	for i := range txR {
+		sender := opts.Senders[i%len(opts.Senders)]
+		receiver := opts.Senders[0].GetScriptHash()
+		if opts.ToCount > 1 {
+			rem := (i + 1) % opts.ToCount
+			if rem < len(opts.Senders) {
+				receiver = opts.Senders[rem].GetScriptHash()
+			} else { // support up to 65536 receivers
+				receiver = util.Uint160{}
+				binary.LittleEndian.PutUint16(receiver[:], uint16(rem))
+			}
+		}
+
+		var tx *transaction.Transaction
+		switch strings.ToLower(opts.TransferType) {
+		case NEOTransfer:
+			tx = newNEOTransferTx(sender, receiver)
+		case GASTransfer:
+			tx = newGASTransferTx(sender, receiver)
+		case ContractTransfer:
+			h, _ := util.Uint160DecodeStringLE("ceb508fc02abc2dc27228e21976699047bbbcce0")
+			tx = newTransferTx(sender, h, receiver)
+		default:
+			panic(fmt.Sprintf("invalid type: %s", opts.TransferType))
+		}
+		txR[i].tx = tx
+		txR[i].acc = wallet.NewAccountFromPrivateKey(sender)
 	}
 
 	finishCh := make(chan struct{})
@@ -129,7 +156,7 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 				log.Fatal(ctx.Err())
 			}
 
-			txCh <- tx
+			txCh <- txR[i%len(txR)]
 		}
 		close(txCh)
 		close(finishCh)
@@ -158,16 +185,16 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 	return &dump
 }
 
-func genTxWorker(n int, acc *wallet.Account, ch <-chan *transaction.Transaction, out chan<- txBlob) {
+func genTxWorker(n int, ch <-chan txRequest, out chan<- txBlob) {
 	baseNonce := n << 24 // 255 possible workers and 16M transactions should be enough
 	i := 0
 
 	buf := io.NewBufBinWriter()
-	for tx := range ch {
-		tx := *tx
+	for tr := range ch {
+		tx := *tr.tx
 		tx.Nonce = uint32(baseNonce | i)
 
-		if err := acc.SignTx(netmode.PrivNet, &tx); err != nil {
+		if err := tr.acc.SignTx(netmode.PrivNet, &tx); err != nil {
 			log.Fatalf("Could not sign tx: %v", err)
 		}
 

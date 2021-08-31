@@ -174,28 +174,37 @@ func fillChain(ctx context.Context, c *client.Client, sgn *signer, opts BenchOpt
 		}
 	}
 
-	priv := opts.Senders[0]
-	txMoveNeo := newNEP5Transfer(isSingle, neoHash, sgn.addr, priv.GetScriptHash(), native.NEOTotalSupply)
-	txMoveGas := newNEP5Transfer(isSingle, gasHash, sgn.addr, priv.GetScriptHash(), native.GASFactor*2900000)
-	sgn.signTx(txMoveNeo, txMoveGas)
+	txs := make([]*transaction.Transaction, 0, len(opts.Senders)*2)
+	neoAmount := int64(native.NEOTotalSupply / len(opts.Senders))
+	gasAmount := int64(native.GASFactor * 2900000 / len(opts.Senders))
+	for _, priv := range opts.Senders {
+		txMoveNeo := newNEP5Transfer(isSingle, neoHash, sgn.addr, priv.GetScriptHash(), neoAmount)
+		txMoveGas := newNEP5Transfer(isSingle, gasHash, sgn.addr, priv.GetScriptHash(), gasAmount)
+		sgn.signTx(txMoveNeo, txMoveGas)
+		txs = append(txs, txMoveNeo, txMoveGas)
+	}
 
 	log.Println("Sending NEO and GAS transfer tx")
-	err = sendTx(ctx, c, txMoveNeo, txMoveGas)
+	err = sendTx(ctx, c, txs...)
 	if err != nil {
 		return err
 	}
 
-	err = awaitTx(ctx, timeout,
-		func() (bool, error) {
-			b, err := c.NEP17BalanceOf(neoHash, priv.GetScriptHash())
-			log.Println("NEO balance:", b)
-			return b > 0, err
-		},
-		func() (bool, error) {
-			b, err := c.NEP17BalanceOf(gasHash, priv.GetScriptHash())
-			log.Println("GAS balance:", b)
-			return b > 0, err
-		})
+	fs := make([]func() (bool, error), 0, len(opts.Senders)*2)
+	for i := 0; i < len(opts.Senders); i++ {
+		addr := opts.Senders[i].GetScriptHash()
+		fs = append(fs,
+			func() (bool, error) {
+				b, err := c.NEP17BalanceOf(neoHash, addr)
+				return b > 0, err
+			},
+			func() (bool, error) {
+				b, err := c.NEP17BalanceOf(gasHash, addr)
+				return b > 0, err
+			})
+	}
+	err = awaitTx(ctx, timeout, fs...)
+
 	if err != nil {
 		return err
 	}
@@ -204,7 +213,7 @@ func fillChain(ctx context.Context, c *client.Client, sgn *signer, opts BenchOpt
 	// The contract is taken from `examples/token` of neo-go with 2 minor corrections:
 	// 1. Owner address is replaced with the address of WIF we use.
 	// 2. All funds are minted to owner in `_deploy`.
-	txDeploy, h, err := newDeployTx(mgmtHash, priv, "/tokencontract/token.nef",
+	txDeploy, h, err := newDeployTx(mgmtHash, opts.Senders[0], "/tokencontract/token.nef",
 		"/tokencontract/token.manifest.json")
 	if err != nil {
 		return err

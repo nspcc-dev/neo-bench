@@ -13,6 +13,9 @@ var (
 	out = flag.String("out", "./dump.txs", "Path to dump transactions.")
 	cnt = flag.Int("cnt", 1_000_000, "Count of txs that would be generated.")
 	typ = flag.String("type", internal.NEOTransfer, "Type of txs that would be generated.")
+
+	fromCount = flag.Int("from", 1, "Amount of tx senders")
+	toCount   = flag.Int("to", 1, "Amount of tx recepients")
 )
 
 func main() {
@@ -24,11 +27,20 @@ func main() {
 	case inp != nil && *inp != "":
 		internal.ReadDump(*inp)
 	case out != nil && *out != "" && cnt != nil && *cnt > 0:
-		p, _ := keys.NewPrivateKeyFromWIF("KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o")
+		var err error
+		senders := make([]*keys.PrivateKey, *fromCount)
+		senders[0], _ = keys.NewPrivateKeyFromWIF("KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o")
+		for i := 1; i < len(senders); i++ {
+			senders[i], err = keys.NewPrivateKey()
+			if err != nil {
+				panic(err)
+			}
+		}
 		internal.WriteDump(ctx, *out, internal.BenchOptions{
 			TransferType: *typ,
 			TxCount:      uint64(*cnt),
-			Senders:      []*keys.PrivateKey{p},
+			ToCount:      *toCount,
+			Senders:      senders,
 		})
 	default:
 		flag.PrintDefaults()
