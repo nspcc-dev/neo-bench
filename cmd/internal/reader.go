@@ -38,11 +38,12 @@ func ReadDump(from string) *Dump {
 	}()
 
 	rd := io.NewBinReaderFromIO(cp)
-	count := rd.ReadU64LE()
 
-	dump := &Dump{
-		TransactionsQueue: queue.NewRingBuffer(count),
-	}
+	var dump Dump
+	dump.BenchOptions.DecodeBinary(rd)
+
+	count := dump.BenchOptions.TxCount
+	dump.TransactionsQueue = queue.NewRingBuffer(count)
 
 	start := time.Now()
 	log.Printf("Read %d txs from %s", count, in.Name())
@@ -61,7 +62,7 @@ func ReadDump(from string) *Dump {
 	}
 
 	log.Printf("Done %s", time.Since(start))
-	return dump
+	return &dump
 }
 
 // DecodeGoConfig decodes Golang node configuration from yaml file.

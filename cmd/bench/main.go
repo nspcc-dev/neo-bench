@@ -172,7 +172,7 @@ func main() {
 		return
 	}
 
-	wrk.Prepare(ctx)
+	wrk.Prepare(ctx, dump.BenchOptions)
 
 	wg := new(sync.WaitGroup)
 	wg.Add(1)

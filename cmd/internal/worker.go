@@ -16,7 +16,7 @@ type (
 	// Worker interface.
 	Worker interface {
 		Wait()
-		Prepare(ctx context.Context)
+		Prepare(ctx context.Context, opts BenchOptions)
 		Sender(ctx context.Context)
 		Parser(ctx context.Context, block *block.Block)
 	}

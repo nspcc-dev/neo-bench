@@ -26,11 +26,8 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/wallet"
 )
 
-// wifTo is a wif of the wallet where all NEO and GAS are sent.
-const wifTo = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-
 // Prepare sends prepare transactions on chain at runtime.
-func (d *doer) Prepare(ctx context.Context) {
+func (d *doer) Prepare(ctx context.Context, opts BenchOptions) {
 	log.Println("Prepare chain for benchmark")
 
 	// Preparation stage isn't done during main benchmark,
@@ -57,7 +54,7 @@ func (d *doer) Prepare(ctx context.Context) {
 		log.Fatalf("could not initialize chain: %v", err)
 	}
 
-	err = fillChain(ctx, c, sgn)
+	err = fillChain(ctx, c, sgn, opts)
 	if err != nil {
 		log.Fatalf("could not create blocks: %v", err)
 	}
@@ -151,7 +148,7 @@ func newNEP5Transfer(isSingle bool, sc util.Uint160, from, to util.Uint160, amou
 	return tx
 }
 
-func fillChain(ctx context.Context, c *client.Client, sgn *signer) error {
+func fillChain(ctx context.Context, c *client.Client, sgn *signer, opts BenchOptions) error {
 	cs, err := c.GetNativeContracts()
 	if err != nil {
 		return err
@@ -177,11 +174,7 @@ func fillChain(ctx context.Context, c *client.Client, sgn *signer) error {
 		}
 	}
 
-	priv, err := keys.NewPrivateKeyFromWIF(wifTo)
-	if err != nil {
-		return err
-	}
-
+	priv := opts.Senders[0]
 	txMoveNeo := newNEP5Transfer(isSingle, neoHash, sgn.addr, priv.GetScriptHash(), native.NEOTotalSupply)
 	txMoveGas := newNEP5Transfer(isSingle, gasHash, sgn.addr, priv.GetScriptHash(), native.GASFactor*2900000)
 	sgn.signTx(txMoveNeo, txMoveGas)

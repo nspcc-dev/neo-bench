@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/nspcc-dev/neo-bench/internal"
+	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 )
 
 var (
@@ -23,7 +24,12 @@ func main() {
 	case inp != nil && *inp != "":
 		internal.ReadDump(*inp)
 	case out != nil && *out != "" && cnt != nil && *cnt > 0:
-		internal.WriteDump(ctx, *out, *typ, *cnt)
+		p, _ := keys.NewPrivateKeyFromWIF("KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o")
+		internal.WriteDump(ctx, *out, internal.BenchOptions{
+			TransferType: *typ,
+			TxCount:      uint64(*cnt),
+			Senders:      []*keys.PrivateKey{p},
+		})
 	default:
 		flag.PrintDefaults()
 		os.Exit(0)

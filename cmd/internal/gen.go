@@ -27,6 +27,7 @@ import (
 type (
 	// Dump contains hashes and marshaled transactions.
 	Dump struct {
+		BenchOptions      BenchOptions
 		TransactionsQueue *queue.RingBuffer
 	}
 
@@ -47,29 +48,20 @@ const (
 	ContractTransfer = "nep17"
 )
 
-// getWif returns Wif.
-func getWif() (*keys.WIF, error) {
-	var (
-		wifEncoded = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-		version    = byte(0x00)
-	)
-	return keys.WIFDecode(wifEncoded, version)
-}
-
 // newNEOTransferTx returns NEO transfer transaction with random nonce.
-func newNEOTransferTx(wif *keys.WIF) *transaction.Transaction {
+func newNEOTransferTx(p *keys.PrivateKey) *transaction.Transaction {
 	neoContractHash, _ := util.Uint160DecodeBytesBE([]byte(neo.Hash))
-	return newTransferTx(wif, neoContractHash)
+	return newTransferTx(p, neoContractHash)
 }
 
 // newGASTransferTx returns GAS transfer transaction with random nonce.
-func newGASTransferTx(wif *keys.WIF) *transaction.Transaction {
+func newGASTransferTx(p *keys.PrivateKey) *transaction.Transaction {
 	gasContractHash, _ := util.Uint160DecodeBytesBE([]byte(gas.Hash))
-	return newTransferTx(wif, gasContractHash)
+	return newTransferTx(p, gasContractHash)
 }
 
-func newTransferTx(wif *keys.WIF, contractHash util.Uint160) *transaction.Transaction {
-	fromAddressHash := wif.PrivateKey.GetScriptHash()
+func newTransferTx(p *keys.PrivateKey, contractHash util.Uint160) *transaction.Transaction {
+	fromAddressHash := p.GetScriptHash()
 
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter,
@@ -94,25 +86,17 @@ func newTransferTx(wif *keys.WIF, contractHash util.Uint160) *transaction.Transa
 var genWorkerCount = runtime.NumCPU()
 
 // Generate used to generate the specified number of transactions.
-func Generate(ctx context.Context, typ string, count int, callback ...GenerateCallback) *Dump {
+func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallback) *Dump {
 	start := time.Now()
+	count := int(opts.TxCount)
 
 	dump := Dump{
-		TransactionsQueue: queue.NewRingBuffer(uint64(count)),
+		TransactionsQueue: queue.NewRingBuffer(opts.TxCount),
 	}
 
 	log.Printf("Generate %d txs", count)
 
-	wif, err := getWif()
-	if err != nil {
-		log.Fatalf("Could not get wif: %v", err)
-	}
-
-	acc, err := wallet.NewAccountFromWIF(wif.S)
-	if err != nil {
-		log.Fatalf("Could not create account: %v", err)
-	}
-
+	acc := wallet.NewAccountFromPrivateKey(opts.Senders[0])
 	txCh := make(chan *transaction.Transaction, genWorkerCount)
 	result := make(chan txBlob, genWorkerCount)
 
@@ -126,16 +110,16 @@ func Generate(ctx context.Context, typ string, count int, callback ...GenerateCa
 	}
 
 	var tx *transaction.Transaction
-	switch strings.ToLower(typ) {
+	switch strings.ToLower(opts.TransferType) {
 	case NEOTransfer:
-		tx = newNEOTransferTx(wif)
+		tx = newNEOTransferTx(opts.Senders[0])
 	case GASTransfer:
-		tx = newGASTransferTx(wif)
+		tx = newGASTransferTx(opts.Senders[0])
 	case ContractTransfer:
 		h, _ := util.Uint160DecodeStringLE("ceb508fc02abc2dc27228e21976699047bbbcce0")
-		tx = newTransferTx(wif, h)
+		tx = newTransferTx(opts.Senders[0], h)
 	default:
-		panic(fmt.Sprintf("invalid type: %s", typ))
+		panic(fmt.Sprintf("invalid type: %s", opts.TransferType))
 	}
 
 	finishCh := make(chan struct{})
