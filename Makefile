@@ -7,6 +7,7 @@ TAG=bench
 HUB=nspccdev/neo-node
 HUB=registry.nspcc.ru/neo-bench/neo
 BUILD_DIR=.docker/build
+NEOBENCH_TYPE ?= NEO
 
 .PHONY: help
 
@@ -20,7 +21,7 @@ help:
 	@echo ''
 	@awk '/^#/{ comment = substr($$0,3) } comment && /^[a-zA-Z][a-zA-Z0-9_-]+ ?:/{ print "   ", $$1, comment }' $(MAKEFILE_LIST) | column -t -s ':' | grep -v 'IGNORE' | sort | uniq
 
-.PHONY: build push build.node.go build.node.sharp stop start config \
+.PHONY: build push gen build.node.go build.node.sharp stop start config \
 	start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
@@ -61,7 +62,7 @@ test: single.go
 	@echo "=> Test Single node"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./bench -o ../single.log -i ../$(BUILD_DIR)/dump.txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
+		&& go run ./bench -o ../single.log -i ../$(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
 	@make stop
 
 # Bootup NeoGo single node
@@ -93,15 +94,14 @@ pull:
 	@docker pull $(HUB)-go:$(TAG)
 	@docker pull $(HUB)-sharp:$(TAG)
 
-# Generate `dump.txs`
-gen: $(BUILD_DIR)/dump.txs
+gen: $(BUILD_DIR)/dump.NEO.txs $(BUILD_DIR)/dump.GAS.txs $(BUILD_DIR)/dump.NEP17.txs
 
-# IGNORE: create transactions dump
-$(BUILD_DIR)/dump.txs: cmd/gen/main.go
+# Generate `dump.txs`
+$(BUILD_DIR)/dump.%.txs: cmd/gen/main.go
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./gen -out ../$@
+		&& go run ./gen -type $* -out ../$@
 
 # Generate both block dumps used for tests.
 dumps: $(BUILD_DIR)/single.acc $(BUILD_DIR)/dump.acc
@@ -133,10 +133,10 @@ config:
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
-prepare: stop $(BUILD_DIR)/dump.txs $(BUILD_DIR)/dump.acc
+prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs $(BUILD_DIR)/dump.acc
 
 # Generate transactions, dump and nodes configurations fore single-node network
-prepare.single: stop $(BUILD_DIR)/dump.txs $(BUILD_DIR)/single.acc
+prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs $(BUILD_DIR)/single.acc
 
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
@@ -153,147 +153,147 @@ start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 ## GoSingle:
 #	## Workers:
 start.GoSingle10wrk:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m wrk -w 10 -z 5m -t 30s
 
 start.GoSingle30wrk:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m wrk -w 30 -z 5m -t 30s
 
 start.GoSingle100wrk:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.GoSingle25rate:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 25 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m rate -q 25 -z 5m -t 30s
 
 start.GoSingle50rate:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m rate -q 50 -z 5m -t 30s
 
 start.GoSingle60rate:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 60 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m rate -q 60 -z 5m -t 30s
 
 start.GoSingle300rate:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 300 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m rate -q 300 -z 5m -t 30s
 
 start.GoSingle1000rate:
-	./runner.sh --single -i /dump.txs -d "GoSingle" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh --single -d "GoSingle" -m rate -q 1000 -z 5m -t 30s
 
 ## Go x 4 + GoRPC:
 #	## Workers:
 start.GoFourNodes10wrk:
-	./runner.sh -i /dump.txs -d "Go4x1" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m wrk -w 10 -z 5m -t 30s
 
 start.GoFourNodes30wrk:
-	./runner.sh -i /dump.txs -d "Go4x1" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m wrk -w 30 -z 5m -t 30s
 
 start.GoFourNodes100wrk:
-	./runner.sh -i /dump.txs -d "Go4x1" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.GoFourNodes25rate:
-	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 25 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m rate -q 25 -z 5m -t 30s
 
 start.GoFourNodes50rate:
-	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 50 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m rate -q 50 -z 5m -t 30s
 
 start.GoFourNodes60rate:
-	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 60 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m rate -q 60 -z 5m -t 30s
 
 start.GoFourNodes300rate:
-	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 300 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m rate -q 300 -z 5m -t 30s
 
 start.GoFourNodes1000rate:
-	./runner.sh -i /dump.txs -d "Go4x1" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh -d "Go4x1" -m rate -q 1000 -z 5m -t 30s
 
 ## Go×4 + SharpRPC
 #
 start.GoFourNodesSharpRpc10wrk:
-	./runner.sh --sharp-rpc -i /dump.txs -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --sharp-rpc -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s
 
 ## SharpSingle:
 #	## Workers:
 start.SharpSingle10wrk:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s
 
 start.SharpSingle30wrk:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m wrk -w 30 -z 5m -t 30s
 
 start.SharpSingle100wrk:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.SharpSingle25rate:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 25 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 25 -z 5m -t 30s
 
 start.SharpSingle50rate:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 50 -z 5m -t 30s
 
 start.SharpSingle60rate:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 60 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 60 -z 5m -t 30s
 
 start.SharpSingle300rate:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 300 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 300 -z 5m -t 30s
 
 start.SharpSingle1000rate:
-	./runner.sh --single --nodes sharp -i /dump.txs -d "SharpSingle" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 1000 -z 5m -t 30s
 
 ## Sharp x 4 + SharpRPC:
 #	## Workers:
 start.SharpFourNodes10wrk:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s
 
 start.SharpFourNodes30wrk:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s
 
 start.SharpFourNodes100wrk:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.SharpFourNodes25rate:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 25 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 25 -z 5m -t 30s
 
 start.SharpFourNodes50rate:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 50 -z 5m -t 30s
 
 start.SharpFourNodes60rate:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 60 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 60 -z 5m -t 30s
 
 start.SharpFourNodes300rate:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 300 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 300 -z 5m -t 30s
 
 start.SharpFourNodes1000rate:
-	./runner.sh --nodes sharp --sharp-rpc -i /dump.txs -d "Sharp4x_SharpRPC" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 1000 -z 5m -t 30s
 
 ## Sharp x 4 + GoRPC:
 #	## Workers:
 start.SharpFourNodesGoRPC10wrk:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m wrk -w 10 -z 5m -t 30s
 
 start.SharpFourNodesGoRPC30wrk:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m wrk -w 30 -z 5m -t 30s
 
 start.SharpFourNodesGoRPC100wrk:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.SharpFourNodesGoRPC25rate:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 25 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m rate -q 25 -z 5m -t 30s
 
 start.SharpFourNodesGoRPC50rate:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m rate -q 50 -z 5m -t 30s
 
 start.SharpFourNodesGoRPC60rate:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 60 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m rate -q 60 -z 5m -t 30s
 
 start.SharpFourNodesGoRPC300rate:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 300 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m rate -q 300 -z 5m -t 30s
 
 start.SharpFourNodesGoRPC1000rate:
-	./runner.sh --nodes sharp -i /dump.txs -d "Sharp4x_GoRPC" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh --nodes sharp -d "Sharp4x_GoRPC" -m rate -q 1000 -z 5m -t 30s
 
 ## Mixed setup
 #
 start.MixedFourNodesGoRPC50rate:
-	./runner.sh --nodes mixed -i /dump.txs -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --nodes mixed -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
 
 start.MixedFourNodesSharpRPC50rate:
-	./runner.sh --nodes mixed --sharp-rpc -i /dump.txs -d "MixedSharpRPC4x1" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --nodes mixed --sharp-rpc -d "MixedSharpRPC4x1" -m rate -q 50 -z 5m -t 30s

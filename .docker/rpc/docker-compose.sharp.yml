@@ -34,6 +34,6 @@ services:
     depends_on: [ "node_healthy" ]
     volumes:
       - ./out:/out:rw
-      - ../build/dump.txs:/dump.txs
+      - ../build/dump.$NEOBENCH_TYPE.txs:/dump.txs
       - /var/run/docker.sock:/var/run/docker.sock
       - ./go.protocol.privnet.one.yml:/go.protocol.privnet.yml

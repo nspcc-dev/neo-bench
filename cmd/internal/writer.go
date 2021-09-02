@@ -10,7 +10,7 @@ import (
 )
 
 // WriteDump generates and writes the specific number of transactions to file.
-func WriteDump(ctx context.Context, to string, count int) {
+func WriteDump(ctx context.Context, to string, typ string, count int) {
 	out, err := os.Create(to)
 	if err != nil {
 		log.Printf("Something went wrong: %#v", err)
@@ -35,7 +35,7 @@ func WriteDump(ctx context.Context, to string, count int) {
 	rw := io.NewBinWriterFromIO(cp)
 	rw.WriteU64LE(uint64(count))
 
-	Generate(ctx, count, func(hash, blob string) error {
+	Generate(ctx, typ, count, func(hash, blob string) error {
 		rw.WriteString(hash)
 		rw.WriteString(blob)
 

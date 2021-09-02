@@ -3,7 +3,7 @@
 source .env
 
 OUTPUT=""
-ARGS=()
+ARGS=(-i "/dump.txs")
 FILES=()
 MODE=""
 COUNT=""
@@ -12,6 +12,7 @@ IR_TYPE=go
 RPC_TYPE=
 RPC_ADDR=()
 NEOBENCH_LOGGER=${NEOBENCH_LOGGER:-none}
+export NEOBENCH_TYPE=${NEOBENCH_TYPE:-NEO}
 
 show_help() {
 echo "Usage of benchmark runner:"
@@ -20,6 +21,8 @@ echo "   -n, --nodes                      Consensus node type."
 echo "                                    Possible values: go (default), mixed, sharp."
 echo "   -r, --rpc                        RPC node type. Default is the same as --nodes."
 echo "   -h, --help                       Show usage message."
+echo "   -b, --benchmark                  Benchmark type."
+echo "                                    Possible values: NEO (default) or GAS"
 echo "   -d                               Benchmark description."
 echo "   -m                               Benchmark mode."
 echo "                                    Example: -m wrk -m rate"
@@ -73,6 +76,12 @@ while test $# -gt 0; do
       shift
       ;;
 
+    -b|--benchmark)
+      test $# -gt 0 || fatal "benchmark type must be specified"
+      export NEOBENCH_TYPE="$1"
+      shift
+      ;;
+
     -m)
       test $# -gt 0 || fatal "benchmark mode should be specified"
       case "$1" in
@@ -116,12 +125,6 @@ while test $# -gt 0; do
     -c)
       test $# -gt 0 || fatal "number of used CPU cores should be specified"
       ARGS+=(-c "$1")
-      shift
-      ;;
-
-    -i)
-      test $# -gt 0 || fatal "path to file with transactions dump should be specified"
-      ARGS+=(-i "$1")
       shift
       ;;
 

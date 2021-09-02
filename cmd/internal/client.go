@@ -164,7 +164,7 @@ func (c *RPCClient) GetBlock(ctx context.Context, index int) (*block.Block, erro
 // GetBlockCount send getblockcount RPC request.
 func (c *RPCClient) GetBlockCount(ctx context.Context) (int, error) {
 	num := 0
-	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "getblockcount", "params": []}`)
+	rpc := `{"jsonrpc": "2.0", "id": 1, "method": "getblockcount", "params": []}`
 	return num, c.doRPCCall(ctx, rpc, &num, c.blockRequester)
 }
 
