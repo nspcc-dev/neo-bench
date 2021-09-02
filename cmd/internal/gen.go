@@ -47,8 +47,6 @@ const (
 	ContractTransfer = "nep17"
 )
 
-var workerCount = runtime.NumCPU()
-
 // getWif returns Wif.
 func getWif() (*keys.WIF, error) {
 	var (

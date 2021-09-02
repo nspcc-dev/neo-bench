@@ -292,5 +292,5 @@ func (r *reporter) UpdateRes(start time.Time, cpu, mem float64) {
 	r.Lock()
 	defer r.Unlock()
 
-	r.Stats = append(r.Stats, [3]float64{float64(time.Now().Sub(start).Nanoseconds()) / 1000000, cpu, mem})
+	r.Stats = append(r.Stats, [3]float64{float64(time.Since(start).Nanoseconds()) / 1000000, cpu, mem})
 }

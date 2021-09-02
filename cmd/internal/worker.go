@@ -260,7 +260,7 @@ loop:
 			d.rpsReporter(float64(count) / since.Seconds())
 
 			if d.threshold > 0 {
-				waitFor := start.Add(time.Duration(d.threshold.Nanoseconds() * (i + 1))).Sub(time.Now())
+				waitFor := time.Until(start.Add(time.Duration(d.threshold.Nanoseconds() * (i + 1))))
 				if waitFor > 0 {
 					time.Sleep(waitFor)
 				}

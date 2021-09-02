@@ -23,11 +23,6 @@ import (
 // - start sending txes to the node
 // - measure how much TX could be sent
 
-const (
-	coefficient = 1.3
-	defaultRate = 1300
-)
-
 func main() {
 	v := internal.InitSettings()
 
@@ -37,7 +32,6 @@ func main() {
 	defer cancel()
 
 	var (
-		count      int
 		workers    int
 		rate       int
 		msPerBlock int
@@ -51,14 +45,10 @@ func main() {
 
 	switch mode {
 	case internal.ModeWorker:
-		// num_sec * worker_count * defaultRate * coefficient
-		count = int(timeLimit.Seconds() * defaultRate * coefficient)
 		workers = v.GetInt("workers")
 		client = internal.NewRPCClient(v, workers)
 
 	case internal.ModeRate:
-		// num_sec * rate * coefficient
-		count = int(timeLimit.Seconds() * v.GetFloat64("rateLimit") * coefficient)
 		workers = 1
 		rate = v.GetInt("rateLimit")
 		threshold = time.Duration(time.Second.Nanoseconds() / int64(rate))
@@ -158,7 +148,6 @@ func main() {
 
 	if in := v.GetString("in"); in != "" {
 		dump = internal.ReadDump(in)
-		count = int(dump.TransactionsQueue.Len())
 	} else {
 		log.Fatalf("Transactions dump file wasn't specified.")
 	}
