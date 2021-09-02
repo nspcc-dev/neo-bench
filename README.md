@@ -325,6 +325,7 @@ NEOBENCH_TC|Parameters passed to the `tc qdisc` (netem discipline) on container 
 NEOBENCH_TYPE|Type of the load|`NEO`|`NEO`, `GAS`
 NEOBENCH_FROM_COUNT|Number of tx senders|`1` (default)
 NEOBENCH_TO_COUNT|Number of fund receivers|`1` (default)
+NEOBENCH_VOTE|Vote for validators before the bench|empty|`1` or empty
 
 ## Benchmark results visualisation
 

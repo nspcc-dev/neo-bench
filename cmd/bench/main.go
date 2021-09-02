@@ -172,7 +172,7 @@ func main() {
 		return
 	}
 
-	wrk.Prepare(ctx, dump.BenchOptions)
+	wrk.Prepare(ctx, v.GetBool("vote"), dump.BenchOptions)
 
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
