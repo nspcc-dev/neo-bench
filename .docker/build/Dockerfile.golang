@@ -35,8 +35,6 @@ WORKDIR /neo-go
 
 WORKDIR /
 
-COPY ./dump.acc /
-COPY ./single.acc /
 COPY ./go.entrypoint.sh /entrypoint.sh
 
 COPY --from=builder /neo-go/config /config

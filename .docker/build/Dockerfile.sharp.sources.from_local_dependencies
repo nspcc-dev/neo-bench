@@ -102,8 +102,6 @@ WORKDIR /neo-cli
 
 RUN chmod +x /neo-cli/neo-cli
 
-COPY ./dump.acc /
-COPY ./single.acc /
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json

@@ -4,15 +4,6 @@ if [ -z "$BIN" ]; then
   BIN=/neo-cli/neo-cli
 fi
 
-if [ -z "$ACC" ]; then
-  ACC=single.acc
-fi
-
-if test -f /"$ACC"; then
-  cp /${ACC} /neo-cli/chain.acc
-fi
-
-
 if [ -n "$NEOBENCH_TC" ]; then
   # shellcheck disable=SC2086 # Intended splitting of $NEOBENCH_TC (may be "100ms 10ms distribution normal")
   if tc qdisc add dev eth0 root netem $NEOBENCH_TC; then

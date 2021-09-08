@@ -15,8 +15,6 @@ services:
       interval: 5s
       retries: 50
       test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-    environment:
-      - ACC=/dump.acc
     volumes:
       - ../rpc/sharp.config.json:/neo-cli/config.json
       - ../rpc/sharp.wallet.json:/neo-cli/wallet.json
@@ -36,4 +34,6 @@ services:
       - ./out:/out:rw
       - ../build/dump.$NEOBENCH_TYPE.txs:/dump.txs
       - /var/run/docker.sock:/var/run/docker.sock
+      - ../rpc/tokencontract/token.nef:/tokencontract/token.nef:ro
+      - ../rpc/tokencontract/token.manifest.json:/tokencontract/token.manifest.json:ro
       - ./go.protocol.privnet.one.yml:/go.protocol.privnet.yml

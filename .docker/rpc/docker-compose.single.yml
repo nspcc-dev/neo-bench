@@ -8,5 +8,7 @@ services:
     volumes:
       - ./out:/out:rw
       - ../build/dump.$NEOBENCH_TYPE.txs:/dump.txs
+      - ../rpc/tokencontract/token.nef:/tokencontract/token.nef:ro
+      - ../rpc/tokencontract/token.manifest.json:/tokencontract/token.manifest.json:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - ./go.protocol.privnet.single.yml:/go.protocol.privnet.yml

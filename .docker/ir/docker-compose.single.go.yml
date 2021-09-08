@@ -22,8 +22,6 @@ services:
       retries: 15
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 20331']
       timeout: 10s
-    environment:
-      - ACC=single.acc
     volumes:
       - ./wallet.one.json:/config/wallet.json
       - ./go.protocol.privnet.single.yml:/config/protocol.privnet.yml

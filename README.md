@@ -115,10 +115,9 @@ TPS
    
        build     Build all images
        config    Generate configurations for single-node and four-nodes networks from templates
-       dump      Generate `dump.acc` for the 4-node network
        gen       Generate `dump.txs` (run it before any benchmarks)
        help      Show this help prompt
-       prepare   Generate transactions, dump and nodes configurations for four-nodes network
+       prepare   Generate transactions and nodes configurations for four-nodes network
        pull      Pull images from registry
        push      Push all images to registry
        start     Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately

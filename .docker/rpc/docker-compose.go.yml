@@ -17,7 +17,6 @@ services:
       interval: 5s
       test: ['CMD', 'sh', '-c', 'echo | nc localhost 20331']
     environment:
-      - ACC=/dump.acc
       - NEOBENCH_TC=
     volumes:
       - ../rpc/go.protocol.yml:/config/protocol.privnet.yml
@@ -36,5 +35,7 @@ services:
       - ./out:/out:rw
       - ../build/dump.$NEOBENCH_TYPE.txs:/dump.txs
       - /var/run/docker.sock:/var/run/docker.sock
+      - ../rpc/tokencontract/token.nef:/tokencontract/token.nef:ro
+      - ../rpc/tokencontract/token.manifest.json:/tokencontract/token.manifest.json:ro
       - ./go.protocol.privnet.one.yml:/go.protocol.privnet.yml
 
