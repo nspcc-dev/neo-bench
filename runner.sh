@@ -146,7 +146,7 @@ while test $# -gt 0; do
       shift
       ;;
 
-    *) fatal "Unknown option: $1" ;;
+    *) fatal "Unknown option: $_opt" ;;
   esac
 done
 
