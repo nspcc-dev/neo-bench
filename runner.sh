@@ -146,7 +146,7 @@ while test $# -gt 0; do
       shift
       ;;
 
-    *) fatal "Unknown option: $1" ;;
+    *) fatal "Unknown option: $_opt" ;;
   esac
 done
 
@@ -169,7 +169,7 @@ if [ -z "$SINGLE" ]; then
       ;;
   esac
 
-  if [ "$RPC_TYPE" = go ]; then
+  if [ "$RPC_TYPE" = go ] || [ "$RPC_TYPE" = mixed ]; then
     FILES+=(-f "$DC_GO_RPC")
     DEFAULT_RPC_ADDR=(-a "go-node:20331")
   else

@@ -18,8 +18,6 @@ services:
     stdin_open: true
     tty: true
     ports: [ "20331:20331" ]
-    environment:
-      - ACC=single.acc
     volumes:
       - ./wallet.one.json:/neo-cli/wallet.json
       - ./sharp.config.single.json:/neo-cli/config.json

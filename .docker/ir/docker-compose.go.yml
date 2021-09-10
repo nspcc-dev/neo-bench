@@ -26,7 +26,6 @@ services:
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30333']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.one.json:/config/wallet.json
@@ -49,7 +48,6 @@ services:
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30334']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.two.json:/config/wallet.json
@@ -72,7 +70,6 @@ services:
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30335']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.three.json:/config/wallet.json
@@ -95,7 +92,6 @@ services:
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30336']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.four.json:/config/wallet.json

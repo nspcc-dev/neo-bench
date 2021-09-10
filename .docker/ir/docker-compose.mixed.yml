@@ -30,7 +30,6 @@ services:
       test: ['CMD', 'bash', '-c', '/healthcheck.sh']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
 
   node_two:
@@ -54,7 +53,6 @@ services:
       test: ['CMD', 'bash', '-c', '/healthcheck.sh']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
 
   node_three:
@@ -74,7 +72,6 @@ services:
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30335']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.three.json:/config/wallet.json
@@ -97,7 +94,6 @@ services:
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30336']
       timeout: 10s
     environment:
-      - ACC=dump.acc
       - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.four.json:/config/wallet.json

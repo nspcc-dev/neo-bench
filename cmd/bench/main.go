@@ -172,6 +172,8 @@ func main() {
 		return
 	}
 
+	wrk.Prepare(ctx)
+
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 

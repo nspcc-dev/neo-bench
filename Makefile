@@ -34,7 +34,7 @@ help:
 	start.SharpFourNodesGoRPC25rate start.SharpFourNodesGoRPC50rate start.SharpFourNodesGoRPC60rate start.SharpFourNodesGoRPC300rate start.SharpFourNodesGoRPC1000rate
 
 # Build all images
-build: dumps gen build.node.bench build.node.go build.node.sharp
+build: gen build.node.bench build.node.go build.node.sharp
 
 # Push all images to registry
 push:
@@ -103,27 +103,6 @@ $(BUILD_DIR)/dump.%.txs: cmd/gen/main.go
 		&& cd cmd/ \
 		&& go run ./gen -type $* -out ../$@
 
-# Generate both block dumps used for tests.
-dumps: $(BUILD_DIR)/single.acc $(BUILD_DIR)/dump.acc
-
-# Generate `single.acc` for single-node network
-dump.single: $(BUILD_DIR)/single.acc
-
-$(BUILD_DIR)/single.acc: config cmd/dump/main.go cmd/dump/chain.go
-	@echo "=> Generate block dump for the single node network"
-	@set -x \
-		&& cd cmd/ \
-		&& go run ./dump -single -out ../$@
-
-# Generate `dump.acc` for the 4-node network
-dump: $(BUILD_DIR)/dump.acc
-
-$(BUILD_DIR)/dump.acc: config cmd/dump/main.go cmd/dump/chain.go
-	@echo "=> Generate block dump for the 4-node network"
-	@set -x \
-		&& cd cmd/ \
-		&& go run ./dump -out ../$@
-
 # Generate configurations for single-node and four-nodes networks from templates
 config:
 	@echo "=> Generate configurations for single-node and four-nodes networks from templates"
@@ -133,10 +112,10 @@ config:
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
-prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs $(BUILD_DIR)/dump.acc
+prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs
 
 # Generate transactions, dump and nodes configurations fore single-node network
-prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs $(BUILD_DIR)/single.acc
+prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs
 
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
@@ -207,7 +186,7 @@ start.GoFourNodes1000rate:
 ## Go×4 + SharpRPC
 #
 start.GoFourNodesSharpRpc10wrk:
-	./runner.sh --sharp-rpc -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --rpc sharp -d "GoSharpRPC4x1" -m wrk -w 10 -z 5m -t 30s
 
 ## SharpSingle:
 #	## Workers:
@@ -239,29 +218,29 @@ start.SharpSingle1000rate:
 ## Sharp x 4 + SharpRPC:
 #	## Workers:
 start.SharpFourNodes10wrk:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m wrk -w 10 -z 5m -t 30s
 
 start.SharpFourNodes30wrk:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m wrk -w 30 -z 5m -t 30s
 
 start.SharpFourNodes100wrk:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.SharpFourNodes25rate:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 25 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m rate -q 25 -z 5m -t 30s
 
 start.SharpFourNodes50rate:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m rate -q 50 -z 5m -t 30s
 
 start.SharpFourNodes60rate:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 60 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m rate -q 60 -z 5m -t 30s
 
 start.SharpFourNodes300rate:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 300 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m rate -q 300 -z 5m -t 30s
 
 start.SharpFourNodes1000rate:
-	./runner.sh --nodes sharp --sharp-rpc -d "Sharp4x_SharpRPC" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh --nodes sharp --rpc sharp -d "Sharp4x_SharpRPC" -m rate -q 1000 -z 5m -t 30s
 
 ## Sharp x 4 + GoRPC:
 #	## Workers:
@@ -296,4 +275,4 @@ start.MixedFourNodesGoRPC50rate:
 	./runner.sh --nodes mixed -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
 
 start.MixedFourNodesSharpRPC50rate:
-	./runner.sh --nodes mixed --sharp-rpc -d "MixedSharpRPC4x1" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --nodes mixed --rpc sharp -d "MixedSharpRPC4x1" -m rate -q 50 -z 5m -t 30s

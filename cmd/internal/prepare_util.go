@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
