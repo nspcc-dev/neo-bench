@@ -121,31 +121,6 @@ func main() {
 		log.Printf("CPU: %0.3f%%, Mem: %0.3fMB", cpu, mem)
 	})
 
-	log.Printf("fetch current block count")
-	blk, err := client.GetLastBlock(ctx)
-	if err != nil {
-		log.Fatalf("could not fetch last block: %v", err)
-	}
-
-	log.Println("Waiting for an empty block to be processed")
-	startBlockIndex := blk.Index
-	// 10*msPerBlock attempts (need some more time for mixed consensus)
-	for attempt := 0; attempt < 40; attempt++ {
-		blk, err = client.GetLastBlock(ctx)
-		if err != nil {
-			log.Fatalf("could not fetch last block: %v", err)
-		}
-		if blk.Index > startBlockIndex {
-			break
-		}
-		time.Sleep(time.Duration(msPerBlock) * time.Millisecond / 4)
-	}
-	if blk.Index == startBlockIndex {
-		log.Fatalf("Timeout waiting for a new empty block")
-	}
-
-	log.Printf("Started test from block = %v at unix time = %v", blk.Index, blk.Timestamp)
-
 	if in := v.GetString("in"); in != "" {
 		dump = internal.ReadDump(in)
 	} else {
@@ -173,6 +148,31 @@ func main() {
 	}
 
 	wrk.Prepare(ctx)
+
+	log.Printf("fetch current block count")
+	blk, err := client.GetLastBlock(ctx)
+	if err != nil {
+		log.Fatalf("could not fetch last block: %v", err)
+	}
+
+	log.Println("Waiting for an empty block to be processed")
+	startBlockIndex := blk.Index
+	// 10*msPerBlock attempts (need some more time for mixed consensus)
+	for attempt := 0; attempt < 40; attempt++ {
+		blk, err = client.GetLastBlock(ctx)
+		if err != nil {
+			log.Fatalf("could not fetch last block: %v", err)
+		}
+		if blk.Index > startBlockIndex {
+			break
+		}
+		time.Sleep(time.Duration(msPerBlock) * time.Millisecond / 4)
+	}
+	if blk.Index == startBlockIndex {
+		log.Fatalf("Timeout waiting for a new empty block")
+	}
+
+	log.Printf("Started test from block = %v at unix time = %v", blk.Index, blk.Timestamp)
 
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
