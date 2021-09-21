@@ -8,6 +8,8 @@ HUB=nspccdev/neo-node
 HUB=registry.nspcc.ru/neo-bench/neo
 BUILD_DIR=.docker/build
 NEOBENCH_TYPE ?= NEO
+NEOBENCH_FROM_COUNT ?= 1
+NEOBENCH_TO_COUNT ?= 1
 
 .PHONY: help
 
@@ -94,14 +96,17 @@ pull:
 	@docker pull $(HUB)-go:$(TAG)
 	@docker pull $(HUB)-sharp:$(TAG)
 
-gen: $(BUILD_DIR)/dump.NEO.txs $(BUILD_DIR)/dump.GAS.txs $(BUILD_DIR)/dump.NEP17.txs
+gen: $(BUILD_DIR)/dump.NEO.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
+gen: $(BUILD_DIR)/dump.GAS.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
+gen: $(BUILD_DIR)/dump.NEP17.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 
 # Generate `dump.txs`
-$(BUILD_DIR)/dump.%.txs: cmd/gen/main.go
+$(BUILD_DIR)/dump.%.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs: cmd/gen/main.go
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./gen -type $* -out ../$@
+		&& go run ./gen -type $* -from $(NEOBENCH_FROM_COUNT) \
+			-to $(NEOBENCH_TO_COUNT) -out ../$@
 
 # Generate configurations for single-node and four-nodes networks from templates
 config:
@@ -112,10 +117,10 @@ config:
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
-prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs
+prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 
 # Generate transactions, dump and nodes configurations fore single-node network
-prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs
+prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \

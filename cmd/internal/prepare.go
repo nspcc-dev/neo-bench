@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
@@ -17,20 +18,19 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/nef"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm/emit"
 	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
+	"github.com/nspcc-dev/neo-go/pkg/vm/stackitem"
 	"github.com/nspcc-dev/neo-go/pkg/wallet"
 )
 
-// wifTo is a wif of the wallet where all NEO and GAS are sent.
-const wifTo = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-
 // Prepare sends prepare transactions on chain at runtime.
-func (d *doer) Prepare(ctx context.Context) {
+func (d *doer) Prepare(ctx context.Context, vote bool, opts BenchOptions) {
 	log.Println("Prepare chain for benchmark")
 
 	// Preparation stage isn't done during main benchmark,
@@ -57,7 +57,7 @@ func (d *doer) Prepare(ctx context.Context) {
 		log.Fatalf("could not initialize chain: %v", err)
 	}
 
-	err = fillChain(ctx, c, sgn)
+	err = fillChain(ctx, c, sgn, vote, opts)
 	if err != nil {
 		log.Fatalf("could not create blocks: %v", err)
 	}
@@ -151,7 +151,7 @@ func newNEP5Transfer(isSingle bool, sc util.Uint160, from, to util.Uint160, amou
 	return tx
 }
 
-func fillChain(ctx context.Context, c *client.Client, sgn *signer) error {
+func fillChain(ctx context.Context, c *client.Client, sgn *signer, vote bool, opts BenchOptions) error {
 	cs, err := c.GetNativeContracts()
 	if err != nil {
 		return err
@@ -177,41 +177,60 @@ func fillChain(ctx context.Context, c *client.Client, sgn *signer) error {
 		}
 	}
 
-	priv, err := keys.NewPrivateKeyFromWIF(wifTo)
-	if err != nil {
-		return err
+	if vote {
+		err = registerCandidates(ctx, neoHash, c, sgn)
+		if err != nil {
+			return err
+		}
 	}
 
-	txMoveNeo := newNEP5Transfer(isSingle, neoHash, sgn.addr, priv.GetScriptHash(), native.NEOTotalSupply)
-	txMoveGas := newNEP5Transfer(isSingle, gasHash, sgn.addr, priv.GetScriptHash(), native.GASFactor*2900000)
-	sgn.signTx(txMoveNeo, txMoveGas)
+	txs := make([]*transaction.Transaction, 0, len(opts.Senders)*2)
+	neoAmount := int64(native.NEOTotalSupply / len(opts.Senders))
+	gasAmount := int64(native.GASFactor * 2900000 / len(opts.Senders))
+	for _, priv := range opts.Senders {
+		txMoveNeo := newNEP5Transfer(isSingle, neoHash, sgn.addr, priv.GetScriptHash(), neoAmount)
+		txMoveGas := newNEP5Transfer(isSingle, gasHash, sgn.addr, priv.GetScriptHash(), gasAmount)
+		sgn.signTx(txMoveNeo, txMoveGas)
+		txs = append(txs, txMoveNeo, txMoveGas)
+	}
 
 	log.Println("Sending NEO and GAS transfer tx")
-	err = sendTx(ctx, c, txMoveNeo, txMoveGas)
+	err = sendTx(ctx, c, txs...)
 	if err != nil {
 		return err
 	}
 
-	err = awaitTx(ctx, timeout,
-		func() (bool, error) {
-			b, err := c.NEP17BalanceOf(neoHash, priv.GetScriptHash())
-			log.Println("NEO balance:", b)
-			return b > 0, err
-		},
-		func() (bool, error) {
-			b, err := c.NEP17BalanceOf(gasHash, priv.GetScriptHash())
-			log.Println("GAS balance:", b)
-			return b > 0, err
-		})
+	fs := make([]func() (bool, error), 0, len(opts.Senders)*2)
+	for i := 0; i < len(opts.Senders); i++ {
+		addr := opts.Senders[i].GetScriptHash()
+		fs = append(fs,
+			func() (bool, error) {
+				b, err := c.NEP17BalanceOf(neoHash, addr)
+				return b > 0, err
+			},
+			func() (bool, error) {
+				b, err := c.NEP17BalanceOf(gasHash, addr)
+				return b > 0, err
+			})
+	}
+	err = awaitTx(ctx, timeout, fs...)
+
 	if err != nil {
 		return err
+	}
+
+	if vote {
+		err = voteForCandidates(ctx, neoHash, c, sgn, opts.Senders)
+		if err != nil {
+			return err
+		}
 	}
 
 	// We deploy contract from priv to avoid having different hashes for single/4-node benchmarks.
 	// The contract is taken from `examples/token` of neo-go with 2 minor corrections:
 	// 1. Owner address is replaced with the address of WIF we use.
 	// 2. All funds are minted to owner in `_deploy`.
-	txDeploy, h, err := newDeployTx(mgmtHash, priv, "/tokencontract/token.nef",
+	txDeploy, h, err := newDeployTx(mgmtHash, opts.Senders[0], "/tokencontract/token.nef",
 		"/tokencontract/token.manifest.json")
 	if err != nil {
 		return err
@@ -229,6 +248,111 @@ func fillChain(ctx context.Context, c *client.Client, sgn *signer) error {
 			log.Println("Contract was persisted:", err == nil)
 			return err == nil, err
 		})
+}
+
+func registerCandidates(ctx context.Context, neoHash util.Uint160, c *client.Client, sgn *signer) error {
+	for _, p := range sgn.privs {
+		tx := newRegisterTx(neoHash, p, sgn)
+		err := sendTx(ctx, c, tx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return awaitTx(ctx, time.Second*15, func() (bool, error) {
+		res, err := c.InvokeFunction(neoHash, "getCandidates", []smartcontract.Parameter{}, nil)
+		if err != nil {
+			return false, err
+		}
+		return len(res.Stack) == 1 && len(res.Stack[0].Value().([]stackitem.Item)) == len(sgn.privs), nil
+	})
+}
+
+func voteForCandidates(ctx context.Context, neoHash util.Uint160, c *client.Client, sgn *signer, senders []*keys.PrivateKey) error {
+	for i := range senders {
+		tx := newVoteTx(neoHash, senders[i], sgn.privs[i%len(sgn.privs)].PublicKey())
+		err := sendTx(ctx, c, tx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return awaitTx(ctx, time.Second*15, func() (bool, error) {
+		res, err := c.InvokeFunction(neoHash, "getCandidates", []smartcontract.Parameter{}, nil)
+		if err != nil {
+			return false, err
+		}
+		var cnt big.Int
+		for _, it := range res.Stack[0].Value().([]stackitem.Item) {
+			votes, err := it.Value().([]stackitem.Item)[1].TryInteger()
+			if err != nil {
+				return false, err
+			}
+			cnt.Add(&cnt, votes)
+		}
+		expected := int64(native.NEOTotalSupply / len(senders) * len(senders))
+		return cnt.Int64() == expected, nil
+	})
+}
+func newVoteTx(neoHash util.Uint160, priv *keys.PrivateKey, voteFor *keys.PublicKey) *transaction.Transaction {
+	w := io.NewBufBinWriter()
+	emit.AppCall(w.BinWriter,
+		neoHash, "vote", callflag.All,
+		priv.GetScriptHash(), voteFor.Bytes())
+	emit.Opcodes(w.BinWriter, opcode.ASSERT)
+	if w.Err != nil {
+		panic(w.Err)
+	}
+
+	script := w.Bytes()
+	tx := transaction.New(script, 15_000_000)
+	tx.NetworkFee = 2000_000
+	tx.ValidUntilBlock = 1200
+	tx.Signers = append(tx.Signers, transaction.Signer{
+		Account: priv.GetScriptHash(),
+		Scopes:  transaction.CalledByEntry,
+	})
+
+	err := wallet.NewAccountFromPrivateKey(priv).SignTx(netmode.PrivNet, tx)
+	if err != nil {
+		panic(err)
+	}
+	return tx
+}
+
+func newRegisterTx(neoHash util.Uint160, priv *keys.PrivateKey, sgn *signer) *transaction.Transaction {
+	w := io.NewBufBinWriter()
+	emit.AppCall(w.BinWriter, neoHash, "registerCandidate",
+		callflag.All, priv.PublicKey().Bytes())
+	if w.Err != nil {
+		panic(w.Err)
+	}
+
+	script := w.Bytes()
+	tx := transaction.New(script, native.DefaultRegisterPrice+5_000_000)
+	if len(sgn.privs) == 1 {
+		tx.NetworkFee = 3000000
+	} else {
+		tx.NetworkFee = 6000000
+	}
+	tx.ValidUntilBlock = 1000
+	tx.Signers = []transaction.Signer{
+		{
+			Account: sgn.addr,
+			Scopes:  transaction.Global,
+		},
+		{
+			Account: priv.GetScriptHash(),
+			Scopes:  transaction.CalledByEntry,
+		},
+	}
+
+	sgn.signTx(tx)
+	err := wallet.NewAccountFromPrivateKey(priv).SignTx(netmode.PrivNet, tx)
+	if err != nil {
+		panic(err)
+	}
+	return tx
 }
 
 func sendTx(ctx context.Context, c *client.Client, txs ...*transaction.Transaction) error {

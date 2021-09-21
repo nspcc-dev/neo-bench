@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"runtime"
@@ -27,6 +28,7 @@ import (
 type (
 	// Dump contains hashes and marshaled transactions.
 	Dump struct {
+		BenchOptions      BenchOptions
 		TransactionsQueue *queue.RingBuffer
 	}
 
@@ -35,6 +37,11 @@ type (
 
 	txBlob struct {
 		hash, blob string
+	}
+
+	txRequest struct {
+		tx  *transaction.Transaction
+		acc *wallet.Account
 	}
 )
 
@@ -47,34 +54,24 @@ const (
 	ContractTransfer = "nep17"
 )
 
-// getWif returns Wif.
-func getWif() (*keys.WIF, error) {
-	var (
-		wifEncoded = "KxhEDBQyyEFymvfJD96q8stMbJMbZUb6D1PmXqBWZDU2WvbvVs9o"
-		version    = byte(0x00)
-	)
-	return keys.WIFDecode(wifEncoded, version)
-}
-
 // newNEOTransferTx returns NEO transfer transaction with random nonce.
-func newNEOTransferTx(wif *keys.WIF) *transaction.Transaction {
+func newNEOTransferTx(p *keys.PrivateKey, to util.Uint160) *transaction.Transaction {
 	neoContractHash, _ := util.Uint160DecodeBytesBE([]byte(neo.Hash))
-	return newTransferTx(wif, neoContractHash)
+	return newTransferTx(p, neoContractHash, to)
 }
 
 // newGASTransferTx returns GAS transfer transaction with random nonce.
-func newGASTransferTx(wif *keys.WIF) *transaction.Transaction {
+func newGASTransferTx(p *keys.PrivateKey, to util.Uint160) *transaction.Transaction {
 	gasContractHash, _ := util.Uint160DecodeBytesBE([]byte(gas.Hash))
-	return newTransferTx(wif, gasContractHash)
+	return newTransferTx(p, gasContractHash, to)
 }
 
-func newTransferTx(wif *keys.WIF, contractHash util.Uint160) *transaction.Transaction {
-	fromAddressHash := wif.PrivateKey.GetScriptHash()
-
+func newTransferTx(p *keys.PrivateKey, contractHash, toAddr util.Uint160) *transaction.Transaction {
+	fromAddressHash := p.GetScriptHash()
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter,
 		contractHash, "transfer", callflag.All,
-		fromAddressHash, fromAddressHash, int64(1), nil)
+		fromAddressHash, toAddr, int64(1), nil)
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 	if w.Err != nil {
 		panic(w.Err)
@@ -94,48 +91,68 @@ func newTransferTx(wif *keys.WIF, contractHash util.Uint160) *transaction.Transa
 var genWorkerCount = runtime.NumCPU()
 
 // Generate used to generate the specified number of transactions.
-func Generate(ctx context.Context, typ string, count int, callback ...GenerateCallback) *Dump {
+func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallback) *Dump {
 	start := time.Now()
+	count := int(opts.TxCount)
 
 	dump := Dump{
-		TransactionsQueue: queue.NewRingBuffer(uint64(count)),
+		TransactionsQueue: queue.NewRingBuffer(opts.TxCount),
 	}
 
 	log.Printf("Generate %d txs", count)
 
-	wif, err := getWif()
-	if err != nil {
-		log.Fatalf("Could not get wif: %v", err)
+	txCh := make([]chan txRequest, genWorkerCount)
+	for i := range txCh {
+		txCh[i] = make(chan txRequest, 1)
 	}
-
-	acc, err := wallet.NewAccountFromWIF(wif.S)
-	if err != nil {
-		log.Fatalf("Could not create account: %v", err)
+	result := make([]chan txBlob, genWorkerCount)
+	for i := range result {
+		result[i] = make(chan txBlob, 1)
 	}
-
-	txCh := make(chan *transaction.Transaction, genWorkerCount)
-	result := make(chan txBlob, genWorkerCount)
 
 	var wg sync.WaitGroup
 	wg.Add(genWorkerCount)
 	for i := 0; i < genWorkerCount; i++ {
 		go func(i int) {
 			defer wg.Done()
-			genTxWorker(i, acc, txCh, result)
+			genTxWorker(i, txCh[i], result[i])
 		}(i)
 	}
 
-	var tx *transaction.Transaction
-	switch strings.ToLower(typ) {
-	case NEOTransfer:
-		tx = newNEOTransferTx(wif)
-	case GASTransfer:
-		tx = newGASTransferTx(wif)
-	case ContractTransfer:
-		h, _ := util.Uint160DecodeStringLE("ceb508fc02abc2dc27228e21976699047bbbcce0")
-		tx = newTransferTx(wif, h)
-	default:
-		panic(fmt.Sprintf("invalid type: %s", typ))
+	// We support both N-to-1 and 1-to-N cases, thus these index calculations.
+	max := len(opts.Senders)
+	if max < opts.ToCount {
+		max = opts.ToCount
+	}
+
+	txR := make([]txRequest, max)
+	for i := range txR {
+		sender := opts.Senders[i%len(opts.Senders)]
+		receiver := opts.Senders[0].GetScriptHash()
+		if opts.ToCount > 1 {
+			rem := (i + 1) % opts.ToCount
+			if rem < len(opts.Senders) {
+				receiver = opts.Senders[rem].GetScriptHash()
+			} else { // support up to 65536 receivers
+				receiver = util.Uint160{}
+				binary.LittleEndian.PutUint16(receiver[:], uint16(rem))
+			}
+		}
+
+		var tx *transaction.Transaction
+		switch strings.ToLower(opts.TransferType) {
+		case NEOTransfer:
+			tx = newNEOTransferTx(sender, receiver)
+		case GASTransfer:
+			tx = newGASTransferTx(sender, receiver)
+		case ContractTransfer:
+			h, _ := util.Uint160DecodeStringLE("ceb508fc02abc2dc27228e21976699047bbbcce0")
+			tx = newTransferTx(sender, h, receiver)
+		default:
+			panic(fmt.Sprintf("invalid type: %s", opts.TransferType))
+		}
+		txR[i].tx = tx
+		txR[i].acc = wallet.NewAccountFromPrivateKey(sender)
 	}
 
 	finishCh := make(chan struct{})
@@ -145,14 +162,16 @@ func Generate(ctx context.Context, typ string, count int, callback ...GenerateCa
 				log.Fatal(ctx.Err())
 			}
 
-			txCh <- tx
+			txCh[i%len(txCh)] <- txR[i%len(txR)]
 		}
-		close(txCh)
+		for _, ch := range txCh {
+			close(ch)
+		}
 		close(finishCh)
 	}()
 
 	for i := 0; i < count; i++ {
-		r := <-result
+		r := <-result[i%len(result)]
 
 		err := dump.TransactionsQueue.Put(r.blob)
 		if err != nil {
@@ -168,22 +187,24 @@ func Generate(ctx context.Context, typ string, count int, callback ...GenerateCa
 
 	<-finishCh
 	wg.Wait()
-	close(result)
+	for _, ch := range result {
+		close(ch)
+	}
 
 	log.Printf("Done: %s", time.Since(start))
 	return &dump
 }
 
-func genTxWorker(n int, acc *wallet.Account, ch <-chan *transaction.Transaction, out chan<- txBlob) {
+func genTxWorker(n int, ch <-chan txRequest, out chan<- txBlob) {
 	baseNonce := n << 24 // 255 possible workers and 16M transactions should be enough
 	i := 0
 
 	buf := io.NewBufBinWriter()
-	for tx := range ch {
-		tx := *tx
+	for tr := range ch {
+		tx := *tr.tx
 		tx.Nonce = uint32(baseNonce | i)
 
-		if err := acc.SignTx(netmode.PrivNet, &tx); err != nil {
+		if err := tr.acc.SignTx(netmode.PrivNet, &tx); err != nil {
 			log.Fatalf("Could not sign tx: %v", err)
 		}
 

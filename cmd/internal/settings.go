@@ -94,6 +94,8 @@ func InitSettings() *viper.Viper {
 		"``Path to input file to load transactions.\n"+
 			"Example: -i ./dump.txs --in /path/to/import/transactions")
 
+	flags.BoolP("vote", "", false, "Vote before the bench.")
+
 	if err := v.BindPFlags(flags); err != nil {
 		panic(err)
 	}

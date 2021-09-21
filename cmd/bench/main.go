@@ -147,7 +147,7 @@ func main() {
 		return
 	}
 
-	wrk.Prepare(ctx)
+	wrk.Prepare(ctx, v.GetBool("vote"), dump.BenchOptions)
 
 	log.Printf("fetch current block count")
 	blk, err := client.GetLastBlock(ctx)
