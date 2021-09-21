@@ -101,15 +101,21 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 
 	log.Printf("Generate %d txs", count)
 
-	txCh := make(chan txRequest, genWorkerCount)
-	result := make(chan txBlob, genWorkerCount)
+	txCh := make([]chan txRequest, genWorkerCount)
+	for i := range txCh {
+		txCh[i] = make(chan txRequest, 1)
+	}
+	result := make([]chan txBlob, genWorkerCount)
+	for i := range result {
+		result[i] = make(chan txBlob, 1)
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(genWorkerCount)
 	for i := 0; i < genWorkerCount; i++ {
 		go func(i int) {
 			defer wg.Done()
-			genTxWorker(i, txCh, result)
+			genTxWorker(i, txCh[i], result[i])
 		}(i)
 	}
 
@@ -156,14 +162,16 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 				log.Fatal(ctx.Err())
 			}
 
-			txCh <- txR[i%len(txR)]
+			txCh[i%len(txCh)] <- txR[i%len(txR)]
 		}
-		close(txCh)
+		for _, ch := range txCh {
+			close(ch)
+		}
 		close(finishCh)
 	}()
 
 	for i := 0; i < count; i++ {
-		r := <-result
+		r := <-result[i%len(result)]
 
 		err := dump.TransactionsQueue.Put(r.blob)
 		if err != nil {
@@ -179,7 +187,9 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 
 	<-finishCh
 	wg.Wait()
-	close(result)
+	for _, ch := range result {
+		close(ch)
+	}
 
 	log.Printf("Done: %s", time.Since(start))
 	return &dump
