@@ -58,7 +58,7 @@ def plot_data(path):
     large = 22; med = 14;
     params = {'axes.titlesize': large,
               'legend.fontsize': med,
-              'figure.figsize': (12, 8),
+              'figure.figsize': (16, 12),
               'axes.labelsize': med,
               'axes.titlesize': med,
               'xtick.labelsize': med,
