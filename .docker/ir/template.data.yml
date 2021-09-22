@@ -1,5 +1,6 @@
 #@data/values
 ---
+validators_count: 4
 nodes_info:
 #! the first position in nodes_info list is reserved for the single-node configuration
   - node_name: single
@@ -15,8 +16,8 @@ nodes_info:
     node_port: 20332
     node_rpc_port: 20331
     node_monitoring_port: 2112
-    node_pprof_port: 30005
-    node_prometheus_port: 40005
+    node_pprof_port: 30000
+    node_prometheus_port: 40000
     validator_hash: ""
     wallet_password: ""
   - node_name: one
@@ -51,3 +52,27 @@ nodes_info:
     node_prometheus_port: 40004
     validator_hash: "02a7bc55fe8684e0119768d104ba30795bdcc86619e864add26156723ed185cd62"
     wallet_password: "four"
+  - node_name: five
+    node_port: 20337
+    node_rpc_port: 30337
+    node_monitoring_port: 20005
+    node_pprof_port: 30005
+    node_prometheus_port: 40005
+    validator_hash: "0398aa96d95b7db8878de8931fdd81388df55f4270a597c305d4c5c6820028a08a"
+    wallet_password: "five"
+  - node_name: six
+    node_port: 20338
+    node_rpc_port: 30338
+    node_monitoring_port: 20006
+    node_pprof_port: 30006
+    node_prometheus_port: 40006
+    validator_hash: "027ab21ef7bc491a9b9da83bb36dcf5d8b04cc4addf27fc824d4f815264db8c4e4"
+    wallet_password: "six"
+  - node_name: seven
+    node_port: 20339
+    node_rpc_port: 30339
+    node_monitoring_port: 20007
+    node_pprof_port: 30007
+    node_prometheus_port: 40007
+    validator_hash: "0270b6d62957082d67f776ad3f8f918e58a9983a186ba6d060f01b422d5aff9774"
+    wallet_password: "seven"

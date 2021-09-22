@@ -1,6 +1,5 @@
 #@ load("@ytt:data", "data")
-#@ nodes_count = len(data.values.nodes_info)
-#@ for i in range(0,nodes_count):
+#@ for i in range(0,2+data.values.validators_count):
 ---
 ProtocolConfiguration:
   Magic: 56753
@@ -15,13 +14,13 @@ ProtocolConfiguration:
   #@ else:
   MemPoolSize: 50000
   SecondsPerBlock: 5
-  ValidatorsCount: #@ nodes_count - 2
+  ValidatorsCount: #@ data.values.validators_count
   StandbyCommittee:
-    #@ for j in range(2,nodes_count):
+    #@ for j in range(2,2+data.values.validators_count):
     - #@ data.values.nodes_info[j].validator_hash
       #@ end
   SeedList:
-    #@ for j in range(2,nodes_count):
+    #@ for j in range(2,2+data.values.validators_count):
     - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
       #@ end
   #@ end

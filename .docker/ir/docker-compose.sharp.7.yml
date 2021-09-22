@@ -1,0 +1,91 @@
+version: '2.4'
+
+networks:
+  default:
+    name: neo_go_network
+    ipam:
+      config:
+        - subnet: 172.200.0.0/24
+          gateway: 172.200.0.254
+
+services:
+  node_one:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-one
+    volumes:
+      - ./wallet.one.json:/neo-cli/wallet.json
+      - ./sharp.config.one.7.json:/neo-cli/config.json
+
+  node_two:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-two
+    volumes:
+      - ./wallet.two.json:/neo-cli/wallet.json
+      - ./sharp.config.two.7.json:/neo-cli/config.json
+
+  node_three:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-three
+    volumes:
+      - ./wallet.three.json:/neo-cli/wallet.json
+      - ./sharp.config.three.7.json:/neo-cli/config.json
+
+  node_four:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-four
+    volumes:
+      - ./wallet.four.json:/neo-cli/wallet.json
+      - ./sharp.config.four.7.json:/neo-cli/config.json
+
+  node_five:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-five
+    volumes:
+      - ./wallet.five.json:/neo-cli/wallet.json
+      - ./sharp.config.five.7.json:/neo-cli/config.json
+
+  node_six:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-six
+    volumes:
+      - ./wallet.six.json:/neo-cli/wallet.json
+      - ./sharp.config.six.7.json:/neo-cli/config.json
+
+  node_seven:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-seven
+    volumes:
+      - ./wallet.seven.json:/neo-cli/wallet.json
+      - ./sharp.config.seven.7.json:/neo-cli/config.json
+
+  healthy:
+    image: alpine
+    depends_on:
+      node_one:
+        condition: service_healthy
+      node_two:
+        condition: service_healthy
+      node_three:
+        condition: service_healthy
+      node_four:
+        condition: service_healthy
+      node_five:
+        condition: service_healthy
+      node_six:
+        condition: service_healthy
+      node_seven:
+        condition: service_healthy

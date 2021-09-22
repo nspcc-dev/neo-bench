@@ -42,6 +42,39 @@
       },
       "lock": false,
       "isDefault": false
+    },
+    {
+      "address": "NRosvkDLdwtBWKPXvwLMfeE2RmW3kyUaJY",
+      "key": "6PYVxMnzPMFTYY16xRvXm2SJcvaChabLzaARAb1Mmej9U7rYLYWMSPtfam",
+      "label": "",
+      "contract": {
+        "script": "FQwhAhA6f33QFlWFl/eWDSfFFqQ5T9loueZRVetLAT5AQEBuDCECcLbWKVcILWf3dq0/j5GOWKmYOhhrptBg8BtCLVr/l3QMIQJ6sh73vEkam52oO7Ntz12LBMxK3fJ/yCTU+BUmTbjE5AwhA5iqltlbfbiHjeiTH92BOI31X0JwpZfDBdTFxoIAKKCKDCECp7xV/oaE4BGXaNEEujB5W9zIZhnoZK3SYVZyPtGFzWIMIQKzYiv0AXvf4xfFiu1fTHU/IGt9uJYEb6fXdLvEv3+NwgwhA9kMB99j5pDOd5EuEKtRrMlEtmhgI3tgjE+PgwnnHuaZF0Ge0Nw6",
+        "parameters": [
+          {
+            "name": "parameter0",
+            "type": "Signature"
+          },
+          {
+            "name": "parameter1",
+            "type": "Signature"
+          },
+          {
+            "name": "parameter2",
+            "type": "Signature"
+          },
+          {
+            "name": "parameter3",
+            "type": "Signature"
+          },
+          {
+            "name": "parameter4",
+            "type": "Signature"
+          }
+        ],
+        "deployed": false
+      },
+      "lock": false,
+      "isDefault": false
     }
   ],
   "scrypt": {

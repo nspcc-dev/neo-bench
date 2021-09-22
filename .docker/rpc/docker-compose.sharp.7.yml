@@ -1,0 +1,27 @@
+version: '2.4'
+
+services:
+  sharp-node:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: sharp-node
+    depends_on: [ "healthy" ]
+    volumes:
+      - ../rpc/sharp.config.7.json:/neo-cli/config.json
+      - ../rpc/sharp.wallet.json:/neo-cli/wallet.json
+    ports: [ "20331:20331" ]
+
+  node_healthy:
+    image: alpine
+    depends_on:
+      sharp-node:
+        condition: service_healthy
+
+  bench:
+    extends:
+      service: base-bench
+      file: ../rpc/docker-compose.bench.yml
+    depends_on: [ "node_healthy" ]
+    volumes:
+      - ./go.protocol.privnet.one.7.yml:/go.protocol.privnet.yml

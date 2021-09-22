@@ -202,6 +202,21 @@ if [ "$NEOBENCH_VALIDATOR_COUNT" -eq 4 ]; then
     FILES+=(-f "$DC_SHARP_RPC")
     DEFAULT_RPC_ADDR=(-a "sharp-node:20331")
   fi
+elif [ "$NEOBENCH_VALIDATOR_COUNT" -eq 7 ]; then
+  case "$IR_TYPE" in
+    go) FILES+=(-f "$DC_GO_7_IR") ;;
+    sharp) FILES+=(-f "$DC_SHARP_7_IR") ;;
+    mixed) FILES+=(-f "$DC_MIXED_7_IR") ;;
+    *) fatal "Unknown node type: $IR_TYPE" ;;
+  esac
+
+  if [ "$RPC_TYPE" = go ] || [ "$RPC_TYPE" = mixed ]; then
+    FILES+=(-f "$DC_GO_7_RPC")
+    DEFAULT_RPC_ADDR=(-a "go-node:20331")
+  else
+    FILES+=(-f "$DC_SHARP_7_RPC")
+    DEFAULT_RPC_ADDR=(-a "sharp-node:20331")
+  fi
 elif [ "$NEOBENCH_VALIDATOR_COUNT" -eq 1 ]; then
   case "$IR_TYPE" in
     go)

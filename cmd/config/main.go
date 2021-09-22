@@ -46,32 +46,51 @@ func main() {
 	}()
 
 	if templateFile := *goTemplateFile; templateFile != "" {
-		err := convertTemplateToPlain(templateFile, tempDir)
+		err := convertTemplateToPlain(templateFile, tempDir, 4)
 		if err != nil {
 			log.Fatalf("failed to call ytt for Go template: %v", err)
 		}
-		err = generateGoConfig(tempDir+"/"+templateFile, *goDB)
+		err = generateGoConfig(tempDir+"/"+templateFile, *goDB, "")
+		if err != nil {
+			log.Fatalf("failed to generate Go configurations: %v", err)
+		}
+
+		err = convertTemplateToPlain(templateFile, tempDir, 7)
+		if err != nil {
+			log.Fatalf("failed to call ytt for Go template: %v", err)
+		}
+		err = generateGoConfig(tempDir+"/"+templateFile, *goDB, ".7")
 		if err != nil {
 			log.Fatalf("failed to generate Go configurations: %v", err)
 		}
 	}
 	if templateFile := *sharpTemplateFile; templateFile != "" {
-		err := convertTemplateToPlain(templateFile, tempDir)
+		err := convertTemplateToPlain(templateFile, tempDir, 4)
 		if err != nil {
 			log.Fatalf("failed to call ytt for C# template: %v", err)
 		}
-		err = generateSharpConfig(tempDir+"/"+templateFile, *sharpDB)
+		err = generateSharpConfig(tempDir+"/"+templateFile, *sharpDB, "")
+		if err != nil {
+			log.Fatalf("failed to generate C# configurations: %v", err)
+		}
+
+		err = convertTemplateToPlain(templateFile, tempDir, 7)
+		if err != nil {
+			log.Fatalf("failed to call ytt for C# template: %v", err)
+		}
+		err = generateSharpConfig(tempDir+"/"+templateFile, *sharpDB, ".7")
 		if err != nil {
 			log.Fatalf("failed to generate C# configurations: %v", err)
 		}
 	}
 }
 
-func convertTemplateToPlain(templatePath string, tempDir string) error {
+func convertTemplateToPlain(templatePath string, tempDir string, nodeCount int) error {
 	filePath := configPath + templatePath
 	dataPath := configPath + templateDataFile
 	cmd := template.NewCmd(template.NewOptions())
-	cmd.SetArgs([]string{"-f", filePath, "-f", dataPath, "--output-files", tempDir})
+	cmd.SetArgs([]string{"-f", filePath, "-f", dataPath, "--output-files", tempDir,
+		"--data-value-yaml", "validators_count=" + strconv.FormatInt(int64(nodeCount), 10)})
 	err := cmd.Execute()
 	if err != nil {
 		return err
@@ -79,7 +98,7 @@ func convertTemplateToPlain(templatePath string, tempDir string) error {
 	return nil
 }
 
-func generateGoConfig(templatePath string, database string) error {
+func generateGoConfig(templatePath, database, suffix string) error {
 	f, err := os.Open(templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to open template: %v", err)
@@ -100,10 +119,10 @@ func generateGoConfig(templatePath string, database string) error {
 		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.NodePort, template.ProtocolConfiguration.SeedList)
 		if err != nil {
 			// it's an RPC node then
-			configFile = rpcConfigPath + "go.protocol.yml"
+			configFile = rpcConfigPath + "go.protocol" + suffix + ".yml"
 			template.ApplicationConfiguration.UnlockWallet.Path = ""
 		} else {
-			configFile = configPath + "go.protocol.privnet." + nodeName + ".yml"
+			configFile = configPath + "go.protocol.privnet." + nodeName + suffix + ".yml"
 		}
 		bytes, err := yaml.Marshal(template)
 		if err != nil {
@@ -117,7 +136,7 @@ func generateGoConfig(templatePath string, database string) error {
 	return nil
 }
 
-func generateSharpConfig(templatePath string, storageEngine string) error {
+func generateSharpConfig(templatePath, storageEngine, suffix string) error {
 	f, err := os.Open(templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to open template: %v", err)
@@ -138,11 +157,11 @@ func generateSharpConfig(templatePath string, storageEngine string) error {
 		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.P2P.Port, template.ProtocolConfiguration.SeedList)
 		if err != nil {
 			// it's an RPC node then
-			configFile = rpcConfigPath + "sharp.config.json"
+			configFile = rpcConfigPath + "sharp.config" + suffix + ".json"
 			template.ApplicationConfiguration.UnlockWallet = UnlockWallet{}
 
 		} else {
-			configFile = configPath + "sharp.config." + nodeName + ".json"
+			configFile = configPath + "sharp.config." + nodeName + suffix + ".json"
 		}
 		err = writeJSON(configFile, SharpConfig{
 			ApplicationConfiguration: template.ApplicationConfiguration,

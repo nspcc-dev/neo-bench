@@ -1,0 +1,103 @@
+version: '2.4'
+
+networks:
+  default:
+    name: neo_go_network
+    ipam:
+      config:
+        - subnet: 172.200.0.0/24
+          gateway: 172.200.0.254
+
+services:
+  node_one:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-one
+    volumes:
+      - ./wallet.one.json:/neo-cli/wallet.json
+      - ./sharp.config.one.json:/neo-cli/config.json
+
+  node_two:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-two
+    volumes:
+      - ./wallet.two.json:/neo-cli/wallet.json
+      - ./sharp.config.two.json:/neo-cli/config.json
+
+  node_three:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: neo-cli-node-three
+    volumes:
+      - ./wallet.three.json:/neo-cli/wallet.json
+      - ./sharp.config.three.json:/neo-cli/config.json
+
+  node_four:
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
+    container_name: neo_go_node_four
+    expose: [ "30336" ]
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30336']
+    volumes:
+      - ./wallet.four.json:/config/wallet.json
+      - ./go.protocol.privnet.four.7.yml:/config/protocol.privnet.yml
+
+  node_five:
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
+    container_name: neo_go_node_five
+    expose: [ "30337" ]
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30337']
+    volumes:
+      - ./wallet.five.json:/config/wallet.json
+      - ./go.protocol.privnet.five.7.yml:/config/protocol.privnet.yml
+
+  node_six:
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
+    container_name: neo_go_node_six
+    expose: [ "30338" ]
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30338']
+    volumes:
+      - ./wallet.six.json:/config/wallet.json
+      - ./go.protocol.privnet.six.7.yml:/config/protocol.privnet.yml
+
+  node_seven:
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
+    container_name: neo_go_node_seven
+    expose: [ "30339" ]
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30339']
+    volumes:
+      - ./wallet.seven.json:/config/wallet.json
+      - ./go.protocol.privnet.seven.7.yml:/config/protocol.privnet.yml
+
+  healthy:
+    image: alpine
+    depends_on:
+      node_one:
+        condition: service_healthy
+      node_two:
+        condition: service_healthy
+      node_three:
+        condition: service_healthy
+      node_four:
+        condition: service_healthy
+      node_five:
+        condition: service_healthy
+      node_six:
+        condition: service_healthy
+      node_seven:
+        condition: service_healthy

@@ -2,39 +2,14 @@
   "version": "3.0",
   "accounts": [
     {
-      "address": "NMUedC8TSV2rE17wGguSvPk9XcmHSaT275",
-      "key": "6PYSYoZaxqDu5vqvm7yUFT3sPJJFwyLyYDnp8zwj1YVPcBWxacz64bNX59",
+      "address": "NfPZq3BwqKKSjaWVD3DrZNrPSFTyGbQGvi",
+      "key": "6PYXRmatvUTBi488Bs6KMeQuXZYUABZMGEq7hLY2JWbB7GrBWzUXvBuK5i",
       "label": "",
       "contract": {
-        "script": "DCECEDp/fdAWVYWX95YNJ8UWpDlP2Wi55lFV60sBPkBAQG5BVuezJw==",
+        "script": "DCECerIe97xJGpudqDuzbc9diwTMSt3yf8gk1PgVJk24xORBVuezJw==",
         "parameters": [
           {
             "name": "parameter0",
-            "type": "Signature"
-          }
-        ],
-        "deployed": false
-      },
-      "lock": false,
-      "isDefault": false
-    },
-    {
-      "address": "NVTiAjNgagDkTr5HTzDmQP9kPwPHN5BgVq",
-      "key": "6PYSYoZaxqDu5vqvm7yUFT3sPJJFwyLyYDnp8zwj1YVPcBWxacz64bNX59",
-      "label": "",
-      "contract": {
-        "script": "EwwhAhA6f33QFlWFl/eWDSfFFqQ5T9loueZRVetLAT5AQEBuDCECp7xV/oaE4BGXaNEEujB5W9zIZhnoZK3SYVZyPtGFzWIMIQKzYiv0AXvf4xfFiu1fTHU/IGt9uJYEb6fXdLvEv3+NwgwhA9kMB99j5pDOd5EuEKtRrMlEtmhgI3tgjE+PgwnnHuaZFEGe0Nw6",
-        "parameters": [
-          {
-            "name": "parameter0",
-            "type": "Signature"
-          },
-          {
-            "name": "parameter1",
-            "type": "Signature"
-          },
-          {
-            "name": "parameter2",
             "type": "Signature"
           }
         ],
@@ -45,7 +20,7 @@
     },
     {
       "address": "NRosvkDLdwtBWKPXvwLMfeE2RmW3kyUaJY",
-      "key": "6PYSYoZaxqDu5vqvm7yUFT3sPJJFwyLyYDnp8zwj1YVPcBWxacz64bNX59",
+      "key": "6PYXRmatvUTBi488Bs6KMeQuXZYUABZMGEq7hLY2JWbB7GrBWzUXvBuK5i",
       "label": "",
       "contract": {
         "script": "FQwhAhA6f33QFlWFl/eWDSfFFqQ5T9loueZRVetLAT5AQEBuDCECcLbWKVcILWf3dq0/j5GOWKmYOhhrptBg8BtCLVr/l3QMIQJ6sh73vEkam52oO7Ntz12LBMxK3fJ/yCTU+BUmTbjE5AwhA5iqltlbfbiHjeiTH92BOI31X0JwpZfDBdTFxoIAKKCKDCECp7xV/oaE4BGXaNEEujB5W9zIZhnoZK3SYVZyPtGFzWIMIQKzYiv0AXvf4xfFiu1fTHU/IGt9uJYEb6fXdLvEv3+NwgwhA9kMB99j5pDOd5EuEKtRrMlEtmhgI3tgjE+PgwnnHuaZF0Ge0Nw6",
