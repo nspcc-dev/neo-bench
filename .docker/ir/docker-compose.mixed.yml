@@ -10,91 +10,43 @@ networks:
 
 services:
   node_one:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
     container_name: neo-cli-node-one
-    expose: [ "20331" ]
-    stdin_open: true
-    tty: true
     volumes:
       - ./wallet.one.json:/neo-cli/wallet.json
       - ./sharp.config.one.json:/neo-cli/config.json
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_two:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
     container_name: neo-cli-node-two
-    expose: [ "20331" ]
-    stdin_open: true
-    tty: true
     volumes:
       - ./wallet.two.json:/neo-cli/wallet.json
       - ./sharp.config.two.json:/neo-cli/config.json
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_three:
-    labels:
-      - stats
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
     container_name: neo_go_node_three
-    image: registry.nspcc.ru/neo-bench/neo-go:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
-    command: "node --config-path /config --privnet"
     expose: [ "30335" ]
     healthcheck:
-      interval: 5s
-      retries: 15
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30335']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.three.json:/config/wallet.json
       - ./go.protocol.privnet.three.yml:/config/protocol.privnet.yml
 
   node_four:
-    labels:
-      - stats
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
     container_name: neo_go_node_four
-    image: registry.nspcc.ru/neo-bench/neo-go:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
-    command: "node --config-path /config --privnet"
     expose: [ "30336" ]
     healthcheck:
-      interval: 5s
-      retries: 15
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 30336']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
     volumes:
       - ./wallet.four.json:/config/wallet.json
       - ./go.protocol.privnet.four.yml:/config/protocol.privnet.yml

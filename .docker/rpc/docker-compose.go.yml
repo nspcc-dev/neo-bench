@@ -2,19 +2,13 @@ version: '2.4'
 
 services:
   go-node:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-go:bench
-    logging:
-      driver: "none"
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
     container_name: go-node
-    command: "node --config-path /config --privnet"
     ports: [ "20331:20331" ]
     depends_on: [ "healthy" ]
     healthcheck:
-      retries: 15
-      timeout: 5s
-      interval: 5s
       test: ['CMD', 'sh', '-c', 'echo | nc localhost 20331']
     environment:
       - NEOBENCH_TC=
@@ -28,14 +22,10 @@ services:
         condition: service_healthy
 
   bench:
-    image: registry.nspcc.ru/neo-bench/neo-bench:bench
-    container_name: bench
+    extends:
+      service: base-bench
+      file: ../rpc/docker-compose.bench.yml
     depends_on: [ "node_healthy" ]
     volumes:
-      - ./out:/out:rw
-      - ../build/dump.$NEOBENCH_TYPE.$NEOBENCH_FROM_COUNT.$NEOBENCH_TO_COUNT.txs:/dump.txs
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ../rpc/tokencontract/token.nef:/tokencontract/token.nef:ro
-      - ../rpc/tokencontract/token.manifest.json:/tokencontract/token.manifest.json:ro
       - ./go.protocol.privnet.one.yml:/go.protocol.privnet.yml
 

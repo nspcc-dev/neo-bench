@@ -10,96 +10,40 @@ networks:
 
 services:
   node_one:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
     container_name: neo-cli-node-one
-    expose: [ "20331" ]
-    stdin_open: true
-    tty: true
     volumes:
       - ./wallet.one.json:/neo-cli/wallet.json
       - ./sharp.config.one.json:/neo-cli/config.json
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_two:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
     container_name: neo-cli-node-two
-    expose: [ "20331" ]
-    stdin_open: true
-    tty: true
     volumes:
       - ./wallet.two.json:/neo-cli/wallet.json
       - ./sharp.config.two.json:/neo-cli/config.json
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_three:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
     container_name: neo-cli-node-three
-    expose: [ "20331" ]
-    stdin_open: true
-    tty: true
     volumes:
       - ./wallet.three.json:/neo-cli/wallet.json
       - ./sharp.config.three.json:/neo-cli/config.json
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
 
   node_four:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    cap_add:
-      - NET_ADMIN
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
     container_name: neo-cli-node-four
-    expose: [ "20331" ]
-    stdin_open: true
-    tty: true
     volumes:
       - ./wallet.four.json:/neo-cli/wallet.json
       - ./sharp.config.four.json:/neo-cli/config.json
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-      timeout: 10s
-    environment:
-      - NEOBENCH_TC=$NEOBENCH_TC
 
   healthy:
     image: alpine

@@ -10,22 +10,13 @@ networks:
 
 services:
   node:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    stdin_open: true
-    tty: true
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
     ports: [ "20331:20331" ]
     volumes:
       - ./wallet.one.json:/neo-cli/wallet.json
       - ./sharp.config.single.json:/neo-cli/config.json
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
-      timeout: 10s
 
   healthy:
     image: alpine
