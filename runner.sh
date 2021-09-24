@@ -212,10 +212,10 @@ elif [ "$NEOBENCH_VALIDATOR_COUNT" -eq 7 ]; then
 
   if [ "$RPC_TYPE" = go ] || [ "$RPC_TYPE" = mixed ]; then
     FILES+=(-f "$DC_GO_7_RPC")
-    DEFAULT_RPC_ADDR=(-a "go-node:20331")
+    DEFAULT_RPC_ADDR=(-a "go-node:20331" -a "go-node-2:20331")
   else
     FILES+=(-f "$DC_SHARP_7_RPC")
-    DEFAULT_RPC_ADDR=(-a "sharp-node:20331")
+    DEFAULT_RPC_ADDR=(-a "sharp-node:20331" -a "sharp-node-2:20331")
   fi
 elif [ "$NEOBENCH_VALIDATOR_COUNT" -eq 1 ]; then
   case "$IR_TYPE" in

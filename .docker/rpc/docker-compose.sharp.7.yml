@@ -11,10 +11,22 @@ services:
       - ../rpc/sharp.config.7.json:/neo-cli/config.json
     ports: [ "20331:20331" ]
 
+  sharp-node-2:
+    extends:
+      service: base-sharp
+      file: docker-compose.node.yml
+    container_name: sharp-node-2
+    depends_on: [ "healthy" ]
+    volumes:
+      - ../rpc/sharp.config.7.json:/neo-cli/config.json
+    ports: [ "20332:20331" ]
+
   node_healthy:
     image: alpine
     depends_on:
       sharp-node:
+        condition: service_healthy
+      sharp-node-2:
         condition: service_healthy
 
   bench:
