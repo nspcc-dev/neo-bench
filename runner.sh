@@ -222,11 +222,7 @@ if [ -n "$NEOBENCH_VOTE" ]; then
   ARGS+=(--vote)
 fi
 
-if [ -z "$SINGLE" ]; then
-  make prepare
-else
-  make prepare.single
-fi
+make prepare
 
 docker-compose "${FILES[@]}" run bench neo-bench -o "$OUTPUT" "${ARGS[@]}"
 

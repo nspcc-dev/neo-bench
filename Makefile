@@ -119,9 +119,6 @@ config:
 # Generate transactions, dump and nodes configurations for four-nodes network
 prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 
-# Generate transactions, dump and nodes configurations fore single-node network
-prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
-
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
