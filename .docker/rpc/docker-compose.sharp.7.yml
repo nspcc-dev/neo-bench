@@ -9,7 +9,6 @@ services:
     depends_on: [ "healthy" ]
     volumes:
       - ../rpc/sharp.config.7.json:/neo-cli/config.json
-      - ../rpc/sharp.wallet.json:/neo-cli/wallet.json
     ports: [ "20331:20331" ]
 
   node_healthy:
