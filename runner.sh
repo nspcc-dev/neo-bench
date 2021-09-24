@@ -15,10 +15,12 @@ export NEOBENCH_LOGGER=${NEOBENCH_LOGGER:-none}
 export NEOBENCH_TYPE=${NEOBENCH_TYPE:-NEO}
 NEOBENCH_FROM_COUNT=${NEOBENCH_FROM_COUNT:-1}
 NEOBENCH_TO_COUNT=${NEOBENCH_TO_COUNT:-1}
+export NEOBENCH_VALIDATOR_COUNT=${NEOBENCH_VALIDATOR_COUNT:-4}
 
 show_help() {
 echo "Usage of benchmark runner:"
-echo "   -s, --single                     Use single consensus node."
+echo "   -v, --validators                 Consensus node count."
+echo "                                    Possible values: 1, 4 (default)."
 echo "   -n, --nodes                      Consensus node type."
 echo "                                    Possible values: go (default), mixed, sharp."
 echo "   -r, --rpc                        RPC node type. Default is the same as --nodes."
@@ -66,9 +68,14 @@ while test $# -gt 0; do
 
   case $_opt in
     -h|--help) show_help ;;
-    -s|--single) SINGLE=1 ;;
     -l|--log) export NEOBENCH_LOGGER=journald ;;
     --vote) export NEOBENCH_VOTE=1 ;;
+
+    -v|--validators)
+      test $# -gt 0 || fatal "Amount must be specified for --validators."
+      NEOBENCH_VALIDATOR_COUNT=$1
+      shift
+      ;;
 
     --from)
       test $# -gt 0 || fatal "Amount must be specified for --from."
@@ -170,7 +177,7 @@ done
 
 RPC_TYPE=${RPC_TYPE:-$IR_TYPE}
 
-if [ -z "$SINGLE" ]; then
+if [ "$NEOBENCH_VALIDATOR_COUNT" -eq 4 ]; then
   case "$IR_TYPE" in
     go)
       FILES+=(-f "$DC_GO_IR")
@@ -194,7 +201,7 @@ if [ -z "$SINGLE" ]; then
     FILES+=(-f "$DC_SHARP_RPC")
     DEFAULT_RPC_ADDR=(-a "sharp-node:20331")
   fi
-else
+elif [ "$NEOBENCH_VALIDATOR_COUNT" -eq 1 ]; then
   case "$IR_TYPE" in
     go)
       FILES+=(-f "$DC_GO_IR_SINGLE" -f "$DC_SINGLE")
@@ -209,6 +216,8 @@ else
   esac
 
   DEFAULT_RPC_ADDR=(-a "node:20331")
+else
+  fatal "Invalid validator count: $NEOBENCH_VALIDATOR_COUNT"
 fi
 
 OUTPUT="/out/${OUTPUT}_${MODE}_${COUNT}.log"
