@@ -352,11 +352,13 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 	for i := startBlock; i < lastBlock; i++ {
 		if _, ok := d.parsedBlocks[i]; !ok {
 
-			d.parsedBlocks[i] = struct{}{}
 			if blk, err = d.cli.GetBlock(ctx, i); err != nil {
+				// This function is executed inside event loop so we return
+				// and retry after some time.
 				log.Printf("could not get block: %v", err)
-				continue
+				return i
 			}
+			d.parsedBlocks[i] = struct{}{}
 
 			cnt = len(blk.Transactions)
 			if cnt < 1 {
