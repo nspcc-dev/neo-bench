@@ -119,9 +119,6 @@ config:
 # Generate transactions, dump and nodes configurations for four-nodes network
 prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 
-# Generate transactions, dump and nodes configurations fore single-node network
-prepare.single: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
-
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
@@ -137,29 +134,29 @@ start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 ## GoSingle:
 #	## Workers:
 start.GoSingle10wrk:
-	./runner.sh --single -d "GoSingle" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m wrk -w 10 -z 5m -t 30s
 
 start.GoSingle30wrk:
-	./runner.sh --single -d "GoSingle" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m wrk -w 30 -z 5m -t 30s
 
 start.GoSingle100wrk:
-	./runner.sh --single -d "GoSingle" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.GoSingle25rate:
-	./runner.sh --single -d "GoSingle" -m rate -q 25 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m rate -q 25 -z 5m -t 30s
 
 start.GoSingle50rate:
-	./runner.sh --single -d "GoSingle" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m rate -q 50 -z 5m -t 30s
 
 start.GoSingle60rate:
-	./runner.sh --single -d "GoSingle" -m rate -q 60 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m rate -q 60 -z 5m -t 30s
 
 start.GoSingle300rate:
-	./runner.sh --single -d "GoSingle" -m rate -q 300 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m rate -q 300 -z 5m -t 30s
 
 start.GoSingle1000rate:
-	./runner.sh --single -d "GoSingle" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh --validators 1 -d "GoSingle" -m rate -q 1000 -z 5m -t 30s
 
 ## Go x 4 + GoRPC:
 #	## Workers:
@@ -196,29 +193,29 @@ start.GoFourNodesSharpRpc10wrk:
 ## SharpSingle:
 #	## Workers:
 start.SharpSingle10wrk:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m wrk -w 10 -z 5m -t 30s
 
 start.SharpSingle30wrk:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m wrk -w 30 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m wrk -w 30 -z 5m -t 30s
 
 start.SharpSingle100wrk:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m wrk -w 100 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m wrk -w 100 -z 5m -t 30s
 
 #	## Rate:
 start.SharpSingle25rate:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 25 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m rate -q 25 -z 5m -t 30s
 
 start.SharpSingle50rate:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 50 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m rate -q 50 -z 5m -t 30s
 
 start.SharpSingle60rate:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 60 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m rate -q 60 -z 5m -t 30s
 
 start.SharpSingle300rate:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 300 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m rate -q 300 -z 5m -t 30s
 
 start.SharpSingle1000rate:
-	./runner.sh --single --nodes sharp -d "SharpSingle" -m rate -q 1000 -z 5m -t 30s
+	./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m rate -q 1000 -z 5m -t 30s
 
 ## Sharp x 4 + SharpRPC:
 #	## Workers:

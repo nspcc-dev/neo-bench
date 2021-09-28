@@ -1,0 +1,12 @@
+version: '2.4'
+
+services:
+  base-bench:
+    image: registry.nspcc.ru/neo-bench/neo-bench:bench
+    container_name: bench
+    volumes:
+      - ./out:/out:rw
+      - ../build/dump.$NEOBENCH_TYPE.$NEOBENCH_FROM_COUNT.$NEOBENCH_TO_COUNT.txs:/dump.txs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../rpc/tokencontract/token.nef:/tokencontract/token.nef:ro
+      - ../rpc/tokencontract/token.manifest.json:/tokencontract/token.manifest.json:ro

@@ -10,18 +10,12 @@ networks:
 
 services:
   node:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-go:bench
-    logging:
-      driver: $NEOBENCH_LOGGER
-    command: "node --config-path /config --privnet"
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
     ports: [ "20331:20331" ]
     healthcheck:
-      interval: 5s
-      retries: 15
       test: ['CMD', 'sh', '-c', 'echo | nc 127.0.0.1 20331']
-      timeout: 10s
     volumes:
       - ./wallet.one.json:/config/wallet.json
       - ./go.protocol.privnet.single.yml:/config/protocol.privnet.yml

@@ -2,19 +2,11 @@ version: '2.4'
 
 services:
   sharp-node:
-    labels:
-      - stats
-    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
-    logging:
-      driver: "none"
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
     container_name: sharp-node
-    stdin_open: true
-    tty: true
     depends_on: [ "healthy" ]
-    healthcheck:
-      interval: 5s
-      retries: 50
-      test: ['CMD', 'bash', '-c', '/healthcheck.sh']
     volumes:
       - ../rpc/sharp.config.json:/neo-cli/config.json
       - ../rpc/sharp.wallet.json:/neo-cli/wallet.json
@@ -27,13 +19,9 @@ services:
         condition: service_healthy
 
   bench:
-    image: registry.nspcc.ru/neo-bench/neo-bench:bench
-    container_name: bench
+    extends:
+      service: base-bench
+      file: ../rpc/docker-compose.bench.yml
     depends_on: [ "node_healthy" ]
     volumes:
-      - ./out:/out:rw
-      - ../build/dump.$NEOBENCH_TYPE.$NEOBENCH_FROM_COUNT.$NEOBENCH_TO_COUNT.txs:/dump.txs
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ../rpc/tokencontract/token.nef:/tokencontract/token.nef:ro
-      - ../rpc/tokencontract/token.manifest.json:/tokencontract/token.manifest.json:ro
       - ./go.protocol.privnet.one.yml:/go.protocol.privnet.yml

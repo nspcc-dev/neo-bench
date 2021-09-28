@@ -30,7 +30,7 @@ func newSigner(wifs ...string) (*signer, error) {
 		c.pubs = append(c.pubs, priv.PublicKey())
 	}
 	var err error
-	c.script, err = smartcontract.CreateMultiSigRedeemScript(len(c.pubs)/2+1, c.pubs)
+	c.script, err = smartcontract.CreateDefaultMultiSigRedeemScript(c.pubs)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +56,9 @@ func (c *signer) signBlock(b *block.Block) {
 func (c *signer) sign(item hash.Hashable) []byte {
 	h := hash.NetSha256(uint32(netmode.PrivNet), item)
 	buf := io.NewBufBinWriter()
+	need := smartcontract.GetDefaultHonestNodeCount(len(c.privs))
 	for i := range c.privs {
-		// It's kludgy, but we either sign for single node (1 out of 1)
-		// or small private network (3 out of 4) and we need only 3
-		// signatures for the latter case.
-		if i == 3 {
+		if i == need {
 			break
 		}
 		s := c.privs[i].SignHash(h)

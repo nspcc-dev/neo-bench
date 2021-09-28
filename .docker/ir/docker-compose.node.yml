@@ -1,0 +1,37 @@
+version: '2.4'
+
+services:
+  base-go:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-go:bench
+    logging:
+      driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
+    command: "node --config-path /config --privnet"
+    healthcheck:
+      interval: 5s
+      retries: 15
+      timeout: 10s
+    environment:
+      - NEOBENCH_TC=$NEOBENCH_TC
+
+  base-sharp:
+    labels:
+      - stats
+    image: registry.nspcc.ru/neo-bench/neo-sharp:bench
+    logging:
+      driver: $NEOBENCH_LOGGER
+    cap_add:
+      - NET_ADMIN
+    expose: [ "20331" ]
+    stdin_open: true
+    tty: true
+    healthcheck:
+      interval: 5s
+      retries: 50
+      test: [ 'CMD', 'bash', '-c', '/healthcheck.sh' ]
+      timeout: 10s
+    environment:
+      - NEOBENCH_TC=$NEOBENCH_TC
