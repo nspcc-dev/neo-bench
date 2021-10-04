@@ -1,0 +1,46 @@
+version: '2.4'
+
+services:
+  go-node:
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
+    container_name: go-node
+    ports: [ "20331:20331" ]
+    depends_on: [ "healthy" ]
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'echo | nc localhost 20331']
+    environment:
+      - NEOBENCH_TC=
+    volumes:
+      - ../rpc/go.protocol.7.yml:/config/protocol.privnet.yml
+
+  go-node-2:
+    extends:
+      service: base-go
+      file: docker-compose.node.yml
+    container_name: go-node-2
+    ports: [ "20332:20331" ]
+    depends_on: [ "healthy" ]
+    healthcheck:
+      test: [ 'CMD', 'sh', '-c', 'echo | nc localhost 20331' ]
+    environment:
+      - NEOBENCH_TC=
+    volumes:
+      - ../rpc/go.protocol.7.yml:/config/protocol.privnet.yml
+
+  node_healthy:
+    image: alpine
+    depends_on:
+      go-node:
+        condition: service_healthy
+      go-node-2:
+        condition: service_healthy
+
+  bench:
+    extends:
+      service: base-bench
+      file: ../rpc/docker-compose.bench.yml
+    depends_on: [ "node_healthy" ]
+    volumes:
+      - ./go.protocol.privnet.one.7.yml:/go.protocol.privnet.yml

@@ -45,14 +45,14 @@ func (d *doer) Prepare(ctx context.Context, vote bool, opts BenchOptions) {
 		log.Fatalf("could not init client: %v", err)
 	}
 
-	isSingle, err := isSingleNode(c)
+	vc, err := getValidatorsCount(c)
 	if err != nil {
 		log.Fatalf("could not get the number of validators: %v", err)
 	}
 
-	log.Printf("Determined single node setup: %t", isSingle)
+	log.Printf("Determined validators count: %d", vc)
 
-	sgn, err := initChain(isSingle)
+	sgn, err := initChain(vc)
 	if err != nil {
 		log.Fatalf("could not initialize chain: %v", err)
 	}
@@ -63,31 +63,44 @@ func (d *doer) Prepare(ctx context.Context, vote bool, opts BenchOptions) {
 	}
 }
 
-func isSingleNode(c *client.Client) (bool, error) {
+func getValidatorsCount(c *client.Client) (int, error) {
 	// Committee can be bigger than consensus nodes, but it is not the case in our setup.
 	// Querying `GetNextBlockValidators` can return empty list.
 	vs, err := c.GetCommittee()
 	if err != nil {
-		return false, err
+		return 0, err
 	}
 
 	if len(vs) == 0 {
-		return false, errors.New("received empty committee")
+		return 0, errors.New("received empty committee")
 	}
-	return len(vs) == 1, nil
+	return len(vs), nil
 }
 
-func initChain(single bool) (*signer, error) {
+func initChain(validatorCount int) (*signer, error) {
 	var wifs []string
-	if single {
+	switch validatorCount {
+	case 1:
 		wifs = []string{"KxyjQ8eUa4FHt3Gvioyt1Wz29cTUrE4eTqX3yFSk1YFCsPL8uNsY"}
-	} else {
+	case 4:
 		wifs = []string{
 			"KzfPUYDC9n2yf4fK5ro4C8KMcdeXtFuEnStycbZgX3GomiUsvX6W",
 			"KzgWE3u3EDp13XPXXuTKZxeJ3Gi8Bsm8f9ijY3ZsCKKRvZUo1Cdn",
 			"KxyjQ8eUa4FHt3Gvioyt1Wz29cTUrE4eTqX3yFSk1YFCsPL8uNsY",
 			"L2oEXKRAAMiPEZukwR5ho2S6SMeQLhcK9mF71ZnF7GvT8dU4Kkgz",
 		}
+	case 7:
+		wifs = []string{
+			"KzfPUYDC9n2yf4fK5ro4C8KMcdeXtFuEnStycbZgX3GomiUsvX6W",
+			"L392JMYfi7EUG3mjokQXnbVKJw1MdF42ZHe68xe5FPUEykHew7bS",
+			"L3suCMDA85Wwprk7fRqBV75ddQ3KSDh1CbapD6SXDGV6bMWnvBBK",
+			"L1SobH6JpM68XJRHWgQVM8X858zFRPHHpVULr95yAdHo4CBsb5Zu",
+			"KzgWE3u3EDp13XPXXuTKZxeJ3Gi8Bsm8f9ijY3ZsCKKRvZUo1Cdn",
+			"KxyjQ8eUa4FHt3Gvioyt1Wz29cTUrE4eTqX3yFSk1YFCsPL8uNsY",
+			"L2oEXKRAAMiPEZukwR5ho2S6SMeQLhcK9mF71ZnF7GvT8dU4Kkgz",
+		}
+	default:
+		return nil, fmt.Errorf("invalid validators count: %d", validatorCount)
 	}
 
 	return newSigner(wifs...)
@@ -131,17 +144,20 @@ func newDeployTx(mgmtHash util.Uint160, priv *keys.PrivateKey, nefName, manifest
 	return tx, h, acc.SignTx(netmode.PrivNet, tx)
 }
 
-func newNEP5Transfer(isSingle bool, sc util.Uint160, from, to util.Uint160, amount int64) *transaction.Transaction {
+func newNEP5Transfer(validatorCount int, sc util.Uint160, from, to util.Uint160, amount int64) *transaction.Transaction {
 	w := io.NewBufBinWriter()
 	emit.AppCall(w.BinWriter, sc, "transfer", callflag.All, from, to, amount, nil)
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
 	tx := transaction.New(script, 11000000)
-	if isSingle {
+	switch validatorCount {
+	case 1:
 		tx.NetworkFee = 1500000
-	} else {
+	case 4:
 		tx.NetworkFee = 4500000
+	default:
+		tx.NetworkFee = 8000000
 	}
 	tx.ValidUntilBlock = 1000
 	tx.Signers = append(tx.Signers, transaction.Signer{
@@ -188,8 +204,8 @@ func fillChain(ctx context.Context, c *client.Client, sgn *signer, vote bool, op
 	neoAmount := int64(native.NEOTotalSupply / len(opts.Senders))
 	gasAmount := int64(native.GASFactor * 2900000 / len(opts.Senders))
 	for _, priv := range opts.Senders {
-		txMoveNeo := newNEP5Transfer(isSingle, neoHash, sgn.addr, priv.GetScriptHash(), neoAmount)
-		txMoveGas := newNEP5Transfer(isSingle, gasHash, sgn.addr, priv.GetScriptHash(), gasAmount)
+		txMoveNeo := newNEP5Transfer(len(sgn.privs), neoHash, sgn.addr, priv.GetScriptHash(), neoAmount)
+		txMoveGas := newNEP5Transfer(len(sgn.privs), gasHash, sgn.addr, priv.GetScriptHash(), gasAmount)
 		sgn.signTx(txMoveNeo, txMoveGas)
 		txs = append(txs, txMoveNeo, txMoveGas)
 	}

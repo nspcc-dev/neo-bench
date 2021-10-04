@@ -80,8 +80,12 @@ single.sharp: stop
 # Stop all containers
 stop:
 	@echo "=> Stop environment"
-	@docker-compose -f $(DC_GO_IR) -f $(DC_GO_RPC) -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -f $(DC_SHARP_IR_SINGLE) kill &> /dev/null
-	@docker-compose -f $(DC_GO_IR) -f $(DC_GO_RPC) -f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_RPC) -f $(DC_SHARP_IR_SINGLE) down --remove-orphans &> /dev/null
+	@docker-compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
+		-f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_7_IR) \
+		-f $(DC_SHARP_RPC) -f $(DC_SHARP_7_RPC) -f $(DC_SHARP_IR_SINGLE) kill &> /dev/null
+	@docker-compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
+		-f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_7_IR) \
+		-f $(DC_SHARP_RPC) -f $(DC_SHARP_7_RPC) -f $(DC_SHARP_IR_SINGLE) down --remove-orphans &> /dev/null
 
 # Check that all images were built
 check.images:
@@ -117,7 +121,7 @@ config:
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
-prepare: stop $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
+prepare: stop config $(BUILD_DIR)/dump.$(NEOBENCH_TYPE).$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 
 # Runs benchmark for all default single-node and four-nodes C# and Go networks. Use `make start.<option>` to run tests separately
 start: start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
