@@ -18,6 +18,7 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
+	"github.com/nspcc-dev/neo-go/pkg/rpc/response/result"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
@@ -45,36 +46,22 @@ func (d *doer) Prepare(ctx context.Context, vote bool, opts BenchOptions) {
 		log.Fatalf("could not init client: %v", err)
 	}
 
-	vc, err := getValidatorsCount(c)
+	v, err := c.GetVersion()
 	if err != nil {
 		log.Fatalf("could not get the number of validators: %v", err)
 	}
 
-	log.Printf("Determined validators count: %d", vc)
+	log.Printf("Determined validators count: %d", v.Protocol.ValidatorsCount)
 
-	sgn, err := initChain(vc)
+	sgn, err := initChain(int(v.Protocol.ValidatorsCount))
 	if err != nil {
 		log.Fatalf("could not initialize chain: %v", err)
 	}
 
-	err = fillChain(ctx, c, sgn, vote, opts)
+	err = fillChain(ctx, c, v.Protocol, sgn, vote, opts)
 	if err != nil {
 		log.Fatalf("could not create blocks: %v", err)
 	}
-}
-
-func getValidatorsCount(c *client.Client) (int, error) {
-	// Committee can be bigger than consensus nodes, but it is not the case in our setup.
-	// Querying `GetNextBlockValidators` can return empty list.
-	vs, err := c.GetCommittee()
-	if err != nil {
-		return 0, err
-	}
-
-	if len(vs) == 0 {
-		return 0, errors.New("received empty committee")
-	}
-	return len(vs), nil
 }
 
 func initChain(validatorCount int) (*signer, error) {
@@ -167,19 +154,13 @@ func newNEP5Transfer(validatorCount int, sc util.Uint160, from, to util.Uint160,
 	return tx
 }
 
-func fillChain(ctx context.Context, c *client.Client, sgn *signer, vote bool, opts BenchOptions) error {
+func fillChain(ctx context.Context, c *client.Client, proto result.Protocol, sgn *signer, vote bool, opts BenchOptions) error {
 	cs, err := c.GetNativeContracts()
 	if err != nil {
 		return err
 	}
 
-	isSingle := len(sgn.privs) == 1
-
-	// timeout is block time x3
-	timeout := time.Second * 15
-	if isSingle {
-		timeout = time.Second * 3
-	}
+	timeout := 3 * time.Duration(proto.MillisecondsPerBlock) * time.Millisecond
 
 	var neoHash, gasHash, mgmtHash util.Uint160
 	for i := range cs {
