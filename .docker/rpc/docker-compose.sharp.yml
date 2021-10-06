@@ -3,7 +3,7 @@ version: '2.4'
 services:
   sharp-node:
     extends:
-      service: base-go
+      service: base-sharp
       file: docker-compose.node.yml
     container_name: sharp-node
     depends_on: [ "healthy" ]
