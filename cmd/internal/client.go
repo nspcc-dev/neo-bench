@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
@@ -46,8 +44,6 @@ const DefaultTimeout = time.Second * 30
 var (
 	// ErrMempoolOOM is returned from `sendrawtransaction` when node cannot process transaction due to mempool OOM
 	ErrMempoolOOM = errors.New("node cannot process transaction due to mempool OOM")
-
-	reg = regexp.MustCompile(`[^\w.-]+`)
 )
 
 // NewRPCClient creates new client for RPC communications.
@@ -112,14 +108,14 @@ func (c *RPCClient) GetLastBlock(ctx context.Context) (*block.Block, error) {
 	return c.GetBlock(ctx, num-1)
 }
 
-func (c *RPCClient) GetVersion(ctx context.Context) (string, error) {
+func (c *RPCClient) GetVersion(ctx context.Context) (*result.Version, error) {
 	res := new(result.Version)
 	rpc := `{ "jsonrpc": "2.0", "id": 1, "method": "getversion", "params": [] }`
 	if err := c.doRPCCall(ctx, rpc, res, c.blockRequester); err != nil {
-		return "", err
+		return res, err
 	}
 
-	return strings.Trim(reg.ReplaceAllString(res.UserAgent, "_"), "_"), nil
+	return res, nil
 }
 
 // SendTX sends transaction.

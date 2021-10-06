@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -55,26 +56,22 @@ func main() {
 		client = internal.NewRPCClient(v, 1)
 	}
 
-	// fetch MSPerBlock value from config
-	c, err := internal.DecodeGoConfig("/go.protocol.privnet.yml")
-	if err != nil {
-		log.Fatalf("Failed to get MillisecondsPerBlock value from configuration: %v", err)
-	}
-	msPerBlock = c.ProtocolConfiguration.SecondsPerBlock * 1000
-
 	version, err := client.GetVersion(ctx)
 	if err != nil {
 		log.Fatalf("could not receive RPC Node version: %v", err)
 	}
+	msPerBlock = version.Protocol.MillisecondsPerBlock
 
-	log.Println("Run benchmark for " + desc + " :: " + version)
+	reg := regexp.MustCompile(`[^\w.-]+`)
+	versionStr := strings.Trim(reg.ReplaceAllString(version.UserAgent, "_"), "_")
+	log.Println("Run benchmark for " + desc + " :: " + versionStr)
 
 	//raising the limits. Some performance gains were achieved with the + workers count (not a lot).
 	runtime.GOMAXPROCS(runtime.NumCPU() + workers)
 
 	rep := internal.NewReporter(
 		internal.ReportMode(mode),
-		internal.ReportDescription(desc+" :: "+version),
+		internal.ReportDescription(desc+" :: "+versionStr),
 		internal.ReportTimeLimit(timeLimit),
 		internal.ReportWorkersCount(workers),
 		internal.ReportRate(rate),
