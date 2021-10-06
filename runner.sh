@@ -21,7 +21,7 @@ export NEOBENCH_VALIDATOR_COUNT=${NEOBENCH_VALIDATOR_COUNT:-4}
 show_help() {
 echo "Usage of benchmark runner:"
 echo "   -v, --validators                 Consensus node count."
-echo "                                    Possible values: 1, 4 (default)."
+echo "                                    Possible values: 1, 4 (default), 7."
 echo "   -n, --nodes                      Consensus node type."
 echo "                                    Possible values: go (default), mixed, sharp."
 echo "   -r, --rpc                        RPC node type. Default is the same as --nodes."
