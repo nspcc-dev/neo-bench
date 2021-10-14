@@ -20,11 +20,11 @@ RUN set -x \
 #           ├── neo-modules
 #           └── neo-vm
 # Use ENV variables to specify branch, version or revision to download.
-ENV CLIBRANCH="7aa1e1610dc5c303bde92a1fc8ea3dd8df00dae7"
-ENV MODULESBRANCH="ef59a0eb27fb23c49610c0362e1fe7d9d0ec7839"
+ENV CLIBRANCH="30768721be6496020bb869f2167d1940e1f24500"
+ENV MODULESBRANCH="50f04733223efeb626990af892f6d4c9ff387337"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
-ENV NEOVMBRANCH="f7ed8d94ff428f69ff1e3c7645797f132416d883"
-ENV NEOBRANCH="a4d2eddbee049bbe3d5d9552e11181d294af929e"
+ENV NEOVMBRANCH="17838b833b2b4dbe82864954aeafdf4c8681cdc9"
+ENV NEOBRANCH="4965fb12906e8cc7482a909bbd991b7787ad83ea"
 RUN mkdir /neo-project && \
     wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
