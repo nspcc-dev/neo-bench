@@ -15,7 +15,7 @@ then
     exit 503
 fi
 
-nodes=`jq -r .ProtocolConfiguration.SeedList[] < /neo-cli/config.json | sed 's/:20/:30/`
+nodes=`jq -r .ProtocolConfiguration.SeedList[] < /neo-cli/config.json | sed 's/:20/:30/'`
 
 for node in "${nodes[@]}"
 do
