@@ -7,7 +7,6 @@ ARGS=(-i "/dump.txs")
 FILES=()
 MODE=""
 COUNT=""
-SINGLE=
 IR_TYPE=go
 RPC_TYPE=
 RPC_ADDR=()
