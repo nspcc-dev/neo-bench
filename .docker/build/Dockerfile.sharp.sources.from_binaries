@@ -76,6 +76,7 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y \
         libleveldb-dev \
+        curl \
         jq \
         libssl-dev \
         libunwind8 \

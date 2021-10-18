@@ -23,7 +23,7 @@ help:
 	@echo ''
 	@awk '/^#/{ comment = substr($$0,3) } comment && /^[a-zA-Z][a-zA-Z0-9_-]+ ?:/{ print "   ", $$1, comment }' $(MAKEFILE_LIST) | column -t -s ':' | grep -v 'IGNORE' | sort | uniq
 
-.PHONY: build push gen build.node.go build.node.sharp stop start config \
+.PHONY: build prepare push gen build.node.go build.node.sharp stop start config \
 	start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
