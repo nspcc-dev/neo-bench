@@ -110,10 +110,10 @@ func newDeployTx(mgmtHash util.Uint160, priv *keys.PrivateKey, nefName, manifest
 		return nil, util.Uint160{}, buf.Err
 	}
 
-	tx := transaction.New(buf.Bytes(), 100*native.GASFactor)
+	tx := transaction.New(buf.Bytes(), 0)
 	tx.Signers = []transaction.Signer{{Account: priv.GetScriptHash(), Scopes: transaction.Global}}
 	tx.ValidUntilBlock = 1000
-	tx.NetworkFee = 10_000000
+	tx.NetworkFee = 0
 
 	// Contract hash is immutable so we calculate it once and then reuse during tx generation.
 	ne, err := nef.FileFromBytes(rawNef)
@@ -137,14 +137,14 @@ func newNEP5Transfer(validatorCount int, sc util.Uint160, from, to util.Uint160,
 	emit.Opcodes(w.BinWriter, opcode.ASSERT)
 
 	script := w.Bytes()
-	tx := transaction.New(script, 11000000)
+	tx := transaction.New(script, 0)
 	switch validatorCount {
 	case 1:
-		tx.NetworkFee = 1500000
+		tx.NetworkFee = 0
 	case 4:
-		tx.NetworkFee = 4500000
+		tx.NetworkFee = 0
 	default:
-		tx.NetworkFee = 8000000
+		tx.NetworkFee = 0
 	}
 	tx.ValidUntilBlock = 1000
 	tx.Signers = append(tx.Signers, transaction.Signer{
@@ -302,8 +302,8 @@ func newVoteTx(neoHash util.Uint160, priv *keys.PrivateKey, voteFor *keys.Public
 	}
 
 	script := w.Bytes()
-	tx := transaction.New(script, 15_000_000)
-	tx.NetworkFee = 2000_000
+	tx := transaction.New(script, 0)
+	tx.NetworkFee = 0
 	tx.ValidUntilBlock = 1200
 	tx.Signers = append(tx.Signers, transaction.Signer{
 		Account: priv.GetScriptHash(),
@@ -328,9 +328,9 @@ func newRegisterTx(neoHash util.Uint160, priv *keys.PrivateKey, sgn *signer) *tr
 	script := w.Bytes()
 	tx := transaction.New(script, native.DefaultRegisterPrice+5_000_000)
 	if len(sgn.privs) == 1 {
-		tx.NetworkFee = 3000000
+		tx.NetworkFee = 0
 	} else {
-		tx.NetworkFee = 6000000
+		tx.NetworkFee = 0
 	}
 	tx.ValidUntilBlock = 1000
 	tx.Signers = []transaction.Signer{

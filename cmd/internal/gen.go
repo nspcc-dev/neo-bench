@@ -78,8 +78,8 @@ func newTransferTx(p *keys.PrivateKey, contractHash, toAddr util.Uint160) *trans
 	}
 
 	script := w.Bytes()
-	tx := transaction.New(script, 15000000)
-	tx.NetworkFee = 1500000 // hardcoded for now
+	tx := transaction.New(script, 0)
+	tx.NetworkFee = 0 // hardcoded for now
 	tx.ValidUntilBlock = 1200
 	tx.Signers = append(tx.Signers, transaction.Signer{
 		Account: fromAddressHash,
