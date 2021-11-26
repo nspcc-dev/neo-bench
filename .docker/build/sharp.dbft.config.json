@@ -4,6 +4,7 @@
     "IgnoreRecoveryLogs": false,
     "AutoStart": true,
     "Network": 56753,
-    "MaxBlockSize": 16777216
+    "MaxBlockSize": 16777216,
+    "MaxBlockSystemFee": 1600000000000
   }
 }
