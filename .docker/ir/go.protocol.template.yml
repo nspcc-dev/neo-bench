@@ -26,8 +26,9 @@ ProtocolConfiguration:
   #@ end
   VerifyBlocks: true
   VerifyTransactions: true
-  MaxTransactionsPerBlock: 65534
+  MaxTransactionsPerBlock: 65535
   MaxBlockSize: 16777216
+  MaxBlockSystemFee: 1600000000000
 
 ApplicationConfiguration:
   #! LogPath could be set up in case you need stdout logs to some proper file.
