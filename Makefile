@@ -109,7 +109,7 @@ $(BUILD_DIR)/dump.%.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs: cmd/gen/mai
 	@echo "=> Generate transactions dump"
 	@set -x \
 		&& cd cmd/ \
-		&& go run ./gen -type $* -from $(NEOBENCH_FROM_COUNT) \
+		&& go run ./gen -cnt 3000000 -type $* -from $(NEOBENCH_FROM_COUNT) \
 			-to $(NEOBENCH_TO_COUNT) -out ../$@
 
 # Generate configurations for single-node and four-nodes networks from templates
