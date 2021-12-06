@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS Build
 
 # Install system dependencies.
 RUN set -x \
@@ -9,7 +9,7 @@ RUN set -x \
 
 # Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-ENV CLIBRANCH="8153553dcd8d68c752b9988ce7d7b9e360529b65"
+ENV CLIBRANCH="b56a2465b353a2ad36091f5bda2a5752b7c2b933"
 RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /tmp/neo-node/ /tmp/neo-cli.zip && \
     mkdir /build && \
@@ -21,7 +21,7 @@ RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${C
     rm -rf /build /tmp/neo-cli.zip /tmp/neo-node
 
 # Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
-ENV MODULESBRANCH="dd81842318e07129e82bdcbc1c0a5b9a2a6793ff"
+ENV MODULESBRANCH="b74d1d49dccabf738820f5ffcee4a844c19514e7"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
 RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
     unzip -q -d /tmp/neo-modules/ /tmp/neo-modules.zip && \
@@ -29,20 +29,20 @@ RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/arch
     for mod in ${MODULES}; do \
             dotnet restore /tmp/neo-modules/*/src/${mod}/; \
             dotnet build -c Release /tmp/neo-modules/*/src/${mod}/; \
-            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/net5.0/* /Plugins/; \
+            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/net6.0/* /Plugins/; \
         done
 
 # Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
 # Use `dotnet publish` instead of `dotnet build` and copy all necessary .dlls from `publish` folder.
 # For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
 RUN dotnet publish -c Release /tmp/neo-modules/*/src/RpcServer/ && \
-#    cp /tmp/neo-modules/*/src/RpcServer/bin/Release/net5.0/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
+#    cp /tmp/neo-modules/*/src/RpcServer/bin/Release/net6.0/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
     dotnet publish -c Release /tmp/neo-modules/*/src/RocksDBStore/ && \
-    cp /tmp/neo-modules/*/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/ && \
+    cp /tmp/neo-modules/*/src/RocksDBStore/bin/Release/net6.0/publish/RocksDbSharp.dll /Plugins/ && \
     rm -rf /tmp/neo-modules.zip /tmp/neo-modules
 
 # Publish neo-vm from source as a self-contained deployment for linux-64 into /neo-vm folder (although neo-vm does not have dependant .dlls)
-ENV NEOVMBRANCH="20286fa973a009cbc890e33e5177d3a2b8a5ea57"
+ENV NEOVMBRANCH="b18e040d2115ed2ea3c9a60ae8722a7865b38927"
 RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
     unzip -q -d /tmp/neo-vm/ /tmp/neo-vm.zip && \
     dotnet restore /tmp/neo-vm/*/src/neo-vm/ && \
@@ -50,7 +50,7 @@ RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOV
     rm -rf /tmp/neo-vm.zip tmp/neo-vm
 
 # Publish neo from source as a self-contained deployment for linux-64 into /neo folder (all dependant .dlls are included)
-ENV NEOBRANCH="a5dfdeb1f814494a1788713b1c86260e57751ced"
+ENV NEOBRANCH="ae09b7648b8159055087b55aa49c3cefea783012"
 RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /tmp/neo/ /tmp/neo.zip && \
     mkdir /build && \
@@ -61,7 +61,7 @@ RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}
     rm -rf /build /tmp/neo.zip tmp/neo
 
 # All things are published, so build the final image by copying binaries from Build
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 as Final
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive

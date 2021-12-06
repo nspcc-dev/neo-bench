@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS Build
 
 # Install system dependencies.
 RUN set -x \
@@ -20,11 +20,11 @@ RUN set -x \
 #           ├── neo-modules
 #           └── neo-vm
 # Use ENV variables to specify branch, version or revision to download.
-ENV CLIBRANCH="8153553dcd8d68c752b9988ce7d7b9e360529b65"
-ENV MODULESBRANCH="dd81842318e07129e82bdcbc1c0a5b9a2a6793ff"
+ENV CLIBRANCH="b56a2465b353a2ad36091f5bda2a5752b7c2b933"
+ENV MODULESBRANCH="b74d1d49dccabf738820f5ffcee4a844c19514e7"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
-ENV NEOVMBRANCH="20286fa973a009cbc890e33e5177d3a2b8a5ea57"
-ENV NEOBRANCH="a5dfdeb1f814494a1788713b1c86260e57751ced"
+ENV NEOVMBRANCH="b18e040d2115ed2ea3c9a60ae8722a7865b38927"
+ENV NEOBRANCH="ae09b7648b8159055087b55aa49c3cefea783012"
 RUN mkdir /neo-project && \
     wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
@@ -53,7 +53,7 @@ RUN mkdir /Plugins && \
     for mod in ${MODULES}; do \
         dotnet restore /neo-project/neo-modules/src/${mod}/; \
         dotnet build -c Release /neo-project/neo-modules/src/${mod}/; \
-        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/net5.0/* /Plugins/; \
+        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/net6.0/* /Plugins/; \
     done
 
 # Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
@@ -61,10 +61,10 @@ RUN mkdir /Plugins && \
 # For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
 RUN dotnet publish -c Release /neo-project/neo-modules/src/RpcServer/ && \
     dotnet publish -c Release /neo-project/neo-modules/src/RocksDBStore/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net5.0/publish/RocksDbSharp.dll /Plugins/
+    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net6.0/publish/RocksDbSharp.dll /Plugins/
 
 # All things are published, so build the final image by copying binaries from Build
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 as Final
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
