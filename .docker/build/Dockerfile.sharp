@@ -1,5 +1,5 @@
 # NEO private network - Dockerfile
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS Build
 
 RUN set -x \
     && apt-get update \
@@ -9,10 +9,10 @@ RUN set -x \
     # APT cleanup to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 as Final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 as Final
 
 # arguments to choose version of neo-cli to install
-ARG VERSION="3.0.3"
+ARG VERSION="3.1.0"
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
