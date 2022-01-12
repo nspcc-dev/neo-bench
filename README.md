@@ -318,15 +318,15 @@ To add one more node configuration, provide all necessary information to the `no
 
 ## Environment variables
 
-Name|Description|Default|Example
----|---|---|---
-NEOBENCH_LOGGER|Container logging facility|`none`|`none`, `journald`, `syslog`
-NEOBENCH_TC|Parameters passed to the `tc qdisc` (netem discipline) on container startup| |`delay 100ms`
-NEOBENCH_TYPE|Type of the load|`NEO`|`NEO`, `GAS`
-NEOBENCH_FROM_COUNT|Number of tx senders|`1` (default)
-NEOBENCH_TO_COUNT|Number of fund receivers|`1` (default)
-NEOBENCH_VALIDATOR_COUNT|Number of validators|`1`, `4` (default)
-NEOBENCH_VOTE|Vote for validators before the bench|empty|`1` or empty
+Name|Description| Default |Example
+---|---|---------|---
+NEOBENCH_LOGGER|Container logging facility| `none`  |`none`, `journald`, `syslog`
+NEOBENCH_TC|Parameters passed to the `tc qdisc` (netem discipline) on container startup|         |`delay 100ms`
+NEOBENCH_TYPE|Type of the load| `NEO`   |`NEO`, `GAS`
+NEOBENCH_FROM_COUNT|Number of tx senders| `1`     | `1`
+NEOBENCH_TO_COUNT|Number of fund receivers| `1`     | `1`
+NEOBENCH_VALIDATOR_COUNT|Number of validators| `4`     | `1`, `4`, `7`
+NEOBENCH_VOTE|Vote for validators before the bench| empty   |`1` or empty
 
 ## Benchmark results visualisation
 

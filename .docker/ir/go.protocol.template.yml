@@ -37,14 +37,8 @@ ApplicationConfiguration:
     Type: "leveldb" #! other options: 'inmemory','redis','boltdb', 'badgerdb'.
     LevelDBOptions:
       DataDirectoryPath: "/chains/privnet"
-    RedisDBOptions:
-      Addr: "localhost:6379"
-      Password: ""
-      DB: 0
     BoltDBOptions:
       FilePath: "./chains/privnet.bolt"
-    BadgerDBOptions:
-      BadgerDir: "./chains/privnet.badger"
   #!  Uncomment in order to set up custom address for node.
   #!  Address: 127.0.0.1
   NodePort: #@ data.values.nodes_info[i].node_port
