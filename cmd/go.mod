@@ -4,17 +4,20 @@ go 1.15
 
 require (
 	github.com/Workiva/go-datastructures v1.0.53
+	github.com/alicebob/miniredis/v2 v2.15.1 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/docker/docker v20.10.9+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/fatih/color v1.12.0
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.1
 	github.com/moby/moby v20.10.9+incompatible
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/nspcc-dev/neo-go v0.97.3-pre.0.20210929085559-b4e24bef14fc
+	github.com/nspcc-dev/neo-go v0.98.0
+	github.com/nspcc-dev/neofs-api-go v1.27.1 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
 	github.com/valyala/fasthttp v1.9.0
