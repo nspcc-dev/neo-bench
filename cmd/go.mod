@@ -1,6 +1,6 @@
 module github.com/nspcc-dev/neo-bench
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Workiva/go-datastructures v1.0.53
