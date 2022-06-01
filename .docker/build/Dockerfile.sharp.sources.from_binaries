@@ -9,7 +9,7 @@ RUN set -x \
 
 # Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-ENV CLIBRANCH="45f42b3ed3111eefe20e07317261028361320b95"
+ENV CLIBRANCH="584b8660283d0db16738d92b61348dd289cd0fe4"
 RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /tmp/neo-node/ /tmp/neo-cli.zip && \
     mkdir /build && \
@@ -21,7 +21,7 @@ RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${C
     rm -rf /build /tmp/neo-cli.zip /tmp/neo-node
 
 # Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
-ENV MODULESBRANCH="81eb9b78393a080075f53afbe7ae7d915693e712"
+ENV MODULESBRANCH="b9eaa9d84992ce92316f30d1e5e9372914582c49"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
 RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
     unzip -q -d /tmp/neo-modules/ /tmp/neo-modules.zip && \
@@ -29,7 +29,8 @@ RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/arch
     for mod in ${MODULES}; do \
             dotnet restore /tmp/neo-modules/*/src/${mod}/; \
             dotnet build -c Release /tmp/neo-modules/*/src/${mod}/; \
-            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/net6.0/* /Plugins/; \
+            mkdir /Plugins/${mod}; \
+            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/net6.0/* /Plugins/${mod}; \
         done
 
 # Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
@@ -42,15 +43,16 @@ RUN dotnet publish -c Release /tmp/neo-modules/*/src/RpcServer/ && \
     rm -rf /tmp/neo-modules.zip /tmp/neo-modules
 
 # Publish neo-vm from source as a self-contained deployment for linux-64 into /neo-vm folder (although neo-vm does not have dependant .dlls)
-ENV NEOVMBRANCH="0028d862e253bda3c12eb8bb007a2d95822d3922"
+ENV NEOVMBRANCH="793d6628d96786f78aa2e2cecd1c1dd0a9e4934f"
 RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
     unzip -q -d /tmp/neo-vm/ /tmp/neo-vm.zip && \
-    dotnet restore /tmp/neo-vm/*/src/neo-vm/ && \
-    dotnet publish -c Release -r linux-x64 /tmp/neo-vm/*/src/neo-vm/ -o /neo-vm && \
+    ls -l /tmp/* && \
+    dotnet restore /tmp/neo-vm/*/src/Neo.VM/ && \
+    dotnet publish -c Release -r linux-x64 /tmp/neo-vm/*/src/Neo.VM/ -o /neo-vm && \
     rm -rf /tmp/neo-vm.zip tmp/neo-vm
 
 # Publish neo from source as a self-contained deployment for linux-64 into /neo folder (all dependant .dlls are included)
-ENV NEOBRANCH="ed68274e7dec2622468d3bc67df6e0f2913d903b"
+ENV NEOBRANCH="736c346b9d8b1404f10023eeecb3a8e92ae0c542"
 RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /tmp/neo/ /tmp/neo.zip && \
     mkdir /build && \
