@@ -12,7 +12,7 @@ RUN set -x \
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 as Final
 
 # arguments to choose version of neo-cli to install
-ARG VERSION="3.1.0"
+ARG VERSION="3.2.1"
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
