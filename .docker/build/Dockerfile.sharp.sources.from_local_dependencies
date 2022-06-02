@@ -20,11 +20,11 @@ RUN set -x \
 #           ├── neo-modules
 #           └── neo-vm
 # Use ENV variables to specify branch, version or revision to download.
-ENV CLIBRANCH="b56a2465b353a2ad36091f5bda2a5752b7c2b933"
-ENV MODULESBRANCH="b74d1d49dccabf738820f5ffcee4a844c19514e7"
+ENV CLIBRANCH="584b8660283d0db16738d92b61348dd289cd0fe4"
+ENV MODULESBRANCH="b9eaa9d84992ce92316f30d1e5e9372914582c49"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
-ENV NEOVMBRANCH="b18e040d2115ed2ea3c9a60ae8722a7865b38927"
-ENV NEOBRANCH="ae09b7648b8159055087b55aa49c3cefea783012"
+ENV NEOVMBRANCH="793d6628d96786f78aa2e2cecd1c1dd0a9e4934f"
+ENV NEOBRANCH="736c346b9d8b1404f10023eeecb3a8e92ae0c542"
 RUN mkdir /neo-project && \
     wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
@@ -41,7 +41,7 @@ RUN mkdir /neo-project && \
 
 # Update project references in order to include local projects instead of MyGet NuGet packages.
 RUN sed -i '/PackageReference Include="Neo" Version=/c \    <ProjectReference Include="..\\..\\neo\\src\\neo\\neo.csproj" \/>' /neo-project/neo-node/neo-cli/neo-cli.csproj && \
-    sed -i '/<PackageReference Include="Neo.VM" Version=/c \    <ProjectReference Include="..\\..\\..\\neo-vm\\src\\neo-vm\\neo-vm.csproj" \/>' /neo-project/neo/src/neo/neo.csproj && \
+    sed -i '/<PackageReference Include="Neo.VM" Version=/c \    <ProjectReference Include="..\\..\\..\\neo-vm\\src\\Neo.VM\\Neo.VM.csproj" \/>' /neo-project/neo/src/neo/neo.csproj && \
     sed -i '/<PackageReference Include="Neo" Version=/c \    <ProjectReference Include="..\\..\\..\\neo\\src\\neo\\neo.csproj" \/>' /neo-project/neo-modules/src/Directory.Build.props
 
 # Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
@@ -53,15 +53,9 @@ RUN mkdir /Plugins && \
     for mod in ${MODULES}; do \
         dotnet restore /neo-project/neo-modules/src/${mod}/; \
         dotnet build -c Release /neo-project/neo-modules/src/${mod}/; \
-        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/net6.0/* /Plugins/; \
+	mkdir /Plugins/${mod}; \
+        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/net6.0/* /Plugins/${mod}; \
     done
-
-# Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
-# Use `dotnet publish` instead of `dotnet build` and copy all necessary .dlls from `publish` folder.
-# For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
-RUN dotnet publish -c Release /neo-project/neo-modules/src/RpcServer/ && \
-    dotnet publish -c Release /neo-project/neo-modules/src/RocksDBStore/ && \
-    cp /neo-project/neo-modules/src/RocksDBStore/bin/Release/net6.0/publish/RocksDbSharp.dll /Plugins/
 
 # All things are published, so build the final image by copying binaries from Build
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 as Final
