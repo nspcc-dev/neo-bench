@@ -6,7 +6,7 @@ WORKDIR /neo-go
 # Install deps:
 RUN apk add --no-cache git
 
-ARG REV="6000c6a502afcaddeed756b119dd58c3bdd6fa8b"
+ARG REV="v0.99.0"
 ARG REPO="github.com/nspcc-dev/neo-go"
 
 # Clone and build repo:
@@ -27,7 +27,7 @@ RUN set -x \
         ./cli
 
 # Executable layer
-FROM alpine
+FROM alpine:3.16
 
 RUN apk add --no-cache iproute2-tc
 
