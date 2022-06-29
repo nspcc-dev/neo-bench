@@ -26,58 +26,148 @@
 
 ## Usage example (local benchmark + NeoGo single node)
 
+1. Build the benchmark:
 ```
-$ make gen
-=> Fetch deps
-=> Generate transactions dump
-2020/02/18 18:47:55 Generate 1000000 txs
-2020/02/18 18:49:15 Done: 1m19.397232138s
+$ make build
+=> Building Bench image registry.nspcc.ru/neo-bench/neo-bench:bench
+sha256:b08f9fd42198be6c351d725543ac1e451063d18018a738f2446678a0cdf8ee78
+=> Building Go Node image registry.nspcc.ru/neo-bench/neo-go:bench
+sha256:2bf655747dfa06b85ced1ad7f0257128e7261e6d16b2c8087bc16fd27fcb3a6d
+=> Building Sharp Node image registry.nspcc.ru/neo-bench/neo-sharp:bench
+sha256:a6ed753e8f81fedf8a9be556e60c6a41e385dd1ab2c90755ab44e2ceab92bca2
+```
 
+2. Run `test` target for a test run:
+```
 $ make test
+./runner.sh --validators 1 -d "GoSingle" -m wrk -w 30 -z 5m -t 30s
+make[1]: Entering directory '/home/anna/Documents/GitProjects/nspcc-dev/neo-bench'
 => Stop environment
-=> Up Golang single node
-Creating network "ir_default" with the default driver
+=> Generate configurations for single-node and four-nodes networks from templates
++ cd ./cmd
++ go run ./config/ --go-template go.protocol.template.yml --go-db leveldb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
+creating: 721037259/go.protocol.template.yml
+creating: 721037259/go.protocol.template.yml
+creating: 721037259/sharp.protocol.template.yml
+creating: 721037259/sharp.protocol.template.yml
+make[1]: Leaving directory '/home/anna/Documents/GitProjects/nspcc-dev/neo-bench'
+Creating network "neo_go_network" with the default driver
 Creating ir_node_1 ... done
-=> Fetch deps
-=> Test Golang single node
-2020/02/18 18:49:51 Used [localhost:20331] rpc addresses
-2020/02/18 18:49:52 fetch current block count
-2020/02/18 18:49:52 Started test from block = 1604 at unix time = 1582040992
-2020/02/18 18:49:52 Read 1000000 txs from ../dump.txs
-2020/02/18 18:49:55 CPU: 4.669, Mem: 66.719: <nil>
-2020/02/18 18:49:55 Done 3.534899462s
-2020/02/18 18:49:55 Init worker with 150 QPS / 1m0s time limit (1000000 txs will try to send)
-2020/02/18 18:49:58 CPU: 7.425, Mem: 76.426: <nil>
+Creating ir_healthy_1 ... done
+2022/06/29 16:15:08 Used [node:20331] rpc addresses
+2022/06/29 16:15:08 Run benchmark for GoSingle :: NEO-GO
+2022/06/29 16:15:09 Read 1000000 txs from /dump.txs
+2022/06/29 16:15:11 CPU: 0.034%, Mem: 26.766MB
+2022/06/29 16:15:11 Done 2.209265504s
+2022/06/29 16:15:11 Init 30 workers / 5m0s time limit (1000000 txs will try to send)
+2022/06/29 16:15:11 Prepare chain for benchmark
+2022/06/29 16:15:11 Determined validators count: 1
+2022/06/29 16:15:11 Sending NEO and GAS transfer tx
+2022/06/29 16:15:12 Contract hash: ceb508fc02abc2dc27228e21976699047bbbcce0
+2022/06/29 16:15:12 Sending contract deploy tx
+2022/06/29 16:15:12 Contract was persisted: false
+2022/06/29 16:15:13 Contract was persisted: false
+2022/06/29 16:15:13 CPU: 0.348%, Mem: 27.668MB
+2022/06/29 16:15:13 Contract was persisted: true
+2022/06/29 16:15:13 fetch current block count
+2022/06/29 16:15:13 Waiting for an empty block to be processed
+2022/06/29 16:15:14 Started test from block = 13 at unix time = 1656519314726
+2022/06/29 16:15:15 empty block: 13
+2022/06/29 16:15:15 CPU: 47.061%, Mem: 52.148MB
+2022/06/29 16:15:16 #14: 16331 transactions in 1010 ms - 16169.306931 tps
+2022/06/29 16:15:17 CPU: 72.988%, Mem: 187.363MB
+2022/06/29 16:15:18 #15: 20012 transactions in 1043 ms - 19186.960690 tps
+2022/06/29 16:15:18 #16: 18998 transactions in 1038 ms - 18302.504817 tps
+2022/06/29 16:15:19 CPU: 72.490%, Mem: 272.512MB
+2022/06/29 16:15:20 #17: 19018 transactions in 1052 ms - 18077.946768 tps
+2022/06/29 16:15:21 #18: 18366 transactions in 1039 ms - 17676.612127 tps
+2022/06/29 16:15:21 CPU: 70.676%, Mem: 277.164MB
+2022/06/29 16:15:22 #19: 18810 transactions in 1038 ms - 18121.387283 tps
+2022/06/29 16:15:23 #20: 16418 transactions in 1032 ms - 15908.914729 tps
 ...
-2020/02/18 18:50:56 (#1661/150) 151 Tx's in 1 secs 150.000000 tps
-2020/02/18 18:50:56 (#1662/206) 207 Tx's in 1 secs 206.000000 tps
-2020/02/18 18:50:56 (#1663/236) 237 Tx's in 1 secs 236.000000 tps
-2020/02/18 18:50:56 (#1664/150) 151 Tx's in 1 secs 150.000000 tps
-2020/02/18 18:50:56 (#1665/150) 151 Tx's in 1 secs 150.000000 tps
-2020/02/18 18:50:56 try to write profile
-2020/02/18 18:50:56 Sended 9000 txs for 1m0.49485746s
-2020/02/18 18:50:56 RPS: 148.773
-2020/02/18 18:50:56 All transactions were sent
+2022/06/29 16:16:22 #75: 13646 transactions in 1033 ms - 13210.067764 tps
+2022/06/29 16:16:23 #76: 14133 transactions in 1043 ms - 13550.335570 tps
+2022/06/29 16:16:23 CPU: 76.158%, Mem: 301.980MB
+2022/06/29 16:16:24 #77: 13697 transactions in 1035 ms - 13233.816425 tps
+2022/06/29 16:16:25 #78: 14235 transactions in 1041 ms - 13674.351585 tps
+2022/06/29 16:16:25 CPU: 75.890%, Mem: 306.809MB
+2022/06/29 16:16:26 #79: 12711 transactions in 1030 ms - 12340.776699 tps
+2022/06/29 16:16:27 #80: 14341 transactions in 1033 ms - 13882.865440 tps
+2022/06/29 16:16:27 CPU: 55.267%, Mem: 359.434MB
+2022/06/29 16:16:29 CPU: 46.174%, Mem: 315.535MB
+2022/06/29 16:16:30 #81: 12942 transactions in 1030 ms - 12565.048544 tps
+2022/06/29 16:16:30 #82: 6153 transactions in 2265 ms - 2716.556291 tps
+2022/06/29 16:16:31 #83: 14392 transactions in 1018 ms - 14137.524558 tps
+2022/06/29 16:16:31 CPU: 75.477%, Mem: 297.867MB
+2022/06/29 16:16:32 #84: 13016 transactions in 1025 ms - 12698.536585 tps
+2022/06/29 16:16:33 all request workers stopped
+2022/06/29 16:16:33 Sent 1000000 transactions in 1m18.224367191s
+2022/06/29 16:16:33 RPS: 12783.740
+2022/06/29 16:16:33 All transactions have been sent successfully
+2022/06/29 16:16:33 RPC Errors: 0 / 0.000%
+2022/06/29 16:16:33 sender worker stopped
+2022/06/29 16:16:33 #85: 14180 transactions in 1029 ms - 13780.369291 tps
+2022/06/29 16:16:33 CPU: 25.419%, Mem: 328.926MB
+2022/06/29 16:16:34 #86: 2028 transactions in 1024 ms - 1980.468750 tps
+2022/06/29 16:16:34 parser worker stopped
+2022/06/29 16:16:34 try to write profile
+GoSingle :: NEO-GO / 30 wrk / 5m0s
 
-$ cat single.log
+TXs ≈ 1000000
+RPS ≈ 12783.740
+RPC Errors  ≈ 0 / 0.000%
+TPS ≈ 12631.047
+DefaultMSPerBlock = 1000
 
-GoSingle / 150 rate / 1m0s
+CPU ≈ 63.366%
+Mem ≈ 275.360MB
+```
 
-RPS ≈ 151.258
+3. Check the test run results:
+```
+$ cat .docker/rpc/out/GoSingle_wrk_30.log
+GoSingle :: NEO-GO / 30 wrk / 5m0s
 
-TPS ≈ 150.578
+TXs ≈ 1000000
+RPS ≈ 12783.740
+RPC Errors  ≈ 0 / 0.000%
+TPS ≈ 12631.047
+DefaultMSPerBlock = 1000
 
-CPU, Mem
-4.669, 66.719
-7.425, 76.426
-6.877, 77.047
+CPU ≈ 63.366%
+Mem ≈ 275.360MB
+
+MillisecondsFromStart, CPU, Mem
+2005.115, 0.034%, 26.766MB
+4015.739, 0.348%, 27.668MB
+6027.083, 47.061%, 52.148MB
+8034.887, 72.988%, 187.363MB
 ...
 
-TPS
-37.500
-150.000
-150.000
-150.000
+DeltaTime, TransactionsCount, TPS
+1010, 16331, 16169.307
+1043, 20012, 19186.961
+1038, 18998, 18302.505
+1052, 19018, 18077.947
+...
+```
+
+4. Explore and run different benchmark configurations via the set of `make` boilerplate targets:
+```
+$ make start.GoFourNodes100wrk
+$ make start.GoFourNodes300rate
+$ make start.GoSingle30wrk
+$ make start.SharpFourNodes50rate
+$ make start.SharpFourNodesGoRPC30wrk
+$ make start.MixedFourNodesGoRPC50rate
+...
+```
+... or use the `runner.sh` script for custom benchmark setup:
+```
+$ ./runner.sh -h
+$ ./runner.sh -d "Go4x1" -m wrk -w 30 -z 5m -t 30s
+$ ./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m rate -q 25 -z 5m -t 30s
+$ ./runner.sh --nodes mixed -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
 ...
 ```
 
@@ -171,7 +261,7 @@ The following default configurations are available:
 | `start.SharpFoutNodesGoRPC300rate` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 300 requests per second. |
 | `start.SharpFoutNodesGoRPC1000rate` | Runs benchmark for four-nodes C# privat network with Go RPC node under the load of 1000 requests per second. |
 
-## Runner usage (`.make/runner.sh`)
+## Runner usage (`./runner.sh`)
 
 ```
    -h, --help                       Show usage message.
