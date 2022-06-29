@@ -9,7 +9,7 @@ RUN set -x \
 
 # Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-ENV CLIBRANCH="584b8660283d0db16738d92b61348dd289cd0fe4"
+ENV CLIBRANCH="v3.3.1"
 RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
     unzip -q -d /tmp/neo-node/ /tmp/neo-cli.zip && \
     mkdir /build && \
@@ -21,7 +21,7 @@ RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${C
     rm -rf /build /tmp/neo-cli.zip /tmp/neo-node
 
 # Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
-ENV MODULESBRANCH="b9eaa9d84992ce92316f30d1e5e9372914582c49"
+ENV MODULESBRANCH="v3.3.1"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
 RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
     unzip -q -d /tmp/neo-modules/ /tmp/neo-modules.zip && \
@@ -43,7 +43,7 @@ RUN dotnet publish -c Release /tmp/neo-modules/*/src/RpcServer/ && \
     rm -rf /tmp/neo-modules.zip /tmp/neo-modules
 
 # Publish neo-vm from source as a self-contained deployment for linux-64 into /neo-vm folder (although neo-vm does not have dependant .dlls)
-ENV NEOVMBRANCH="793d6628d96786f78aa2e2cecd1c1dd0a9e4934f"
+ENV NEOVMBRANCH="v3.3.1"
 RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
     unzip -q -d /tmp/neo-vm/ /tmp/neo-vm.zip && \
     ls -l /tmp/* && \
@@ -52,7 +52,7 @@ RUN wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOV
     rm -rf /tmp/neo-vm.zip tmp/neo-vm
 
 # Publish neo from source as a self-contained deployment for linux-64 into /neo folder (all dependant .dlls are included)
-ENV NEOBRANCH="736c346b9d8b1404f10023eeecb3a8e92ae0c542"
+ENV NEOBRANCH="v3.3.1"
 RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /tmp/neo/ /tmp/neo.zip && \
     mkdir /build && \

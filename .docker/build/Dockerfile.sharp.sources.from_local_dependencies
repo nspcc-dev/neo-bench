@@ -20,24 +20,24 @@ RUN set -x \
 #           ├── neo-modules
 #           └── neo-vm
 # Use ENV variables to specify branch, version or revision to download.
-ENV CLIBRANCH="584b8660283d0db16738d92b61348dd289cd0fe4"
-ENV MODULESBRANCH="b9eaa9d84992ce92316f30d1e5e9372914582c49"
+ENV CLIBRANCH="v3.3.1"
+ENV MODULESBRANCH="v3.3.1"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
-ENV NEOVMBRANCH="793d6628d96786f78aa2e2cecd1c1dd0a9e4934f"
-ENV NEOBRANCH="736c346b9d8b1404f10023eeecb3a8e92ae0c542"
+ENV NEOVMBRANCH="v3.3.1"
+ENV NEOBRANCH="v3.3.1"
 RUN mkdir /neo-project && \
-    wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
-    unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
-    mv /neo-project/neo-node-${CLIBRANCH} /neo-project/neo-node/ && \
-    wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
-    unzip -q -d /neo-project/ /tmp/neo-modules.zip && \
-    mv /neo-project/neo-modules-${MODULESBRANCH} /neo-project/neo-modules/ && \
-    wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
-    unzip -q -d /neo-project/ /tmp/neo-vm.zip && \
-    mv /neo-project/neo-vm-${NEOVMBRANCH} /neo-project/neo-vm/ && \
     wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo.zip && \
-    mv /neo-project/neo-${NEOBRANCH} /neo-project/neo/
+    mv /neo-project/neo-* /neo-project/neo && \
+    wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo-node/archive/${CLIBRANCH}.zip && \
+    unzip -q -d /neo-project/ /tmp/neo-cli.zip && \
+    mv /neo-project/neo-node-* /neo-project/neo-node && \
+    wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/archive/${MODULESBRANCH}.zip && \
+    unzip -q -d /neo-project/ /tmp/neo-modules.zip && \
+    mv /neo-project/neo-modules-* /neo-project/neo-modules && \
+    wget -O /tmp/neo-vm.zip https://github.com/neo-project/neo-vm/archive/${NEOVMBRANCH}.zip && \
+    unzip -q -d /neo-project/ /tmp/neo-vm.zip && \
+    mv /neo-project/neo-vm-* /neo-project/neo-vm
 
 # Update project references in order to include local projects instead of MyGet NuGet packages.
 RUN sed -i '/PackageReference Include="Neo" Version=/c \    <ProjectReference Include="..\\..\\neo\\src\\neo\\neo.csproj" \/>' /neo-project/neo-node/neo-cli/neo-cli.csproj && \
