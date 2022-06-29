@@ -60,12 +60,7 @@ build.node.sharp:
 	@docker build -q -t $(HUB)-sharp:$(TAG) -f $(DF_SHARP) $(BUILD_DIR)
 
 # Test local benchmark (go run) with Neo single node
-test: single.go
-	@echo "=> Test Single node"
-	@set -x \
-		&& cd cmd/ \
-		&& go run ./bench -o ../single.log -i ../$(BUILD_DIR)/dump.$(NEOBENCH_TYPE).txs -d "SingleNode" -m rate -q 1000 -z 1m -t 30s -a localhost:20331
-	@make stop
+test: start.GoSingle30wrk
 
 # Bootup NeoGo single node
 single.go: stop
