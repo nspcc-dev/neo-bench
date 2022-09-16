@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.6
-	github.com/moby/moby v20.10.9+incompatible
+	github.com/moby/moby v20.10.18+incompatible
 	github.com/nspcc-dev/neo-go v0.98.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
