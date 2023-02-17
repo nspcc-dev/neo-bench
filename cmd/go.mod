@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/Workiva/go-datastructures v1.0.53
-	github.com/containerd/containerd v1.6.1 // indirect
+	github.com/containerd/containerd v1.6.18 // indirect
 	github.com/docker/docker v20.10.13+incompatible
 	github.com/fatih/color v1.12.0
 	github.com/gorilla/mux v1.8.0 // indirect
