@@ -11,11 +11,12 @@ require (
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.6
 	github.com/moby/moby v20.10.20+incompatible
-	github.com/nspcc-dev/neo-go v0.98.0
+	github.com/nspcc-dev/neo-go v0.101.2-0.20230602081658-b4ce6ddfae0c
+	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20230420112658-c50ab951645a
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/valyala/fasthttp v1.34.0
-	go.uber.org/atomic v1.9.0
+	go.uber.org/atomic v1.10.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 

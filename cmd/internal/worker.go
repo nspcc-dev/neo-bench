@@ -252,8 +252,8 @@ loop:
 					d.countErr.Inc()
 				}
 				continue loop
-				//d.stop()
-				//return
+				// d.stop()
+				// return
 			}
 
 			since := time.Since(start)
@@ -277,7 +277,7 @@ func (d *doer) Wait() {
 	log.Println("all request workers stopped")
 
 	// wait until sender worker is done
-	<-d.sentOut
+	// <-d.sentOut
 	log.Println("sender worker stopped")
 
 	// wait until parser worker is done

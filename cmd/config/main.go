@@ -116,7 +116,7 @@ func generateGoConfig(templatePath, database, suffix string) error {
 		}
 		template.ApplicationConfiguration.DBConfiguration.Type = database
 		var configFile string
-		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.NodePort, template.ProtocolConfiguration.SeedList)
+		nodeName, err := nodeNameFromSeedList(*template.ApplicationConfiguration.NodePort, template.ProtocolConfiguration.SeedList)
 		if err != nil {
 			// it's an RPC node then
 			configFile = rpcConfigPath + "go.protocol" + suffix + ".yml"

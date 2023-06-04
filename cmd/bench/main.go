@@ -66,7 +66,7 @@ func main() {
 	versionStr := strings.Trim(reg.ReplaceAllString(version.UserAgent, "_"), "_")
 	log.Println("Run benchmark for " + desc + " :: " + versionStr)
 
-	//raising the limits. Some performance gains were achieved with the + workers count (not a lot).
+	// raising the limits. Some performance gains were achieved with the + workers count (not a lot).
 	runtime.GOMAXPROCS(runtime.NumCPU() + workers)
 
 	rep := internal.NewReporter(
@@ -175,7 +175,7 @@ func main() {
 	wg.Add(1)
 
 	go wrk.Parser(ctx, blk)
-	go wrk.Sender(ctx)
+	// go wrk.Sender(ctx)
 
 	wrk.Wait()
 }

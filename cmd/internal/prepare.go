@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,8 +18,8 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/response/result"
+	"github.com/nspcc-dev/neo-go/pkg/neorpc/result"
+	"github.com/nspcc-dev/neo-go/pkg/rpcclient"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
@@ -36,7 +37,7 @@ func (d *doer) Prepare(ctx context.Context, vote bool, opts BenchOptions) {
 
 	// Preparation stage isn't done during main benchmark,
 	// so using native client doesn't play a big role.
-	c, err := client.New(ctx, d.cli.addr[0], client.Options{})
+	c, err := rpcclient.New(ctx, d.cli.addr[0], rpcclient.Options{})
 	if err != nil {
 		log.Fatalf("could not create client: %v", err)
 	}
@@ -154,7 +155,7 @@ func newNEP5Transfer(validatorCount int, sc util.Uint160, from, to util.Uint160,
 	return tx
 }
 
-func fillChain(ctx context.Context, c *client.Client, proto result.Protocol, sgn *signer, vote bool, opts BenchOptions) error {
+func fillChain(ctx context.Context, c *rpcclient.Client, proto result.Protocol, sgn *signer, vote bool, opts BenchOptions) error {
 	cs, err := c.GetNativeContracts()
 	if err != nil {
 		return err
@@ -174,80 +175,117 @@ func fillChain(ctx context.Context, c *client.Client, proto result.Protocol, sgn
 		}
 	}
 
-	if vote {
-		err = registerCandidates(ctx, neoHash, c, sgn)
+	_ = mgmtHash
+
+	pkBytes, _ := hex.DecodeString("cd38bc481d5f0b924444d696d18fec4479bfd74aeda04da3bf9283805a565975")
+	priv, _ := keys.NewPrivateKeyFromBytes(pkBytes)
+	maliciousBytes, _ := hex.DecodeString("82eede36e62d1b4577c38108d784b55406e9b7d7ac3aaccdc65c49e385a59708")
+	malicious, _ := keys.NewPrivateKeyFromBytes(maliciousBytes)
+	txMoveNeo1 := newNEP5Transfer(len(sgn.privs), neoHash, sgn.addr, priv.GetScriptHash(), native.NEOTotalSupply/2)
+	txMoveGas1 := newNEP5Transfer(len(sgn.privs), gasHash, sgn.addr, priv.GetScriptHash(), native.GASFactor*2900000/2)
+	txMoveNeo2 := newNEP5Transfer(len(sgn.privs), neoHash, sgn.addr, malicious.GetScriptHash(), native.NEOTotalSupply/2)
+	txMoveGas2 := newNEP5Transfer(len(sgn.privs), gasHash, sgn.addr, malicious.GetScriptHash(), native.GASFactor*2900000/2)
+	sgn.signTx(txMoveNeo1, txMoveGas1, txMoveNeo2, txMoveGas2)
+
+	log.Printf("Sending NEO and GAS transfer tx to %s and %s\n", priv.Address(), malicious.Address())
+	err = sendTx(ctx, c, txMoveNeo1, txMoveGas1, txMoveNeo2, txMoveGas2)
+	if err != nil {
+		return err
+	}
+
+	addr := priv.GetScriptHash()
+	maliciousAddr := malicious.GetScriptHash()
+	fs := func() (bool, error) {
+		b, err := c.NEP17BalanceOf(neoHash, addr)
+		if b > 0 {
+			b, err = c.NEP17BalanceOf(gasHash, addr)
+			if b > 0 {
+				b, err = c.NEP17BalanceOf(neoHash, maliciousAddr)
+				if b > 0 {
+					b, err = c.NEP17BalanceOf(gasHash, maliciousAddr)
+					return b > 0, err
+				}
+			}
+		}
+		return false, err
+	}
+
+	return awaitTx(ctx, timeout, fs)
+	/*
+		if vote {
+			err = registerCandidates(ctx, neoHash, c, sgn)
+			if err != nil {
+				return err
+			}
+		}
+
+		txs := make([]*transaction.Transaction, 0, len(opts.Senders)*2)
+		neoAmount := int64(native.NEOTotalSupply / len(opts.Senders))
+		gasAmount := int64(native.GASFactor * 2900000 / len(opts.Senders))
+		for _, priv := range opts.Senders {
+			txMoveNeo := newNEP5Transfer(len(sgn.privs), neoHash, sgn.addr, priv.GetScriptHash(), neoAmount)
+			txMoveGas := newNEP5Transfer(len(sgn.privs), gasHash, sgn.addr, priv.GetScriptHash(), gasAmount)
+			sgn.signTx(txMoveNeo, txMoveGas)
+			txs = append(txs, txMoveNeo, txMoveGas)
+		}
+
+		log.Println("Sending NEO and GAS transfer tx")
+		err = sendTx(ctx, c, txs...)
 		if err != nil {
 			return err
 		}
-	}
 
-	txs := make([]*transaction.Transaction, 0, len(opts.Senders)*2)
-	neoAmount := int64(native.NEOTotalSupply / len(opts.Senders))
-	gasAmount := int64(native.GASFactor * 2900000 / len(opts.Senders))
-	for _, priv := range opts.Senders {
-		txMoveNeo := newNEP5Transfer(len(sgn.privs), neoHash, sgn.addr, priv.GetScriptHash(), neoAmount)
-		txMoveGas := newNEP5Transfer(len(sgn.privs), gasHash, sgn.addr, priv.GetScriptHash(), gasAmount)
-		sgn.signTx(txMoveNeo, txMoveGas)
-		txs = append(txs, txMoveNeo, txMoveGas)
-	}
+		fs := make([]func() (bool, error), 0, len(opts.Senders)*2)
+		for i := 0; i < len(opts.Senders); i++ {
+			addr := opts.Senders[i].GetScriptHash()
+			fs = append(fs,
+				func() (bool, error) {
+					b, err := c.NEP17BalanceOf(neoHash, addr)
+					return b > 0, err
+				},
+				func() (bool, error) {
+					b, err := c.NEP17BalanceOf(gasHash, addr)
+					return b > 0, err
+				})
+		}
+		err = awaitTx(ctx, timeout, fs...)
 
-	log.Println("Sending NEO and GAS transfer tx")
-	err = sendTx(ctx, c, txs...)
-	if err != nil {
-		return err
-	}
-
-	fs := make([]func() (bool, error), 0, len(opts.Senders)*2)
-	for i := 0; i < len(opts.Senders); i++ {
-		addr := opts.Senders[i].GetScriptHash()
-		fs = append(fs,
-			func() (bool, error) {
-				b, err := c.NEP17BalanceOf(neoHash, addr)
-				return b > 0, err
-			},
-			func() (bool, error) {
-				b, err := c.NEP17BalanceOf(gasHash, addr)
-				return b > 0, err
-			})
-	}
-	err = awaitTx(ctx, timeout, fs...)
-
-	if err != nil {
-		return err
-	}
-
-	if vote {
-		err = voteForCandidates(ctx, neoHash, c, sgn, opts.Senders)
 		if err != nil {
 			return err
 		}
-	}
 
-	// We deploy contract from priv to avoid having different hashes for single/4-node benchmarks.
-	// The contract is taken from `examples/token` of neo-go with 2 minor corrections:
-	// 1. Owner address is replaced with the address of WIF we use.
-	// 2. All funds are minted to owner in `_deploy`.
-	txDeploy, h, err := newDeployTx(mgmtHash, opts.Senders[0], "/tokencontract/token.nef",
-		"/tokencontract/token.manifest.json")
-	if err != nil {
-		return err
-	}
+		if vote {
+			err = voteForCandidates(ctx, neoHash, c, sgn, opts.Senders)
+			if err != nil {
+				return err
+			}
+		}
 
-	log.Println("Sending contract deploy tx")
-	err = sendTx(ctx, c, txDeploy)
-	if err != nil {
-		return err
-	}
+		// We deploy contract from priv to avoid having different hashes for single/4-node benchmarks.
+		// The contract is taken from `examples/token` of neo-go with 2 minor corrections:
+		// 1. Owner address is replaced with the address of WIF we use.
+		// 2. All funds are minted to owner in `_deploy`.
+		txDeploy, h, err := newDeployTx(mgmtHash, opts.Senders[0], "/tokencontract/token.nef",
+			"/tokencontract/token.manifest.json")
+		if err != nil {
+			return err
+		}
 
-	return awaitTx(ctx, timeout,
-		func() (bool, error) {
-			_, err := c.GetContractStateByHash(h)
-			log.Println("Contract was persisted:", err == nil)
-			return err == nil, err
-		})
+		log.Println("Sending contract deploy tx")
+		err = sendTx(ctx, c, txDeploy)
+		if err != nil {
+			return err
+		}
+
+		return awaitTx(ctx, timeout,
+			func() (bool, error) {
+				_, err := c.GetContractStateByHash(h)
+				log.Println("Contract was persisted:", err == nil)
+				return err == nil, err
+			})*/
 }
 
-func registerCandidates(ctx context.Context, neoHash util.Uint160, c *client.Client, sgn *signer) error {
+func registerCandidates(ctx context.Context, neoHash util.Uint160, c *rpcclient.Client, sgn *signer) error {
 	for _, p := range sgn.privs {
 		tx := newRegisterTx(neoHash, p, sgn)
 		err := sendTx(ctx, c, tx)
@@ -265,7 +303,7 @@ func registerCandidates(ctx context.Context, neoHash util.Uint160, c *client.Cli
 	})
 }
 
-func voteForCandidates(ctx context.Context, neoHash util.Uint160, c *client.Client, sgn *signer, senders []*keys.PrivateKey) error {
+func voteForCandidates(ctx context.Context, neoHash util.Uint160, c *rpcclient.Client, sgn *signer, senders []*keys.PrivateKey) error {
 	for i := range senders {
 		tx := newVoteTx(neoHash, senders[i], sgn.privs[i%len(sgn.privs)].PublicKey())
 		err := sendTx(ctx, c, tx)
@@ -352,7 +390,7 @@ func newRegisterTx(neoHash util.Uint160, priv *keys.PrivateKey, sgn *signer) *tr
 	return tx
 }
 
-func sendTx(ctx context.Context, c *client.Client, txs ...*transaction.Transaction) error {
+func sendTx(ctx context.Context, c *rpcclient.Client, txs ...*transaction.Transaction) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
