@@ -13,7 +13,7 @@ ProtocolConfiguration:
     - #@ "node:{}".format(data.values.nodes_info[i].node_port)
   #@ else:
   MemPoolSize: 50000
-  SecondsPerBlock: 5
+  SecondsPerBlock: 20
   ValidatorsCount: #@ data.values.validators_count
   StandbyCommittee:
     #@ for j in range(2,2+data.values.validators_count):

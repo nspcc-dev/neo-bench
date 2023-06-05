@@ -12,14 +12,17 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/rpcclient/actor"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/nspcc-dev/neo-go/pkg/vm/opcode"
+	"github.com/nspcc-dev/neo-go/pkg/vm/vmstate"
 	"github.com/nspcc-dev/neo-go/pkg/wallet"
 )
 
 const (
 	// hasConflictsErrText is the text of HasConflicts verification result error.
 	hasConflictsErrText = "HasConflicts"
+	// hasConflictsErrText = "has conflicts" // Go-node version
 	// invalidAttributeErrTest is the text of an error that is returned when transaction attribute verification fails.
 	invalidAttributeErrTest = "InvalidAttribute"
+	// invalidAttributeErrTest = "invalid attribute" // Go-node version
 )
 
 func main() {
@@ -278,9 +281,15 @@ func main() {
 	// Start the on-chain txs test.
 	fmt.Printf("\nStarting test for on-chain transactions.\n")
 
+	checkMempoolContains(c, tx2.Hash())
+
 	// Wait for the block to be processed and tx2 to be accepted.
 	fmt.Printf("\nWaiting for the block to be processed and tx2 to be accepted...\n")
-	act.Wait(tx2.Hash(), tx2VUB, nil)
+	aer, err := act.Wait(tx2.Hash(), tx2VUB, nil)
+	checkNoErr(err)
+	if aer.VMState != vmstate.Halt {
+		panic("tx2 wasn't HALTed")
+	}
 
 	// Try to add tx1 to the mempool (tx2 is on chain, conflicts with tx1 and tx1 has smaller network fee).
 	_, _, err = act.Send(tx1)

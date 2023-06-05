@@ -1,6 +1,7 @@
 {
   "PluginConfiguration": {
     "Path": "ApplicationLogs_{0}",
-    "Network": 56753
+    "Network": 56753,
+    "MaxStackSize": 65535
   }
 }
