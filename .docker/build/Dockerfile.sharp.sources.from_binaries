@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS Build
 
 # Install system dependencies.
 RUN set -x \
@@ -30,16 +30,16 @@ RUN wget -O /tmp/neo-modules.zip https://github.com/neo-project/neo-modules/arch
             dotnet restore /tmp/neo-modules/*/src/${mod}/; \
             dotnet build -c Release /tmp/neo-modules/*/src/${mod}/; \
             mkdir /Plugins/${mod}; \
-            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/net6.0/* /Plugins/${mod}; \
+            cp -r /tmp/neo-modules/*/src/${mod}/bin/Release/net7.0/* /Plugins/${mod}; \
         done
 
 # Sometimes Plugins need extra .dlls which can not be retrieved from build folder.
 # Use `dotnet publish` instead of `dotnet build` and copy all necessary .dlls from `publish` folder.
 # For example, RpsServer Plugin needs Microsoft.AspNetCore.ResponseCompression.dll:
 RUN dotnet publish -c Release /tmp/neo-modules/*/src/RpcServer/ && \
-#    cp /tmp/neo-modules/*/src/RpcServer/bin/Release/net6.0/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
+#    cp /tmp/neo-modules/*/src/RpcServer/bin/Release/net7.0/publish/Microsoft.AspNetCore.ResponseCompression.dll /Plugins/ && \
     dotnet publish -c Release /tmp/neo-modules/*/src/RocksDBStore/ && \
-    cp /tmp/neo-modules/*/src/RocksDBStore/bin/Release/net6.0/publish/RocksDbSharp.dll /Plugins/ && \
+    cp /tmp/neo-modules/*/src/RocksDBStore/bin/Release/net7.0/publish/RocksDbSharp.dll /Plugins/ && \
     rm -rf /tmp/neo-modules.zip /tmp/neo-modules
 
 # Publish neo-vm from source as a self-contained deployment for linux-64 into /neo-vm folder (although neo-vm does not have dependant .dlls)
@@ -60,7 +60,7 @@ RUN wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}
     rm -rf /tmp/neo.zip tmp/neo
 
 # All things are published, so build the final image by copying binaries from Build
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 as Final
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 as Final
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive

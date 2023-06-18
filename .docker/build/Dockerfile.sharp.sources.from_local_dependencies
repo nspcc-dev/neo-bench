@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS Build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS Build
 
 # Install system dependencies.
 RUN set -x \
@@ -54,11 +54,11 @@ RUN mkdir /Plugins && \
         dotnet restore /neo-project/neo-modules/src/${mod}/; \
         dotnet build -c Release /neo-project/neo-modules/src/${mod}/; \
 	mkdir /Plugins/${mod}; \
-        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/net6.0/* /Plugins/${mod}; \
+        cp -r /neo-project/neo-modules/src/${mod}/bin/Release/net7.0/* /Plugins/${mod}; \
     done
 
 # All things are published, so build the final image by copying binaries from Build
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 as Final
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 as Final
 
 # Frontend non-interactive
 ENV DEBIAN_FRONTEND noninteractive
