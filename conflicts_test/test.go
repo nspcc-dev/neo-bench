@@ -120,6 +120,11 @@ func main() {
 				return err
 			}
 			t.NetworkFee = netFee
+			height, err := act.GetBlockCount()
+			if err != nil {
+				return err
+			}
+			t.ValidUntilBlock = height + 100
 			return nil
 		})
 		checkNoErr(err)
@@ -299,6 +304,33 @@ func main() {
 	tx13 := getConflictsTx(smallNetFee, tx2.Hash())
 	_, _, err = act.Send(tx13)
 	checkErrContains(err, invalidAttributeErrTest)
+
+	// Check the https://github.com/neo-project/neo/pull/2818#pullrequestreview-1526521347:
+	// tx14 doesn't conflict with anyone, but tx15Malicious conflicts with tx14 and is not signed by
+	// the sender of tx14.
+	tx14 := getConflictsTx(smallNetFee)
+	tx15Malicious := getMaliciousTx(smallNetFee, tx14.Hash())
+	tx15MaliciousH, tx15MaliciousVUB, err := maliciousAct.Send(tx15Malicious)
+	checkNoErr(err)
+	_ = tx15MaliciousVUB
+	_ = tx15MaliciousH
+
+	fmt.Printf("\nWaiting for the block to be processed and tx15Malicious to be accepted...\n")
+	aer, err = act.Wait(tx15MaliciousH, tx15MaliciousVUB, nil)
+	checkNoErr(err)
+	if aer.VMState != vmstate.Halt {
+		panic("tx15Malicious wasn't HALTed")
+	}
+
+	// And now tx14 should enter the chain normally (even if malicious conflicting tx15Malicious is already on chain).
+	tx14H, tx14VUB, err := act.Send(tx14)
+	checkNoErr(err)
+	fmt.Printf("\nWaiting for the block to be processed and tx14 to be accepted...\n")
+	aer, err = act.Wait(tx14H, tx14VUB, nil)
+	checkNoErr(err)
+	if aer.VMState != vmstate.Halt {
+		panic("tx14 wasn't HALTed")
+	}
 
 	fmt.Printf("\nTest finished successfully.\n\n")
 }

@@ -30,7 +30,7 @@
     SeedList:
       - #@ "node:{}".format(data.values.nodes_info[i].node_port)
     #@ else:
-    MillisecondsPerBlock: 20000
+    MillisecondsPerBlock: 5000
     MemoryPoolMaxTransactions: 50000
     ValidatorsCount: #@ data.values.validators_count
     StandbyCommittee:
