@@ -21,10 +21,10 @@ RUN set -x \
 #           └── neo-vm
 # Use ENV variables to specify branch, version or revision to download.
 ENV CLIBRANCH="868c053fe543577749fd1cb5b90d7ead478c3fe6"
-ENV MODULESBRANCH="b448e351b1b863e8b0024f45f3f4820351b4d7fd"
+ENV MODULESBRANCH="9fafe753f0e811519c406a5f0ce8ca1c37aa4c90"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore ApplicationLogs"
 ENV NEOVMBRANCH="5b0a39811b34abacab1273f3ee5a9a9f7e52ac7b"
-ENV NEOBRANCH="431eda4eb859ba26db78e23bc38b9da6552deb6a"
+ENV NEOBRANCH="3de091d3a7d4d10d153f64118a81d48f083b1444"
 RUN mkdir /neo-project && \
     wget -O /tmp/neo.zip https://github.com/neo-project/neo/archive/${NEOBRANCH}.zip && \
     unzip -q -d /neo-project/ /tmp/neo.zip && \

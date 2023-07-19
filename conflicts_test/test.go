@@ -312,8 +312,6 @@ func main() {
 	tx15Malicious := getMaliciousTx(smallNetFee, tx14.Hash())
 	tx15MaliciousH, tx15MaliciousVUB, err := maliciousAct.Send(tx15Malicious)
 	checkNoErr(err)
-	_ = tx15MaliciousVUB
-	_ = tx15MaliciousH
 
 	fmt.Printf("\nWaiting for the block to be processed and tx15Malicious to be accepted...\n")
 	aer, err = act.Wait(tx15MaliciousH, tx15MaliciousVUB, nil)
@@ -325,12 +323,44 @@ func main() {
 	// And now tx14 should enter the chain normally (even if malicious conflicting tx15Malicious is already on chain).
 	tx14H, tx14VUB, err := act.Send(tx14)
 	checkNoErr(err)
+
 	fmt.Printf("\nWaiting for the block to be processed and tx14 to be accepted...\n")
 	aer, err = act.Wait(tx14H, tx14VUB, nil)
 	checkNoErr(err)
 	if aer.VMState != vmstate.Halt {
 		panic("tx14 wasn't HALTed")
 	}
+
+	// Check the https://github.com/neo-project/neo/pull/2818#pullrequestreview-1526521347:
+	// tx14 doesn't conflict with anyone, but tx15Malicious conflicts with tx14 and is not signed by
+	// the sender of tx14.
+	tx16 := getConflictsTx(smallNetFee)
+
+	tx17 := getConflictsTx(smallNetFee, tx16.Hash())
+	tx17H, tx17VUB, err := act.Send(tx17)
+	checkNoErr(err)
+
+	fmt.Printf("\nWaiting for the block to be processed and tx17 to be accepted...\n")
+	aer, err = act.Wait(tx17H, tx17VUB, nil)
+	checkNoErr(err)
+	if aer.VMState != vmstate.Halt {
+		panic("tx17 wasn't HALTed")
+	}
+
+	tx18Malicious := getMaliciousTx(smallNetFee, tx16.Hash())
+	tx18MaliciousH, tx18MaliciousVUB, err := maliciousAct.Send(tx18Malicious)
+	checkNoErr(err)
+
+	fmt.Printf("\nWaiting for the block to be processed and tx18Malicious to be accepted...\n")
+	aer, err = act.Wait(tx18MaliciousH, tx18MaliciousVUB, nil)
+	checkNoErr(err)
+	if aer.VMState != vmstate.Halt {
+		panic("tx18Malicious wasn't HALTed")
+	}
+
+	// And now tx14 should enter the chain normally (even if malicious conflicting tx15Malicious is already on chain).
+	_, _, err = act.Send(tx16)
+	checkErrContains(err, hasConflictsErrText)
 
 	fmt.Printf("\nTest finished successfully.\n\n")
 }
