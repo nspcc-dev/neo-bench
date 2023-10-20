@@ -6,10 +6,10 @@ import (
 	"log"
 	"math"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
-	"go.uber.org/atomic"
 )
 
 type (
@@ -28,9 +28,9 @@ type (
 		parsed       chan struct{}
 		sentOut      chan struct{}
 		waiter       *sync.WaitGroup
-		countTxs     *atomic.Int32 // stores count of completed queries
-		countErr     *atomic.Int32
-		hasStarted   *atomic.Bool
+		countTxs     atomic.Int32 // stores count of completed queries
+		countErr     atomic.Int32
+		hasStarted   atomic.Bool
 		parsedCount  int
 		parsedBlocks map[int]struct{}
 	}
@@ -200,9 +200,6 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		waiter:       new(sync.WaitGroup),
 		parsed:       make(chan struct{}),
 		sentOut:      make(chan struct{}),
-		countTxs:     atomic.NewInt32(0),
-		countErr:     atomic.NewInt32(0),
-		hasStarted:   atomic.NewBool(false),
 		parsedBlocks: make(map[int]struct{}),
 	}
 
@@ -231,7 +228,7 @@ loop:
 		case <-timer.C:
 			return
 		default:
-			i := idx.Inc()
+			i := idx.Add(1)
 			if d.dump.TransactionsQueue.Len() == 0 {
 				return
 			}
@@ -245,19 +242,19 @@ loop:
 					err := d.dump.TransactionsQueue.Put(tx.(string))
 					if err != nil {
 						log.Printf("failed to re-enqueue transaction: %s\n", err)
-						d.countErr.Inc()
+						d.countErr.Add(1)
 					}
 					time.Sleep(100 * time.Millisecond)
 				} else {
-					d.countErr.Inc()
+					d.countErr.Add(1)
 				}
 				continue loop
-				//d.stop()
-				//return
+				// d.stop()
+				// return
 			}
 
 			since := time.Since(start)
-			count := d.countTxs.Inc()
+			count := d.countTxs.Add(1)
 			d.rpsReporter(float64(count) / since.Seconds())
 
 			if d.threshold > 0 {
@@ -397,7 +394,7 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 func (d *doer) Sender(ctx context.Context) {
 	defer close(d.sentOut)
 
-	idx := atomic.NewInt64(0)
+	idx := new(atomic.Int64)
 
 	start := time.Now()
 
