@@ -5,7 +5,7 @@ ProtocolConfiguration:
   Magic: 56753
   #@ if data.values.nodes_info[i].node_name == "single":
   MemPoolSize: 50000
-  SecondsPerBlock: 1
+  TimePerBlock: 1s
   ValidatorsCount: 1
   StandbyCommittee:
     - #@ data.values.nodes_info[i].validator_hash
@@ -13,7 +13,7 @@ ProtocolConfiguration:
     - #@ "node:{}".format(data.values.nodes_info[i].node_port)
   #@ else:
   MemPoolSize: 50000
-  SecondsPerBlock: 5
+  TimePerBlock: 5s
   ValidatorsCount: #@ data.values.validators_count
   StandbyCommittee:
     #@ for j in range(2,2+data.values.validators_count):
@@ -24,13 +24,13 @@ ProtocolConfiguration:
     - #@ "node_{}:{}".format(data.values.nodes_info[j].node_name, data.values.nodes_info[j].node_port)
       #@ end
   #@ end
-  VerifyBlocks: true
   VerifyTransactions: true
   MaxTransactionsPerBlock: 65535
   MaxBlockSize: 16777216
   MaxBlockSystemFee: 1600000000000
 
 ApplicationConfiguration:
+  SkipBlockVerification: false
   #! LogPath could be set up in case you need stdout logs to some proper file.
   #! LogPath: "./log/neogo.log"
   DBConfiguration:
@@ -39,36 +39,42 @@ ApplicationConfiguration:
       DataDirectoryPath: "/chains/privnet"
     BoltDBOptions:
       FilePath: "./chains/privnet.bolt"
-  #!  Uncomment in order to set up custom address for node.
-  #!  Address: 127.0.0.1
-  NodePort: #@ data.values.nodes_info[i].node_port
+  P2P:
+    Addresses:
+      - #@ ":{}".format(data.values.nodes_info[i].node_port)
+    DialTimeout: 3s
+    ProtoTickInterval: 2s
+    PingInterval: 10s
+    PingTimeout: 30s
+    MaxPeers: 10
+    #@ if data.values.nodes_info[i].node_name == "single":
+    MinPeers: 0
+    #@ else:
+    MinPeers: 3
+    #@ end
+    AttemptConnPeers: 5
   Relay: true
-  DialTimeout: 3
-  ProtoTickInterval: 2
-  PingInterval: 10
-  PingTimeout: 30
-  MaxPeers: 10
-  AttemptConnPeers: 5
-  #@ if data.values.nodes_info[i].node_name == "single":
-  MinPeers: 0
-  #@ else:
-  MinPeers: 3
-  #@ end
   RPC:
     Enabled: true
     EnableCORSWorkaround: false
-    Port: #@ data.values.nodes_info[i].node_rpc_port
+    Addresses:
+      - #@ ":{}".format(data.values.nodes_info[i].node_rpc_port)
     MaxGasInvoke: 50
   Monitoring:
     Enabled: false
-    Port: #@ data.values.nodes_info[i].node_monitoring_port
+    Addresses:
+      - #@ ":{}".format(data.values.nodes_info[i].node_monitoring_port)
   Pprof:
     Enabled: false
-    Port: #@ data.values.nodes_info[i].node_pprof_port
+    Addresses:
+      - #@ ":{}".format(data.values.nodes_info[i].node_pprof_port)
   Prometheus:
     Enabled: false
-    Port: #@ data.values.nodes_info[i].node_prometheus_port
-  UnlockWallet:
-    Path: /config/wallet.json
-    Password: #@ data.values.nodes_info[i].wallet_password
+    Addresses:
+      - #@ ":{}".format(data.values.nodes_info[i].node_prometheus_port)
+  Consensus:
+    Enabled: true
+    UnlockWallet:
+      Path: /config/wallet.json
+      Password: #@ data.values.nodes_info[i].wallet_password
 #@ end

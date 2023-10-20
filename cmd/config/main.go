@@ -116,11 +116,12 @@ func generateGoConfig(templatePath, database, suffix string) error {
 		}
 		template.ApplicationConfiguration.DBConfiguration.Type = database
 		var configFile string
-		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.NodePort, template.ProtocolConfiguration.SeedList)
+		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.P2P.Addresses, template.ProtocolConfiguration.SeedList)
 		if err != nil {
 			// it's an RPC node then
 			configFile = rpcConfigPath + "go.protocol" + suffix + ".yml"
-			template.ApplicationConfiguration.UnlockWallet.Path = ""
+			template.ApplicationConfiguration.Consensus.UnlockWallet.Path = ""
+			template.ApplicationConfiguration.Consensus.Enabled = false
 		} else {
 			configFile = configPath + "go.protocol.privnet." + nodeName + suffix + ".yml"
 		}
@@ -154,7 +155,7 @@ func generateSharpConfig(templatePath, storageEngine, suffix string) error {
 		}
 		template.ApplicationConfiguration.Storage.Engine = storageEngine
 		var configFile string
-		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.P2P.Port, template.ProtocolConfiguration.SeedList)
+		nodeName, err := nodeNameFromSeedList([]string{":" + strconv.Itoa(int(template.ApplicationConfiguration.P2P.Port))}, template.ProtocolConfiguration.SeedList)
 		if err != nil {
 			// it's an RPC node then
 			configFile = rpcConfigPath + "sharp.config" + suffix + ".json"
@@ -186,8 +187,8 @@ func writeJSON(path string, obj interface{}) error {
 	return nil
 }
 
-func nodeNameFromSeedList(port uint16, seedList []string) (string, error) {
-	suffix := ":" + strconv.Itoa(int(port))
+func nodeNameFromSeedList(addresses []string, seedList []string) (string, error) {
+	suffix := addresses[0] // Rely on the fact that the first node address has the same format as the one provided via seed list.
 	for _, seed := range seedList {
 		if strings.HasSuffix(seed, suffix) {
 			node := strings.TrimSuffix(seed, suffix)
@@ -198,5 +199,5 @@ func nodeNameFromSeedList(port uint16, seedList []string) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("node with port %v is not in the seed list", port)
+	return "", fmt.Errorf("node with address %s is not in the seed list", addresses[0])
 }

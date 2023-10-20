@@ -10,23 +10,23 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"sync/atomic"
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/io"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/response"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/response/result"
+	"github.com/nspcc-dev/neo-go/pkg/neorpc"
+	"github.com/nspcc-dev/neo-go/pkg/neorpc/result"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
-	"go.uber.org/atomic"
 )
 
 // RPCClient used in integration test.
 type RPCClient struct {
 	addr []string
 	len  int32
-	inc  *atomic.Int32
+	inc  atomic.Int32
 	// The only txSender's duty is to send `sendrawtransaction` requests in
 	// order not to affect bench results by sending service requests via the
 	// same connection. txSender has different fasthttp settings than blockRequester.
@@ -88,15 +88,16 @@ func NewRPCClient(v *viper.Viper, maxConnsPerHost int) *RPCClient {
 		MaxConnsPerHost:           2, // let's keep it small in order not to overload the nodes by open service connections in `Workers` mode
 	}
 
-	return &RPCClient{
+	c := &RPCClient{
 		txSender:       txSender,
 		blockRequester: blockRequester,
 		addr:           addresses,
 		len:            int32(len(addresses)),
-		inc:            atomic.NewInt32(rand.Int31()),
 
 		timeout: timeout,
 	}
+	c.inc.Store(rand.Int31())
+	return c
 }
 
 // GetLastBlock returns last block from blockchain.
@@ -126,7 +127,7 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
 
 	if err := c.doRPCCall(ctx, rpc, &res, c.txSender); err != nil {
-		if respErr, ok := err.(*response.Error); ok && (respErr.Message == "The memory pool is full and no more transactions can be sent." || respErr.Message == "OutOfMemory") {
+		if respErr, ok := err.(*neorpc.Error); ok && (respErr.Message == "The memory pool is full and no more transactions can be sent." || respErr.Message == "OutOfMemory") {
 			return ErrMempoolOOM
 		}
 		return err
@@ -165,7 +166,7 @@ func (c *RPCClient) GetBlockCount(ctx context.Context) (int, error) {
 }
 
 func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}, client *fasthttp.Client) error {
-	idx := c.inc.Inc() % c.len
+	idx := c.inc.Add(1) % c.len
 
 	req, res := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
 	defer func() {
@@ -181,7 +182,7 @@ func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}
 	// reqData, _ := httputil.DumpRequest(req, true)
 	// fmt.Println(string(reqData))
 
-	resp := new(response.Raw)
+	resp := new(neorpc.Response)
 	if err := client.Do(req, res); err != nil {
 		return fmt.Errorf("error after calling rpc server %s", err)
 	} else if body, code := res.Body(), res.StatusCode(); code != fasthttp.StatusOK && len(body) == 0 {
