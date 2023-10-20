@@ -14,8 +14,8 @@ import (
 
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/io"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/response"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/response/result"
+	"github.com/nspcc-dev/neo-go/pkg/neorpc"
+	"github.com/nspcc-dev/neo-go/pkg/neorpc/result"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
@@ -126,7 +126,7 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
 
 	if err := c.doRPCCall(ctx, rpc, &res, c.txSender); err != nil {
-		if respErr, ok := err.(*response.Error); ok && (respErr.Message == "The memory pool is full and no more transactions can be sent." || respErr.Message == "OutOfMemory") {
+		if respErr, ok := err.(*neorpc.Error); ok && (respErr.Message == "The memory pool is full and no more transactions can be sent." || respErr.Message == "OutOfMemory") {
 			return ErrMempoolOOM
 		}
 		return err
@@ -181,7 +181,7 @@ func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}
 	// reqData, _ := httputil.DumpRequest(req, true)
 	// fmt.Println(string(reqData))
 
-	resp := new(response.Raw)
+	resp := new(neorpc.Response)
 	if err := client.Do(req, res); err != nil {
 		return fmt.Errorf("error after calling rpc server %s", err)
 	} else if body, code := res.Body(), res.StatusCode(); code != fasthttp.StatusOK && len(body) == 0 {

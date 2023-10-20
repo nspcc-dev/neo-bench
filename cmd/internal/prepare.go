@@ -17,8 +17,11 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
 	"github.com/nspcc-dev/neo-go/pkg/io"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/client"
-	"github.com/nspcc-dev/neo-go/pkg/rpc/response/result"
+	"github.com/nspcc-dev/neo-go/pkg/neorpc/result"
+	"github.com/nspcc-dev/neo-go/pkg/rpcclient"
+	"github.com/nspcc-dev/neo-go/pkg/rpcclient/gas"
+	"github.com/nspcc-dev/neo-go/pkg/rpcclient/invoker"
+	"github.com/nspcc-dev/neo-go/pkg/rpcclient/neo"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/callflag"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
@@ -36,7 +39,7 @@ func (d *doer) Prepare(ctx context.Context, vote bool, opts BenchOptions) {
 
 	// Preparation stage isn't done during main benchmark,
 	// so using native client doesn't play a big role.
-	c, err := client.New(ctx, d.cli.addr[0], client.Options{})
+	c, err := rpcclient.New(ctx, d.cli.addr[0], rpcclient.Options{})
 	if err != nil {
 		log.Fatalf("could not create client: %v", err)
 	}
@@ -154,7 +157,7 @@ func newNEP5Transfer(validatorCount int, sc util.Uint160, from, to util.Uint160,
 	return tx
 }
 
-func fillChain(ctx context.Context, c *client.Client, proto result.Protocol, sgn *signer, vote bool, opts BenchOptions) error {
+func fillChain(ctx context.Context, c *rpcclient.Client, proto result.Protocol, sgn *signer, vote bool, opts BenchOptions) error {
 	cs, err := c.GetNativeContracts()
 	if err != nil {
 		return err
@@ -197,17 +200,20 @@ func fillChain(ctx context.Context, c *client.Client, proto result.Protocol, sgn
 		return err
 	}
 
+	inv := invoker.New(c, nil)
+	neoC := neo.NewReader(inv)
+	gasC := gas.NewReader(inv)
 	fs := make([]func() (bool, error), 0, len(opts.Senders)*2)
 	for i := 0; i < len(opts.Senders); i++ {
 		addr := opts.Senders[i].GetScriptHash()
 		fs = append(fs,
 			func() (bool, error) {
-				b, err := c.NEP17BalanceOf(neoHash, addr)
-				return b > 0, err
+				b, err := neoC.BalanceOf(addr)
+				return b.Sign() > 0, err
 			},
 			func() (bool, error) {
-				b, err := c.NEP17BalanceOf(gasHash, addr)
-				return b > 0, err
+				b, err := gasC.BalanceOf(addr)
+				return b.Sign() > 0, err
 			})
 	}
 	err = awaitTx(ctx, timeout, fs...)
@@ -247,7 +253,7 @@ func fillChain(ctx context.Context, c *client.Client, proto result.Protocol, sgn
 		})
 }
 
-func registerCandidates(ctx context.Context, neoHash util.Uint160, c *client.Client, sgn *signer) error {
+func registerCandidates(ctx context.Context, neoHash util.Uint160, c *rpcclient.Client, sgn *signer) error {
 	for _, p := range sgn.privs {
 		tx := newRegisterTx(neoHash, p, sgn)
 		err := sendTx(ctx, c, tx)
@@ -265,7 +271,7 @@ func registerCandidates(ctx context.Context, neoHash util.Uint160, c *client.Cli
 	})
 }
 
-func voteForCandidates(ctx context.Context, neoHash util.Uint160, c *client.Client, sgn *signer, senders []*keys.PrivateKey) error {
+func voteForCandidates(ctx context.Context, neoHash util.Uint160, c *rpcclient.Client, sgn *signer, senders []*keys.PrivateKey) error {
 	for i := range senders {
 		tx := newVoteTx(neoHash, senders[i], sgn.privs[i%len(sgn.privs)].PublicKey())
 		err := sendTx(ctx, c, tx)
@@ -352,7 +358,7 @@ func newRegisterTx(neoHash util.Uint160, priv *keys.PrivateKey, sgn *signer) *tr
 	return tx
 }
 
-func sendTx(ctx context.Context, c *client.Client, txs ...*transaction.Transaction) error {
+func sendTx(ctx context.Context, c *rpcclient.Client, txs ...*transaction.Transaction) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}

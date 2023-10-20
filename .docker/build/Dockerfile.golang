@@ -1,12 +1,12 @@
 # Builder layer
-FROM golang:1.17-alpine as builder
+FROM golang:1.21-alpine as builder
 
 WORKDIR /neo-go
 
 # Install deps:
 RUN apk add --no-cache git
 
-ARG REV="v0.99.2"
+ARG REV="v0.102.0"
 ARG REPO="github.com/nspcc-dev/neo-go"
 
 # Clone and build repo:
@@ -27,7 +27,7 @@ RUN set -x \
         ./cli
 
 # Executable layer
-FROM alpine:3.16
+FROM alpine:3.18
 
 RUN apk add --no-cache iproute2-tc
 
