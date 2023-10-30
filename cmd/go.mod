@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Workiva/go-datastructures v1.0.53
-	github.com/docker/docker v20.10.24+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/fatih/color v1.12.0
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.6
@@ -65,7 +65,6 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/spf13/cobra v1.5.0 // indirect
