@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.12.0
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.6
-	github.com/moby/moby v20.10.20+incompatible
+	github.com/moby/moby v24.0.7+incompatible
 	github.com/nspcc-dev/neo-go v0.102.1-0.20231019154945-890f64007a73
 	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20231012150754-e06051e14c9f
 	github.com/spf13/pflag v1.0.5
