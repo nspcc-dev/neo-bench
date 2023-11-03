@@ -2,7 +2,6 @@ package internal
 
 import (
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
-	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/core/transaction"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/hash"
 	"github.com/nspcc-dev/neo-go/pkg/crypto/keys"
@@ -46,11 +45,6 @@ func (c *signer) signTx(txs ...*transaction.Transaction) {
 			VerificationScript: c.script,
 		}}
 	}
-}
-
-func (c *signer) signBlock(b *block.Block) {
-	b.Script.InvocationScript = c.sign(b)
-	b.Script.VerificationScript = c.script
 }
 
 func (c *signer) sign(item hash.Hashable) []byte {

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"compress/gzip"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -68,7 +67,7 @@ func ReadDump(from string) *Dump {
 // DecodeGoConfig decodes Golang node configuration from yaml file.
 func DecodeGoConfig(path string) (config.Config, error) {
 	var config = config.Config{}
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return config, err
 	}

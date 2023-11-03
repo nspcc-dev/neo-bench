@@ -9,7 +9,7 @@ import (
 	"syscall"
 )
 
-// NewGracefulContext returns graceful context
+// NewGracefulContext returns graceful context.
 func NewGracefulContext() context.Context {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {

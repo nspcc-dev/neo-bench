@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -113,7 +113,7 @@ func NewStats(ctx context.Context, opts ...StatOption) (DockerStater, error) {
 	}
 
 	if !p.enableLogger {
-		ds.Logger.SetOutput(ioutil.Discard)
+		ds.Logger.SetOutput(io.Discard)
 	}
 
 	if _, _, err = ds.Update(ctx); err != nil {

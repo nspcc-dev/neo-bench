@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/big"
+	"os"
 	"time"
 
 	"github.com/nspcc-dev/neo-go/pkg/config/netmode"
@@ -97,12 +97,12 @@ func initChain(validatorCount int) (*signer, error) {
 }
 
 func newDeployTx(mgmtHash util.Uint160, priv *keys.PrivateKey, nefName, manifestName string) (*transaction.Transaction, util.Uint160, error) {
-	rawNef, err := ioutil.ReadFile(nefName)
+	rawNef, err := os.ReadFile(nefName)
 	if err != nil {
 		return nil, util.Uint160{}, err
 	}
 
-	rawManifest, err := ioutil.ReadFile(manifestName)
+	rawManifest, err := os.ReadFile(manifestName)
 	if err != nil {
 		return nil, util.Uint160{}, err
 	}

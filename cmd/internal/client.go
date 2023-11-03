@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -42,7 +43,7 @@ type RPCClient struct {
 const DefaultTimeout = time.Second * 30
 
 var (
-	// ErrMempoolOOM is returned from `sendrawtransaction` when node cannot process transaction due to mempool OOM
+	// ErrMempoolOOM is returned from `sendrawtransaction` when node cannot process transaction due to mempool OOM.
 	ErrMempoolOOM = errors.New("node cannot process transaction due to mempool OOM")
 )
 
@@ -127,7 +128,8 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
 
 	if err := c.doRPCCall(ctx, rpc, &res, c.txSender); err != nil {
-		if respErr, ok := err.(*neorpc.Error); ok && (respErr.Message == "The memory pool is full and no more transactions can be sent." || respErr.Message == "OutOfMemory") {
+		msg := err.Error()
+		if strings.Contains(msg, "The memory pool is full and no more transactions can be sent.") || strings.Contains(msg, "OutOfMemory") {
 			return ErrMempoolOOM
 		}
 		return err
@@ -184,15 +186,15 @@ func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}
 
 	resp := new(neorpc.Response)
 	if err := client.Do(req, res); err != nil {
-		return fmt.Errorf("error after calling rpc server %s", err)
+		return fmt.Errorf("error after calling rpc server %w", err)
 	} else if body, code := res.Body(), res.StatusCode(); code != fasthttp.StatusOK && len(body) == 0 {
 		return fmt.Errorf("http error: %d %s", code, res.String())
 	} else if err := json.Unmarshal(body, &resp); err != nil {
-		return fmt.Errorf("could not unmarshal response body: %q %v", string(body), err)
+		return fmt.Errorf("could not unmarshal response body: %q %w", string(body), err)
 	} else if resp.Error != nil && resp.Error.Code != 0 {
 		return resp.Error
 	} else if err = json.Unmarshal(resp.Result, result); err != nil {
-		return fmt.Errorf("could not unmarshal result body: %q %v", string(body), err)
+		return fmt.Errorf("could not unmarshal result body: %q %w", string(body), err)
 	}
 	return nil
 }

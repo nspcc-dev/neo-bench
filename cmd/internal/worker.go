@@ -328,7 +328,7 @@ loop:
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	d.parse(ctx, lastBlockIndx, &lastBlockTime)
+	d.parse(ctx, lastBlockIndx, &lastBlockTime) //nolint:contextcheck // contextcheck: Non-inherited new context, use function like `context.WithXXX` instead
 }
 
 func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (lastBlock int) {
@@ -348,7 +348,6 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 
 	for i := startBlock; i < lastBlock; i++ {
 		if _, ok := d.parsedBlocks[i]; !ok {
-
 			if blk, err = d.cli.GetBlock(ctx, i); err != nil {
 				// This function is executed inside event loop so we return
 				// and retry after some time.

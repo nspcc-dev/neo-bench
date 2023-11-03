@@ -3,10 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -34,7 +34,7 @@ var (
 func main() {
 	flag.Parse()
 
-	tempDir, err := ioutil.TempDir("./", "")
+	tempDir, err := os.MkdirTemp("./", "")
 	if err != nil {
 		log.Fatalf("failed to create temporary directory: %v", err)
 	}
@@ -101,18 +101,18 @@ func convertTemplateToPlain(templatePath string, tempDir string, nodeCount int) 
 func generateGoConfig(templatePath, database, suffix string) error {
 	f, err := os.Open(templatePath)
 	if err != nil {
-		return fmt.Errorf("failed to open template: %v", err)
+		return fmt.Errorf("failed to open template: %w", err)
 	}
 	defer f.Close()
 	decoder := yaml.NewDecoder(bufio.NewReader(f))
 	for i := 0; ; i++ {
 		var template config.Config
 		err := decoder.Decode(&template)
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("unable to decode node template #%d: %v", i, err)
+			return fmt.Errorf("unable to decode node template #%d: %w", i, err)
 		}
 		template.ApplicationConfiguration.DBConfiguration.Type = database
 		var configFile string
@@ -127,11 +127,11 @@ func generateGoConfig(templatePath, database, suffix string) error {
 		}
 		bytes, err := yaml.Marshal(template)
 		if err != nil {
-			return fmt.Errorf("could not marshal config for node #%s: %v", nodeName, err)
+			return fmt.Errorf("could not marshal config for node #%s: %w", nodeName, err)
 		}
-		err = ioutil.WriteFile(configFile, bytes, 0644)
+		err = os.WriteFile(configFile, bytes, 0644)
 		if err != nil {
-			return fmt.Errorf("could not write config for node #%s: %v", nodeName, err)
+			return fmt.Errorf("could not write config for node #%s: %w", nodeName, err)
 		}
 	}
 	return nil
@@ -140,18 +140,18 @@ func generateGoConfig(templatePath, database, suffix string) error {
 func generateSharpConfig(templatePath, storageEngine, suffix string) error {
 	f, err := os.Open(templatePath)
 	if err != nil {
-		return fmt.Errorf("failed to open template: %v", err)
+		return fmt.Errorf("failed to open template: %w", err)
 	}
 	defer f.Close()
 	decoder := yaml.NewDecoder(bufio.NewReader(f))
 	for i := 0; ; i++ {
 		var template SharpTemplate
 		err := decoder.Decode(&template)
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("unable to decode node template #%d: %v", i, err)
+			return fmt.Errorf("unable to decode node template #%d: %w", i, err)
 		}
 		template.ApplicationConfiguration.Storage.Engine = storageEngine
 		var configFile string
@@ -160,16 +160,12 @@ func generateSharpConfig(templatePath, storageEngine, suffix string) error {
 			// it's an RPC node then
 			configFile = rpcConfigPath + "sharp.config" + suffix + ".json"
 			template.ApplicationConfiguration.UnlockWallet = UnlockWallet{}
-
 		} else {
 			configFile = configPath + "sharp.config." + nodeName + suffix + ".json"
 		}
-		err = writeJSON(configFile, SharpConfig{
-			ApplicationConfiguration: template.ApplicationConfiguration,
-			ProtocolConfiguration:    template.ProtocolConfiguration,
-		})
+		err = writeJSON(configFile, SharpConfig(template))
 		if err != nil {
-			return fmt.Errorf("could not write JSON config file for node #%s: %v", nodeName, err)
+			return fmt.Errorf("could not write JSON config file for node #%s: %w", nodeName, err)
 		}
 	}
 	return nil
@@ -180,7 +176,7 @@ func writeJSON(path string, obj interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path, bytes, 0644)
+	err = os.WriteFile(path, bytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -194,9 +190,8 @@ func nodeNameFromSeedList(addresses []string, seedList []string) (string, error)
 			node := strings.TrimSuffix(seed, suffix)
 			if node == "node" {
 				return singleNodeName, nil
-			} else {
-				return strings.TrimPrefix(node, "node_"), nil
 			}
+			return strings.TrimPrefix(node, "node_"), nil
 		}
 	}
 	return "", fmt.Errorf("node with address %s is not in the seed list", addresses[0])
