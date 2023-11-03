@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**/*.md'
+  push:
+    # Build for the master branch.
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref to build Bench, GoNode and SharpNode images [default: latest master; examples: 0a4ff9d3e4a9ab432fd5812eb18c98e03b5a7432]'
+        required: false
+        default: ''
+
+jobs:
+  build_image:
+    name: Build Bench, GoNode and SharpNode docker images
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.ref }}
+          fetch-depth: 0
+
+      - name: Build
+        run: make build

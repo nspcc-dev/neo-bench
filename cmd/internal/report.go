@@ -23,11 +23,11 @@ type (
 		DefaultMSPerBlock int
 	}
 
-	// tpsInfo stores information useful for counting TPS
+	// tpsInfo stores information useful for counting TPS.
 	tpsInfo struct {
-		// DeltaTime is a time in milliseconds since the previous block timestamp
+		// DeltaTime is a time in milliseconds since the previous block timestamp.
 		DeltaTime uint64
-		// TxCount is the number of transactions in block
+		// TxCount is the number of transactions in block.
 		TxCount int
 		TPS     float64
 	}
@@ -261,7 +261,7 @@ func (r *reporter) UpdateErr(v int32) {
 	r.ErrCount = v
 }
 
-// UpdateTPS sets current tps rate
+// UpdateTPS sets current tps rate.
 func (r *reporter) UpdateTPS(deltaTime uint64, txCount int, v float64) {
 	if v < 0 || math.IsNaN(v) {
 		return

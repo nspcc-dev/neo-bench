@@ -15,7 +15,7 @@ var (
 	typ = flag.String("type", internal.NEOTransfer, "Type of txs that would be generated.")
 
 	fromCount = flag.Int("from", 1, "Amount of tx senders")
-	toCount   = flag.Int("to", 1, "Amount of tx recepients")
+	toCount   = flag.Int("to", 1, "Amount of tx recipients")
 )
 
 func main() {

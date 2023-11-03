@@ -1,0 +1,86 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**/*.md'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref to test Bench, GoNode and SharpNode images [default: latest master; examples: 0a4ff9d3e4a9ab432fd5812eb18c98e03b5a7432]'
+        required: false
+        default: ''
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+          cache-dependency-path: cmd/go.sum
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: cmd
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'go' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  tests:
+    name: Run tests
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        benchmarks: [ 'GoSingle10wrk', 'SharpSingle10wrk', 'MixedFourNodesGoRPC50rate' ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.ref }}
+          fetch-depth: 0
+
+      - name: Build Bench, GoNode and SharpNode docker images
+        run: make build
+
+      - name: Prepare configurations
+        run: make prepare
+
+      - name: Run benchmark for ${{ matrix.benchmarks }}
+        run: make start.${{ matrix.benchmarks }}
