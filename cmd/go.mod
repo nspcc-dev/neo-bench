@@ -9,8 +9,8 @@ require (
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.6
 	github.com/moby/moby v24.0.7+incompatible
-	github.com/nspcc-dev/neo-go v0.102.1-0.20231019154945-890f64007a73
-	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20231012150754-e06051e14c9f
+	github.com/nspcc-dev/neo-go v0.103.0
+	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20231020160724-c3955f87d1b5
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/valyala/fasthttp v1.34.0
