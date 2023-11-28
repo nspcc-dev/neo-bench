@@ -9,8 +9,8 @@ require (
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.6
 	github.com/moby/moby v24.0.7+incompatible
-	github.com/nspcc-dev/neo-go v0.103.0
-	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20231020160724-c3955f87d1b5
+	github.com/nspcc-dev/neo-go v0.104.0
+	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20231121104256-0493ddbd70b2
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/valyala/fasthttp v1.34.0
@@ -52,7 +52,7 @@ require (
 	github.com/moby/term v0.0.0-20210610120745-9d4ed1856297 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
-	github.com/nspcc-dev/go-ordered-json v0.0.0-20220111165707-25110be27d22 // indirect
+	github.com/nspcc-dev/go-ordered-json v0.0.0-20231123160306-3374ff1e7a3c // indirect
 	github.com/nspcc-dev/rfc6979 v0.2.0 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/onsi/gomega v1.17.0 // indirect
