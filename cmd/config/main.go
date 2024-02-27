@@ -186,13 +186,14 @@ func writeJSON(path string, obj interface{}) error {
 func nodeNameFromSeedList(addresses []string, seedList []string) (string, error) {
 	suffix := addresses[0] // Rely on the fact that the first node address has the same format as the one provided via seed list.
 	for _, seed := range seedList {
-		if strings.HasSuffix(seed, suffix) {
-			node := strings.TrimSuffix(seed, suffix)
-			if node == "node" {
-				return singleNodeName, nil
-			}
-			return strings.TrimPrefix(node, "node_"), nil
+		node, ok := strings.CutSuffix(seed, suffix)
+		if !ok {
+			continue
 		}
+		if node == "node" {
+			return singleNodeName, nil
+		}
+		return strings.TrimPrefix(node, "node_"), nil
 	}
 	return "", fmt.Errorf("node with address %s is not in the seed list", addresses[0])
 }
