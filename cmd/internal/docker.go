@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/moby/moby/client"
 )
@@ -96,7 +97,7 @@ func NewStats(ctx context.Context, opts ...StatOption) (DockerStater, error) {
 		criteria.Add("label", p.criteria[i])
 	}
 
-	list, err := cli.ContainerList(ctx, types.ContainerListOptions{Filters: criteria})
+	list, err := cli.ContainerList(ctx, container.ListOptions{Filters: criteria})
 	if err != nil {
 		return nil, err
 	}
