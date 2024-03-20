@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Workiva/go-datastructures v1.1.1
-	github.com/docker/docker v25.0.3+incompatible
+	github.com/docker/docker v25.0.5+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/k14s/ytt v0.30.0
 	github.com/mailru/easyjson v0.7.7
