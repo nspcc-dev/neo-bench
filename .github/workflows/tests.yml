@@ -76,6 +76,11 @@ jobs:
           ref: ${{ github.event.inputs.ref }}
           fetch-depth: 0
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'cmd/go.mod'
+          cache-dependency-path: cmd/go.sum
+
       - name: Build Bench, GoNode and SharpNode docker images
         run: make build
 
