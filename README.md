@@ -5,7 +5,7 @@
 - make
 - any Docker version that includes Compose V2 (for Mac, Windows and Linux desktop versions, see the [installation instructions](https://docs.docker.com/compose/install/?_gl=1*uflyxz*_ga*MTE3MDkzODg4Ny4xNzA5MDM4MDA0*_ga_XJWPQMJYHQ*MTcxMzgwNTA0MC4yMC4xLjE3MTM4MDY5MDQuNjAuMC4w#installation-scenarios))
 - Docker Compose V2 plugin (for Linux, if Docker Engine and Docker CLI are installed, see the [installation instructions](https://docs.docker.com/compose/install/?_gl=1*uflyxz*_ga*MTE3MDkzODg4Ny4xNzA5MDM4MDA0*_ga_XJWPQMJYHQ*MTcxMzgwNTA0MC4yMC4xLjE3MTM4MDY5MDQuNjAuMC4w#scenario-two-install-the-compose-plugin))
-- golang (for development / tests)
+- Golang 1.20+
 
 ## Repository structure
 
