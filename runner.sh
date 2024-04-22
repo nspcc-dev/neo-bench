@@ -249,6 +249,6 @@ fi
 
 make prepare
 
-docker-compose "${FILES[@]}" run bench neo-bench -o "$OUTPUT" "${ARGS[@]}"
+docker compose "${FILES[@]}" run bench neo-bench -o "$OUTPUT" "${ARGS[@]}"
 
 make stop

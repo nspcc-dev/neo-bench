@@ -65,20 +65,20 @@ test: start.GoSingle30wrk
 # Bootup NeoGo single node
 single.go: stop
 	@echo "=> Up Golang single node"
-	@docker-compose -f $(DC_GO_IR_SINGLE) up -d healthy
+	@docker compose -f $(DC_GO_IR_SINGLE) up -d healthy
 
 # Bootup NeoSharp single node
 single.sharp: stop
 	@echo "=> Up Sharp single node"
-	@docker-compose -f $(DC_SHARP_IR_SINGLE) up -d healthy
+	@docker compose -f $(DC_SHARP_IR_SINGLE) up -d healthy
 
 # Stop all containers
 stop:
 	@echo "=> Stop environment"
-	@docker-compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
+	@docker compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
 		-f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_7_IR) \
 		-f $(DC_SHARP_RPC) -f $(DC_SHARP_7_RPC) -f $(DC_SHARP_IR_SINGLE) kill &> /dev/null
-	@docker-compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
+	@docker compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
 		-f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_7_IR) \
 		-f $(DC_SHARP_RPC) -f $(DC_SHARP_7_RPC) -f $(DC_SHARP_IR_SINGLE) down --remove-orphans &> /dev/null
 

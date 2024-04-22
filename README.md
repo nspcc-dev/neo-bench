@@ -3,8 +3,8 @@
 ## Requirements
 
 - make
-- docker
-- docker-compose 1.24+
+- any Docker version that includes Compose V2 (for Mac, Windows and Linux desktop versions, see the [installation instructions](https://docs.docker.com/compose/install/?_gl=1*uflyxz*_ga*MTE3MDkzODg4Ny4xNzA5MDM4MDA0*_ga_XJWPQMJYHQ*MTcxMzgwNTA0MC4yMC4xLjE3MTM4MDY5MDQuNjAuMC4w#installation-scenarios))
+- Docker Compose V2 plugin (for Linux, if Docker Engine and Docker CLI are installed, see the [installation instructions](https://docs.docker.com/compose/install/?_gl=1*uflyxz*_ga*MTE3MDkzODg4Ny4xNzA5MDM4MDA0*_ga_XJWPQMJYHQ*MTcxMzgwNTA0MC4yMC4xLjE3MTM4MDY5MDQuNjAuMC4w#scenario-two-install-the-compose-plugin))
 - golang (for development / tests)
 
 ## Repository structure
@@ -46,81 +46,81 @@ make[1]: Entering directory '/home/anna/Documents/GitProjects/nspcc-dev/neo-benc
 => Generate configurations for single-node and four-nodes networks from templates
 + cd ./cmd
 + go run ./config/ --go-template go.protocol.template.yml --go-db leveldb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
-creating: 721037259/go.protocol.template.yml
-creating: 721037259/go.protocol.template.yml
-creating: 721037259/sharp.protocol.template.yml
-creating: 721037259/sharp.protocol.template.yml
-make[1]: Leaving directory '/home/anna/Documents/GitProjects/nspcc-dev/neo-bench'
-Creating network "neo_go_network" with the default driver
-Creating ir_node_1 ... done
-Creating ir_healthy_1 ... done
-2022/06/29 16:15:08 Used [node:20331] rpc addresses
-2022/06/29 16:15:08 Run benchmark for GoSingle :: NEO-GO
-2022/06/29 16:15:09 Read 1000000 txs from /dump.txs
-2022/06/29 16:15:11 CPU: 0.034%, Mem: 26.766MB
-2022/06/29 16:15:11 Done 2.209265504s
-2022/06/29 16:15:11 Init 30 workers / 5m0s time limit (1000000 txs will try to send)
-2022/06/29 16:15:11 Prepare chain for benchmark
-2022/06/29 16:15:11 Determined validators count: 1
-2022/06/29 16:15:11 Sending NEO and GAS transfer tx
-2022/06/29 16:15:12 Contract hash: ceb508fc02abc2dc27228e21976699047bbbcce0
-2022/06/29 16:15:12 Sending contract deploy tx
-2022/06/29 16:15:12 Contract was persisted: false
-2022/06/29 16:15:13 Contract was persisted: false
-2022/06/29 16:15:13 CPU: 0.348%, Mem: 27.668MB
-2022/06/29 16:15:13 Contract was persisted: true
-2022/06/29 16:15:13 fetch current block count
-2022/06/29 16:15:13 Waiting for an empty block to be processed
-2022/06/29 16:15:14 Started test from block = 13 at unix time = 1656519314726
-2022/06/29 16:15:15 empty block: 13
-2022/06/29 16:15:15 CPU: 47.061%, Mem: 52.148MB
-2022/06/29 16:15:16 #14: 16331 transactions in 1010 ms - 16169.306931 tps
-2022/06/29 16:15:17 CPU: 72.988%, Mem: 187.363MB
-2022/06/29 16:15:18 #15: 20012 transactions in 1043 ms - 19186.960690 tps
-2022/06/29 16:15:18 #16: 18998 transactions in 1038 ms - 18302.504817 tps
-2022/06/29 16:15:19 CPU: 72.490%, Mem: 272.512MB
-2022/06/29 16:15:20 #17: 19018 transactions in 1052 ms - 18077.946768 tps
-2022/06/29 16:15:21 #18: 18366 transactions in 1039 ms - 17676.612127 tps
-2022/06/29 16:15:21 CPU: 70.676%, Mem: 277.164MB
-2022/06/29 16:15:22 #19: 18810 transactions in 1038 ms - 18121.387283 tps
-2022/06/29 16:15:23 #20: 16418 transactions in 1032 ms - 15908.914729 tps
+creating: 3115231476/go.protocol.template.yml
+creating: 3115231476/go.protocol.template.yml
+creating: 3115231476/sharp.protocol.template.yml
+creating: 3115231476/sharp.protocol.template.yml
+make[1]: Leaving directory '/home/anna/Documents/GitProjects/nspcc-dev/neo-bench' 
+[+] Creating 3/1
+ ✔ Network neo_go_network  Created                                                                                                                                                                            0.1s 
+ ✔ Container ir-node-1     Created                                                                                                                                                                            0.1s 
+ ✔ Container ir-healthy-1  Created                                                                                                                                                                            0.0s 
+[+] Running 2/2
+ ✔ Container ir-node-1     Healthy                                                                                                                                                                            5.7s 
+ ✔ Container ir-healthy-1  Started                                                                                                                                                                            0.2s 
+2024/04/22 17:03:33 Used [node:20331] rpc addresses
+2024/04/22 17:03:33 Run benchmark for GoSingle :: NEO-GO
+2024/04/22 17:03:34 Read 3000000 txs from /dump.txs
+2024/04/22 17:03:36 CPU: 0.025%, Mem: 23.242MB
+2024/04/22 17:03:38 CPU: 0.286%, Mem: 23.469MB
+2024/04/22 17:03:40 CPU: 0.031%, Mem: 23.781MB
+2024/04/22 17:03:41 Done 6.858495874s
+2024/04/22 17:03:41 Init 30 workers / 5m0s time limit (3000000 txs will try to send)
+2024/04/22 17:03:41 Prepare chain for benchmark
+2024/04/22 17:03:41 Determined validators count: 1
+2024/04/22 17:03:41 Sending NEO and GAS transfer tx
+2024/04/22 17:03:41 Contract hash: ceb508fc02abc2dc27228e21976699047bbbcce0
+2024/04/22 17:03:41 Sending contract deploy tx
+2024/04/22 17:03:41 Contract was persisted: false
+2024/04/22 17:03:42 Contract was persisted: false
+2024/04/22 17:03:42 CPU: 0.155%, Mem: 24.777MB
+2024/04/22 17:03:42 Contract was persisted: true
+2024/04/22 17:03:42 fetch current block count
+2024/04/22 17:03:42 Waiting for an empty block to be processed
+2024/04/22 17:03:43 Started test from block = 17 at unix time = 1713805423759
+2024/04/22 17:03:44 empty block: 17
+2024/04/22 17:03:44 CPU: 37.295%, Mem: 38.734MB
+2024/04/22 17:03:45 #18: 13690 transactions in 1011 ms - 13541.048467 tps
+2024/04/22 17:03:46 CPU: 64.889%, Mem: 131.801MB
+2024/04/22 17:03:46 #19: 13440 transactions in 1045 ms - 12861.244019 tps
+2024/04/22 17:03:48 #20: 13625 transactions in 1036 ms - 13151.544402 tps
+2024/04/22 17:03:48 CPU: 64.515%, Mem: 141.691MB
+2024/04/22 17:03:49 #21: 14820 transactions in 1036 ms - 14305.019305 tps
+2024/04/22 17:03:50 #22: 12248 transactions in 1042 ms - 11754.318618 tps
+2024/04/22 17:03:50 CPU: 55.543%, Mem: 165.152MB
+
 ...
-2022/06/29 16:16:22 #75: 13646 transactions in 1033 ms - 13210.067764 tps
-2022/06/29 16:16:23 #76: 14133 transactions in 1043 ms - 13550.335570 tps
-2022/06/29 16:16:23 CPU: 76.158%, Mem: 301.980MB
-2022/06/29 16:16:24 #77: 13697 transactions in 1035 ms - 13233.816425 tps
-2022/06/29 16:16:25 #78: 14235 transactions in 1041 ms - 13674.351585 tps
-2022/06/29 16:16:25 CPU: 75.890%, Mem: 306.809MB
-2022/06/29 16:16:26 #79: 12711 transactions in 1030 ms - 12340.776699 tps
-2022/06/29 16:16:27 #80: 14341 transactions in 1033 ms - 13882.865440 tps
-2022/06/29 16:16:27 CPU: 55.267%, Mem: 359.434MB
-2022/06/29 16:16:29 CPU: 46.174%, Mem: 315.535MB
-2022/06/29 16:16:30 #81: 12942 transactions in 1030 ms - 12565.048544 tps
-2022/06/29 16:16:30 #82: 6153 transactions in 2265 ms - 2716.556291 tps
-2022/06/29 16:16:31 #83: 14392 transactions in 1018 ms - 14137.524558 tps
-2022/06/29 16:16:31 CPU: 75.477%, Mem: 297.867MB
-2022/06/29 16:16:32 #84: 13016 transactions in 1025 ms - 12698.536585 tps
-2022/06/29 16:16:33 all request workers stopped
-2022/06/29 16:16:33 Sent 1000000 transactions in 1m18.224367191s
-2022/06/29 16:16:33 RPS: 12783.740
-2022/06/29 16:16:33 All transactions have been sent successfully
-2022/06/29 16:16:33 RPC Errors: 0 / 0.000%
-2022/06/29 16:16:33 sender worker stopped
-2022/06/29 16:16:33 #85: 14180 transactions in 1029 ms - 13780.369291 tps
-2022/06/29 16:16:33 CPU: 25.419%, Mem: 328.926MB
-2022/06/29 16:16:34 #86: 2028 transactions in 1024 ms - 1980.468750 tps
-2022/06/29 16:16:34 parser worker stopped
-2022/06/29 16:16:34 try to write profile
+
+2024/04/22 17:08:37 CPU: 84.711%, Mem: 703.641MB
+2024/04/22 17:08:38 #287: 10736 transactions in 1013 ms - 10598.223100 tps
+2024/04/22 17:08:39 #288: 8970 transactions in 1030 ms - 8708.737864 tps
+2024/04/22 17:08:39 CPU: 85.515%, Mem: 734.520MB
+2024/04/22 17:08:40 #289: 8333 transactions in 1032 ms - 8074.612403 tps
+2024/04/22 17:08:41 #290: 8100 transactions in 1029 ms - 7871.720117 tps
+2024/04/22 17:08:41 CPU: 82.350%, Mem: 802.832MB
+2024/04/22 17:08:42 #291: 8139 transactions in 1034 ms - 7871.373308 tps
+2024/04/22 17:08:43 #292: 6965 transactions in 1036 ms - 6722.972973 tps
+2024/04/22 17:08:43 CPU: 86.500%, Mem: 851.633MB
+2024/04/22 17:08:43 all request workers stopped
+2024/04/22 17:08:43 Sent 2429426 transactions in 5m0.004691002s
+2024/04/22 17:08:43 RPS: 8097.960
+2024/04/22 17:08:43 All transactions have been sent successfully
+2024/04/22 17:08:43 RPC Errors: 0 / 0.000%
+2024/04/22 17:08:43 sender worker stopped
+2024/04/22 17:08:44 #293: 8023 transactions in 1033 ms - 7766.698935 tps
+2024/04/22 17:08:44 #294: 3611 transactions in 1023 ms - 3529.814272 tps
+2024/04/22 17:08:44 parser worker stopped
+2024/04/22 17:08:44 try to write profile
 GoSingle :: NEO-GO / 30 wrk / 5m0s
 
-TXs ≈ 1000000
-RPS ≈ 12783.740
+TXs ≈ 2429426
+RPS ≈ 8097.960
 RPC Errors  ≈ 0 / 0.000%
-TPS ≈ 12631.047
+TPS ≈ 8079.692
 DefaultMSPerBlock = 1000
 
-CPU ≈ 63.366%
-Mem ≈ 275.360MB
+CPU ≈ 72.766%
+Mem ≈ 518.845MB
 ```
 
 3. Check the test run results:
