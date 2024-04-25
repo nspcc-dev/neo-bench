@@ -158,12 +158,18 @@ func newNEP5Transfer(validatorCount int, sc util.Uint160, from, to util.Uint160,
 }
 
 func fillChain(ctx context.Context, c *rpcclient.Client, proto result.Protocol, sgn *signer, vote bool, opts BenchOptions) error {
+	// minAwaitThreshold is the minimum required threshold for setup transactions to be awaited.
+	var minAwaitThreshold = 3 * time.Second
+
 	cs, err := c.GetNativeContracts()
 	if err != nil {
 		return err
 	}
 
 	timeout := 3 * time.Duration(proto.MillisecondsPerBlock) * time.Millisecond
+	if timeout < minAwaitThreshold {
+		timeout = minAwaitThreshold
+	}
 
 	var neoHash, gasHash, mgmtHash util.Uint160
 	for i := range cs {
