@@ -47,7 +47,8 @@ show_help() {
 	echo "   -t                               Request timeout."
 	echo "                                    Used for RPC requests."
 	echo "                                    Example: -t 30s"
-	echo "   -l, --log                        Enable logging on consensus nodes."
+	echo "   -l, --log                        Container logging facility. Default value is none."
+	echo "                                    Example: -l journald -l syslog -l json-file"
 	echo "       --tc                         Arguments to pass to 'tc qdisc netem' inside the container."
 	echo "                                    Example: 'delay 100ms'"
 	exit 0
@@ -68,7 +69,22 @@ while test $# -gt 0; do
 
 	case $_opt in
 	-h | --help) show_help ;;
-	-l | --log) export NEOBENCH_LOGGER=journald ;;
+	-l | --log)
+		if [[ $# -gt 0 && ${1:0:1} != "-" ]]; then
+			case "$1" in
+			"syslog" | "journald" | "json-file" | "none")
+				export NEOBENCH_LOGGER="$1"
+				shift
+				;;
+			*)
+				fatal "unknown logger specified: $1"
+				;;
+			esac
+		else
+		  export NEOBENCH_LOGGER="none"
+		fi
+		;;
+
 	--vote) export NEOBENCH_VOTE=1 ;;
 
 	-v | --validators)

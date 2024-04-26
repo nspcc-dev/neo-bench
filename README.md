@@ -264,7 +264,17 @@ The following default configurations are available:
 ## Runner usage (`./runner.sh`)
 
 ```
+   -v, --validators                 Consensus node count.
+                                    Possible values: 1, 4 (default), 7.
+   -n, --nodes                      Consensus node type.
+                                    Possible values: go (default), mixed, sharp.
+   -r, --rpc                        RPC node type. Default is the same as --nodes.
    -h, --help                       Show usage message.
+   -b, --benchmark                  Benchmark type.
+                                    Possible values: NEO (default) or GAS
+       --from                       Number of tx senders (default: 1)
+       --to                         Number of fund receivers (default: 1)
+       --vote                       Whether or not candidates should be voted for before the bench.
    -d                               Benchmark description.
    -m                               Benchmark mode.
                                     Example: -m wrk -m rate
@@ -282,6 +292,11 @@ The following default configurations are available:
    -t                               Request timeout.
                                     Used for RPC requests.
                                     Example: -t 30s
+   -l, --log                        Container logging facility. Default value is none.
+                                    Example: -l journald -l syslog -l json-file
+       --tc                         Arguments to pass to 'tc qdisc netem' inside the container.
+                                    Example: 'delay 100ms'
+
 ```
 
 ## Build options
@@ -410,7 +425,7 @@ To add one more node configuration, provide all necessary information to the `no
 
 Name|Description| Default |Example
 ---|---|---------|---
-NEOBENCH_LOGGER|Container logging facility| `none`  |`none`, `journald`, `syslog`
+NEOBENCH_LOGGER|Container logging facility| `none`  |`none`, `journald`, `syslog`,`json-file`
 NEOBENCH_TC|Parameters passed to the `tc qdisc` (netem discipline) on container startup|         |`delay 100ms`
 NEOBENCH_TYPE|Type of the load| `NEO`   |`NEO`, `GAS`
 NEOBENCH_FROM_COUNT|Number of tx senders| `1`     | `1`
@@ -418,6 +433,8 @@ NEOBENCH_TO_COUNT|Number of fund receivers| `1`     | `1`
 NEOBENCH_VALIDATOR_COUNT|Number of validators| `4`     | `1`, `4`, `7`
 NEOBENCH_VOTE|Vote for validators before the bench| empty   |`1` or empty
 
+For MacOS NEOBENCH_LOGGER should be set to `json-file` as `journald` and
+`syslog` are not supported by this architecture.
 ## Benchmark results visualisation
 
 There's a Python plotting script available for benchmark data visualisation. 
