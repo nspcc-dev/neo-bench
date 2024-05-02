@@ -44,9 +44,9 @@ RUN sed -i '/PackageReference Include="Neo" Version=/c \    <ProjectReference In
     sed -i '/<PackageReference Include="Neo.VM" Version=/c \    <ProjectReference Include="..\\..\\..\\neo-vm\\src\\Neo.VM\\Neo.VM.csproj" \/>' /neo-project/neo/src/Neo/Neo.csproj && \
     sed -i '/<PackageReference Include="Neo" Version=/c \    <ProjectReference Include="..\\..\\..\\neo\\src\\Neo\\Neo.csproj" \/>' /neo-project/neo-modules/src/Directory.Build.props
 
-# Publish neo-cli from source as a self-contained deployment for linux-64 into /neo-cli folder (all dependant .dlls are included).
+# Publish neo-cli from source as a self-contained deployment into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-RUN dotnet publish -c Release --framework net7.0 -r linux-x64 /neo-project/neo-node/neo-cli -o /neo-cli
+RUN dotnet publish -c Release --framework net7.0 /neo-project/neo-node/neo-cli -o /neo-cli
 
 # Build neo-modules from source into /Plugins folder (only plugin .dll and plugin config are included, if you need other dependant .dlls, see the next step)
 RUN mkdir /Plugins && \
