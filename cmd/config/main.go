@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/k14s/ytt/pkg/cmd/template"
 	"github.com/nspcc-dev/neo-go/pkg/config"
@@ -29,6 +30,7 @@ var (
 	goDB              = flag.String("go-db", "leveldb", "database for Go node")
 	sharpTemplateFile = flag.String("sharp-template", "", "configuration template file for C# node")
 	sharpDB           = flag.String("sharp-db", "LevelDBStore", "database for C# node")
+	msPerBlock        = flag.Int("msPerBlock", 0, "time per block in milliseconds")
 )
 
 func main() {
@@ -115,6 +117,9 @@ func generateGoConfig(templatePath, database, suffix string) error {
 			return fmt.Errorf("unable to decode node template #%d: %w", i, err)
 		}
 		template.ApplicationConfiguration.DBConfiguration.Type = database
+		if msPerBlock != nil && *msPerBlock > 0 {
+			template.ProtocolConfiguration.TimePerBlock = time.Duration(*msPerBlock) * time.Millisecond
+		}
 		var configFile string
 		nodeName, err := nodeNameFromSeedList(template.ApplicationConfiguration.P2P.Addresses, template.ProtocolConfiguration.SeedList)
 		if err != nil {
@@ -154,6 +159,9 @@ func generateSharpConfig(templatePath, storageEngine, suffix string) error {
 			return fmt.Errorf("unable to decode node template #%d: %w", i, err)
 		}
 		template.ApplicationConfiguration.Storage.Engine = storageEngine
+		if msPerBlock != nil && *msPerBlock > 0 {
+			template.ProtocolConfiguration.MillisecondsPerBlock = *msPerBlock
+		}
 		var configFile string
 		nodeName, err := nodeNameFromSeedList([]string{":" + strconv.Itoa(int(template.ApplicationConfiguration.P2P.Port))}, template.ProtocolConfiguration.SeedList)
 		if err != nil {

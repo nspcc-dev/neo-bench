@@ -10,6 +10,7 @@ BUILD_DIR=.docker/build
 NEOBENCH_TYPE ?= NEO
 NEOBENCH_FROM_COUNT ?= 1
 NEOBENCH_TO_COUNT ?= 1
+MS_PER_BLOCK ?= 0
 
 .PHONY: help
 
@@ -112,7 +113,7 @@ config:
 	@echo "=> Generate configurations for single-node and four-nodes networks from templates"
 	@set -x \
 		&& cd ./cmd \
-		&& go run ./config/ --go-template go.protocol.template.yml --go-db leveldb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore
+		&& go run ./config/ --go-template go.protocol.template.yml --go-db leveldb --sharp-template sharp.protocol.template.yml --sharp-db LevelDBStore --msPerBlock $(MS_PER_BLOCK)
 
 
 # Generate transactions, dump and nodes configurations for four-nodes network
