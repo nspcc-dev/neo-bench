@@ -194,6 +194,7 @@ $ ./runner.sh --nodes mixed -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
                                    Example: -t 30s --request_timeout 15s (default 30s)
   -i, --in                         Path to input file to load transactions.
                                    Example: -i ./dump.txs --in /path/to/import/transactions
+      --vote                       Vote before the bench.
 ````
 
 ## Makefile usage
