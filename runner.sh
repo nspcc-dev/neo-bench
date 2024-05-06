@@ -51,6 +51,9 @@ show_help() {
 	echo "                                    Example: -l journald -l syslog -l json-file"
 	echo "       --tc                         Arguments to pass to 'tc qdisc netem' inside the container."
 	echo "                                    Example: 'delay 100ms'"
+	echo "       --msPerBlock                 Protocol setting specifying the minimal (and targeted for) time interval between blocks. Must be an integer number of milliseconds."
+	echo "                                    The default value is set in configuration templates and is 1s and 5s for single node and multinode setup respectively."
+	echo "                                    Example: --msPerBlock 1000"
 	exit 0
 }
 
@@ -185,6 +188,12 @@ while test $# -gt 0; do
 	--tc)
 		test $# -gt 0 || fatal "tc arguments should be specified"
 		export NEOBENCH_TC="$1"
+		shift
+		;;
+
+	--msPerBlock)
+		test $# -gt 0 || fatal "milliseconds per block should be specified"
+		export MS_PER_BLOCK="$1"
 		shift
 		;;
 

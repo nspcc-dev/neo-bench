@@ -296,6 +296,9 @@ The following default configurations are available:
                                     Example: -l journald -l syslog -l json-file
        --tc                         Arguments to pass to 'tc qdisc netem' inside the container.
                                     Example: 'delay 100ms'
+       --msPerBlock                 Protocol setting specifying the minimal (and targeted for) time interval between blocks. Must be an integer number of milliseconds.
+                                    The default value is set in configuration templates and is 1s and 5s for single node and multinode setup respectively.
+                                    Example: --msPerBlock 3000
 
 ```
 
