@@ -129,7 +129,7 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 
 	if err := c.doRPCCall(ctx, rpc, &res, c.txSender); err != nil {
 		msg := err.Error()
-		if strings.Contains(msg, "The memory pool is full and no more transactions can be sent.") || strings.Contains(msg, "OutOfMemory") {
+		if errors.Is(err, neorpc.ErrMempoolCapReached) || strings.Contains(msg, "OutOfMemory") {
 			return ErrMempoolOOM
 		}
 		return err
