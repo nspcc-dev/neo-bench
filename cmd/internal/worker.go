@@ -36,18 +36,19 @@ type (
 	}
 
 	doerParams struct {
-		wrkCount    int
-		cli         *RPCClient
-		mode        BenchMode
-		rate        int
-		threshold   time.Duration
-		timeLimit   time.Duration
-		dump        *Dump
-		cntReporter func(cnt int32)
-		errReporter func(cnt int32)
-		rpsReporter func(rps float64)
-		tpsReporter func(deltaTime uint64, txCount int, tps float64)
-		stop        context.CancelFunc
+		wrkCount        int
+		cli             *RPCClient
+		mode            BenchMode
+		rate            int
+		threshold       time.Duration
+		timeLimit       time.Duration
+		mempoolOOMDelay time.Duration
+		dump            *Dump
+		cntReporter     func(cnt int32)
+		errReporter     func(cnt int32)
+		rpsReporter     func(rps float64)
+		tpsReporter     func(deltaTime uint64, txCount int, tps float64)
+		stop            context.CancelFunc
 	}
 
 	// WorkerOption is an option type to configure workers.
@@ -72,6 +73,14 @@ func WorkerStopper(stop context.CancelFunc) WorkerOption {
 func WorkerBlockchainClient(cli *RPCClient) WorkerOption {
 	return func(p *doerParams) {
 		p.cli = cli
+	}
+}
+
+// WorkerMempoolOOMDelay sets the time interval to pause sender's work after
+// mempool OOM error occurred on tx submission.
+func WorkerMempoolOOMDelay(delay time.Duration) WorkerOption {
+	return func(p *doerParams) {
+		p.mempoolOOMDelay = delay
 	}
 }
 
@@ -244,7 +253,7 @@ loop:
 						log.Printf("failed to re-enqueue transaction: %s\n", err)
 						d.countErr.Add(1)
 					}
-					time.Sleep(100 * time.Millisecond)
+					time.Sleep(d.mempoolOOMDelay)
 				} else {
 					d.countErr.Add(1)
 				}
