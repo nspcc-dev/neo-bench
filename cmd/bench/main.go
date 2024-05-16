@@ -33,15 +33,16 @@ func main() {
 	defer cancel()
 
 	var (
-		workers    int
-		rate       int
-		msPerBlock int
-		threshold  time.Duration
-		dump       *internal.Dump
-		desc       = v.GetString("desc")
-		timeLimit  = v.GetDuration("timeLimit")
-		mode       = internal.BenchMode(v.GetString("mode"))
-		client     *internal.RPCClient
+		workers         int
+		rate            int
+		msPerBlock      int
+		mempoolOOMDelay time.Duration
+		threshold       time.Duration
+		dump            *internal.Dump
+		desc            = v.GetString("desc")
+		timeLimit       = v.GetDuration("timeLimit")
+		mode            = internal.BenchMode(v.GetString("mode"))
+		client          *internal.RPCClient
 	)
 
 	switch mode {
@@ -61,6 +62,11 @@ func main() {
 		log.Fatalf("could not receive RPC Node version: %v", err)
 	}
 	msPerBlock = version.Protocol.MillisecondsPerBlock
+	if msPerBlock > 1000 {
+		mempoolOOMDelay = time.Duration(msPerBlock) * time.Millisecond / 50
+	} else {
+		mempoolOOMDelay = time.Duration(msPerBlock) * time.Millisecond / 10
+	}
 
 	reg := regexp.MustCompile(`[^\w.-]+`)
 	versionStr := strings.Trim(reg.ReplaceAllString(version.UserAgent, "_"), "_")
@@ -133,6 +139,7 @@ func main() {
 		internal.WorkerTimeLimit(timeLimit),
 		internal.WorkerThreshold(threshold),
 		internal.WorkerBlockchainClient(client),
+		internal.WorkerMempoolOOMDelay(mempoolOOMDelay),
 		internal.WorkerRPSReporter(rep.UpdateRPS),
 		internal.WorkerTPSReporter(rep.UpdateTPS),
 		internal.WorkerErrReporter(rep.UpdateErr),
