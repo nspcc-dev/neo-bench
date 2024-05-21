@@ -6,7 +6,9 @@ OUTPUT=""
 ARGS=(-i "/dump.txs")
 FILES=()
 MODE=""
-COUNT=""
+TARGET_RPS=""
+# Count of workers
+WORKERS_COUNT="30"
 IR_TYPE=go
 RPC_TYPE=
 RPC_ADDR=()
@@ -31,7 +33,7 @@ show_help() {
 	echo "       --to                         Number of fund receivers (default: 1)"
 	echo "       --vote                       Whether or not candidates should be voted for before the bench."
 	echo "   -d                               Benchmark description."
-	echo "   -m                               Benchmark mode."
+	echo "   -m                               Benchmark mode. Possible values: rate, wrk. In rate mode, -q and -w flags should be specified. In wrk mode, only -w flag should be specified."
 	echo "                                    Example: -m wrk -m rate"
 	echo "   -w                               Number of used workers."
 	echo "                                    Example: -w 10 -w 15 -w 40"
@@ -150,7 +152,7 @@ while test $# -gt 0; do
 	-w)
 		test $# -gt 0 || fatal "workers count should be specified"
 		ARGS+=(-w "$1")
-		COUNT="$1"
+		WORKERS_COUNT="$1"
 		shift
 		;;
 
@@ -163,7 +165,7 @@ while test $# -gt 0; do
 	-q)
 		test $# -gt 0 || fatal "benchmark rate limit should be specified"
 		ARGS+=(-q "$1")
-		COUNT="$1"
+		TARGET_RPS="$1"
 		shift
 		;;
 
@@ -261,7 +263,12 @@ else
 	fatal "Invalid validator count: $NEOBENCH_VALIDATOR_COUNT"
 fi
 
-OUTPUT="/out/${OUTPUT}_${MODE}_${COUNT}.log"
+if [ "rate" = "$MODE" ]; then
+  OUTPUT="/out/${OUTPUT}_${MODE}_${TARGET_RPS}_workers_${WORKERS_COUNT}.log"
+else
+  OUTPUT="/out/${OUTPUT}_${MODE}_${WORKERS_COUNT}.log"
+fi
+
 if [ ${#RPC_ADDR[@]} -eq 0 ]; then
 	ARGS+=("${DEFAULT_RPC_ADDR[@]}")
 else

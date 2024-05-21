@@ -276,7 +276,7 @@ The following default configurations are available:
        --to                         Number of fund receivers (default: 1)
        --vote                       Whether or not candidates should be voted for before the bench.
    -d                               Benchmark description.
-   -m                               Benchmark mode.
+   -m                               Benchmark mode. Possible values: rate, wrk. In rate mode, -q and -w flags should be specified. In wrk mode, only -w flag should be specified.
                                     Example: -m wrk -m rate
    -w                               Number of used workers.
                                     Example: -w 10 -w 15 -w 40

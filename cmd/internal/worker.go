@@ -197,7 +197,7 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 
 	switch p.mode {
 	case ModeRate:
-		log.Printf("Init worker with %d QPS / %s time limit (%d txs will try to send)", p.rate, p.timeLimit, ln)
+		log.Printf("Init %d workers with %d QPS / %s time limit (%d txs will try to send)", p.wrkCount, p.rate, p.timeLimit, ln)
 	case ModeWorker:
 		log.Printf("Init %d workers / %s time limit (%d txs will try to send)", p.wrkCount, p.timeLimit, ln)
 	}
@@ -220,8 +220,9 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 // idx defines the order of the transaction being sent and can be more than overall transactions count, because retransmission is supported.
 func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 	var (
-		done  = ctx.Done()
-		timer = time.NewTimer(d.timeLimit)
+		done           = ctx.Done()
+		timer          = time.NewTimer(d.timeLimit)
+		localTxCounter int64
 	)
 
 	defer func() {
@@ -237,7 +238,7 @@ loop:
 		case <-timer.C:
 			return
 		default:
-			i := idx.Add(1)
+			idx.Add(1)
 			if d.dump.TransactionsQueue.Len() == 0 {
 				return
 			}
@@ -264,10 +265,11 @@ loop:
 
 			since := time.Since(start)
 			count := d.countTxs.Add(1)
+			localTxCounter++
 			d.rpsReporter(float64(count) / since.Seconds())
 
 			if d.threshold > 0 {
-				waitFor := time.Until(start.Add(time.Duration(d.threshold.Nanoseconds() * (i + 1))))
+				waitFor := time.Until(start.Add(time.Duration(d.threshold.Nanoseconds() * (localTxCounter + 1))))
 				if waitFor > 0 {
 					time.Sleep(waitFor)
 				}
