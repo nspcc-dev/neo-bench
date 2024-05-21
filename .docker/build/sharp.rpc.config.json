@@ -13,7 +13,11 @@
         "MaxGasInvoke": 50,
         "MaxFee": 0.1,
         "MaxConcurrentConnections": 500,
-        "DisabledMethods": [ "openwallet" ]
+        "DisabledMethods": [ "openwallet" ],
+        "EnableCors": true,
+        "AllowOrigins": [],
+        "KeepAliveTimeout": 60,
+        "RequestHeadersTimeout": 15
       }
     ]
   }
