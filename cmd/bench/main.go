@@ -33,7 +33,7 @@ func main() {
 	defer cancel()
 
 	var (
-		workers         int
+		workers         = v.GetInt("workers")
 		rate            int
 		msPerBlock      int
 		mempoolOOMDelay time.Duration
@@ -45,18 +45,12 @@ func main() {
 		client          *internal.RPCClient
 	)
 
-	switch mode {
-	case internal.ModeWorker:
-		workers = v.GetInt("workers")
-		client = internal.NewRPCClient(v, workers)
-
-	case internal.ModeRate:
-		workers = 1
+	if mode == internal.ModeRate {
 		rate = v.GetInt("rateLimit")
-		threshold = time.Duration(time.Second.Nanoseconds() / int64(rate))
-		client = internal.NewRPCClient(v, 1)
+		threshold = time.Duration(time.Second.Nanoseconds() / int64(rate) * int64(workers))
 	}
 
+	client = internal.NewRPCClient(v, workers)
 	version, err := client.GetVersion(ctx)
 	if err != nil {
 		log.Fatalf("could not receive RPC Node version: %v", err)
