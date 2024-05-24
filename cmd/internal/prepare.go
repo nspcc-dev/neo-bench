@@ -149,7 +149,7 @@ func newNEP5Transfer(validatorCount int, sc util.Uint160, from, to util.Uint160,
 	default:
 		tx.NetworkFee = 8000000
 	}
-	tx.ValidUntilBlock = 1000
+	tx.ValidUntilBlock = 5760
 	tx.Signers = append(tx.Signers, transaction.Signer{
 		Account: from,
 		Scopes:  transaction.CalledByEntry,
