@@ -43,6 +43,7 @@ func main() {
 		timeLimit       = v.GetDuration("timeLimit")
 		mode            = internal.BenchMode(v.GetString("mode"))
 		client          *internal.RPCClient
+		disableStats    = v.GetBool("disable-stats")
 	)
 
 	if mode == internal.ModeRate {
@@ -92,31 +93,32 @@ func main() {
 			log.Fatalf("could not close report: %v", err)
 		}
 	}()
+	if !disableStats {
+		statsPeriod := time.Second
 
-	statsPeriod := time.Second
+		ds, err := internal.NewStats(ctx,
+			internal.StatEnableLogger(),
+			internal.StatPeriod(statsPeriod),
+			internal.StatCriteria([]string{"stats"}),
+			internal.StatListVerifier(func(list []types.Container) error {
+				if len(list) == 0 {
+					return errors.New("containers not found by criteria")
+				}
 
-	ds, err := internal.NewStats(ctx,
-		internal.StatEnableLogger(),
-		internal.StatPeriod(statsPeriod),
-		internal.StatCriteria([]string{"stats"}),
-		internal.StatListVerifier(func(list []types.Container) error {
-			if len(list) == 0 {
-				return errors.New("containers not found by criteria")
-			}
+				return nil
+			}))
 
-			return nil
-		}))
+		if err != nil {
+			log.Fatalf("could not create docker stats grabber: %v", err)
+		}
 
-	if err != nil {
-		log.Fatalf("could not create docker stats grabber: %v", err)
+		statsStart := time.Now()
+		// Run stats worker:
+		go ds.Run(ctx, func(cpu, mem float64) {
+			rep.UpdateRes(statsStart, cpu, mem)
+			log.Printf("CPU: %0.3f%%, Mem: %0.3fMB", cpu, mem)
+		})
 	}
-
-	statsStart := time.Now()
-	// Run stats worker:
-	go ds.Run(ctx, func(cpu, mem float64) {
-		rep.UpdateRes(statsStart, cpu, mem)
-		log.Printf("CPU: %0.3f%%, Mem: %0.3fMB", cpu, mem)
-	})
 
 	if in := v.GetString("in"); in != "" {
 		dump = internal.ReadDump(in)
