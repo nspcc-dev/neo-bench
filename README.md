@@ -26,7 +26,7 @@
 
 ## Usage example (local benchmark + NeoGo single node)
 
-1. Build the benchmark:
+1. Build the benchmark images and binary file with the following command:
 ```
 $ make build
 => Building Bench image registry.nspcc.ru/neo-bench/neo-bench:bench
@@ -35,6 +35,12 @@ sha256:b08f9fd42198be6c351d725543ac1e451063d18018a738f2446678a0cdf8ee78
 sha256:2bf655747dfa06b85ced1ad7f0257128e7261e6d16b2c8087bc16fd27fcb3a6d
 => Building Sharp Node image registry.nspcc.ru/neo-bench/neo-sharp:bench
 sha256:a6ed753e8f81fedf8a9be556e60c6a41e385dd1ab2c90755ab44e2ceab92bca2
+=> Building Bench binary file
++ export GOGC=off
++ GOGC=off
++ export CGO_ENABLED=0
++ CGO_ENABLED=0
++ go -C cmd build -v -o bin/bench -trimpath ./bench
 ```
 
 2. Run `test` target for a test run:
