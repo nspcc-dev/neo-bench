@@ -90,6 +90,8 @@ stop:
 	@docker compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
 		-f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_7_IR) \
 		-f $(DC_SHARP_RPC) -f $(DC_SHARP_7_RPC) -f $(DC_SHARP_IR_SINGLE) down --remove-orphans &> /dev/null
+	@echo "=> Stop Bench process"
+    +       @killall -w -v -INT bench > /dev/null 2>&1 || :
 
 # Check that all images were built
 check.images:

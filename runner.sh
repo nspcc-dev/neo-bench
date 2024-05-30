@@ -3,7 +3,7 @@
 source .env
 
 OUTPUT=""
-ARGS=(-i "/dump.txs")
+ARGS=()
 FILES=()
 MODE=""
 TARGET_RPS=""
@@ -12,6 +12,7 @@ WORKERS_COUNT="30"
 IR_TYPE=go
 RPC_TYPE=
 RPC_ADDR=()
+EXTERNAL_NETWORK=false
 export NEOBENCH_LOGGER=${NEOBENCH_LOGGER:-none}
 export NEOBENCH_TYPE=${NEOBENCH_TYPE:-NEO}
 export NEOBENCH_FROM_COUNT=${NEOBENCH_FROM_COUNT:-1}
@@ -56,6 +57,7 @@ show_help() {
 	echo "       --msPerBlock                 Protocol setting specifying the minimal (and targeted for) time interval between blocks. Must be an integer number of milliseconds."
 	echo "                                    The default value is set in configuration templates and is 1s and 5s for single node and multinode setup respectively."
 	echo "                                    Example: --msPerBlock 1000"
+	echo "   -e, --external                   Use external network for benchmarking. Default is false. -a flag should be used to specify RPC addresses."
 	exit 0
 }
 
@@ -74,6 +76,9 @@ while test $# -gt 0; do
 
 	case $_opt in
 	-h | --help) show_help ;;
+	-e|--external)
+        EXTERNAL_NETWORK=true
+        ;;
 	-l | --log)
 		if [[ $# -gt 0 && ${1:0:1} != "-" ]]; then
 			case "$1" in
@@ -280,7 +285,13 @@ if [ -n "$NEOBENCH_VOTE" ]; then
 fi
 
 make prepare
-
-docker compose "${FILES[@]}" run bench neo-bench -o "$OUTPUT" "${ARGS[@]}"
-
+if [ "$EXTERNAL_NETWORK" = true ]; then
+      ARGS+=(-i "./.docker/build/dump.$NEOBENCH_TYPE.$NEOBENCH_FROM_COUNT.$NEOBENCH_TO_COUNT.txs" --disable-stats)
+      ./cmd/bin/bench -o "$OUTPUT" "${ARGS[@]}"&
+      pid=$!
+      wait $pid
+else
+    ARGS+=(-i "/dump.txs")
+    docker compose "${FILES[@]}" run bench neo-bench -o "$OUTPUT" "${ARGS[@]}"
+fi
 make stop

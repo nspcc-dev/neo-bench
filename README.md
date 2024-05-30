@@ -176,6 +176,36 @@ $ ./runner.sh --validators 1 --nodes sharp -d "SharpSingle" -m rate -q 25 -z 5m 
 $ ./runner.sh --nodes mixed -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
 ...
 ```
+## Usage example (local benchmark + external cluster)
+
+NeoBench can be run in a stand-alone mode (loader only) to benchmark some external network. 
+NeoBench expects external network to be launched with the known set of validators and committee (with wallets from `./docker/ir/`)
+and not contain any transactions in the network (to successfully perform initial NEO/GAS transfers). In this setup the 
+loader will be launched as a system process, without Docker container. You have to provide RPS address(-es) of some 
+node from the external network to the loader instance on start. The loader will use the provided RPC to send 
+transactions to the network.
+
+1. Build the benchmark binary file with the following command:
+```
+$ make build
+=> Building Bench image registry.nspcc.ru/neo-bench/neo-bench:bench
+sha256:b08f9fd42198be6c351d725543ac1e451063d18018a738f2446678a0cdf8ee78
+=> Building Go Node image registry.nspcc.ru/neo-bench/neo-go:bench
+sha256:2bf655747dfa06b85ced1ad7f0257128e7261e6d16b2c8087bc16fd27fcb3a6d
+=> Building Sharp Node image registry.nspcc.ru/neo-bench/neo-sharp:bench
+sha256:a6ed753e8f81fedf8a9be556e60c6a41e385dd1ab2c90755ab44e2ceab92bca2
+=> Building Bench binary file
++ export GOGC=off
++ GOGC=off
++ export CGO_ENABLED=0
++ CGO_ENABLED=0
++ go -C cmd build -v -o bin/bench -trimpath ./bench
+```
+
+2. Run benchmarks using the `runner.sh` script with RPC address(-es) of the external network and `--external` flag set:
+```
+$ ./runner.sh -e -d "Go4x1" -m rate -q 1000 -z 5m -t 30s -a 192.168.1.100:20331 -a 192.168.1.101:20331
+```
 
 ## Benchmark usage
 
@@ -307,6 +337,7 @@ The following default configurations are available:
        --msPerBlock                 Protocol setting specifying the minimal (and targeted for) time interval between blocks. Must be an integer number of milliseconds.
                                     The default value is set in configuration templates and is 1s and 5s for single node and multinode setup respectively.
                                     Example: --msPerBlock 3000
+   -e, --external                   Use external network for benchmarking. Default is false. -a flag should be used to specify RPC addresses.
 
 ```
 
@@ -314,6 +345,7 @@ The following default configurations are available:
 
 By default, neo-bench uses released versions of Neo nodes to build Docker images.
 However, you can easily test non-released branches or even separate commits for both Go and C# Neo nodes.
+`--external` flag should be used for external network benchmarks to run the loader in a standalone mode without Docker container.
 
 ### Build Go node image from sources
 
