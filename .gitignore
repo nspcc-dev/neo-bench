@@ -11,3 +11,4 @@ vendor
 .docker/rpc/go.protocol*.yml
 .docker/rpc/sharp.*.json
 .docker/build/*.acc
+cmd/bin/

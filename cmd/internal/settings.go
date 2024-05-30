@@ -95,6 +95,7 @@ func InitSettings() *viper.Viper {
 			"Example: -i ./dump.txs --in /path/to/import/transactions")
 
 	flags.BoolP("vote", "", false, "Vote before the bench.")
+	flags.BoolP("disable-stats", "", false, "Disable memory and CPU usage statistics collection.")
 
 	if err := v.BindPFlags(flags); err != nil {
 		panic(err)

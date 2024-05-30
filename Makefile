@@ -24,7 +24,7 @@ help:
 	@echo ''
 	@awk '/^#/{ comment = substr($$0,3) } comment && /^[a-zA-Z][a-zA-Z0-9_-]+ ?:/{ print "   ", $$1, comment }' $(MAKEFILE_LIST) | column -t -s ':' | grep -v 'IGNORE' | sort | uniq
 
-.PHONY: build prepare push gen build.node.go build.node.sharp stop start config \
+.PHONY: build prepare push gen build.node.go build.node.sharp build.bench stop start config \
 	start.GoSingle10wrk start.GoSingle30wrk start.GoSingle100wrk \
 	start.GoSingle25rate start.GoSingle50rate start.GoSingle60rate start.GoSingle300rate start.GoSingle1000rate \
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
@@ -37,7 +37,15 @@ help:
 	start.SharpFourNodesGoRPC25rate start.SharpFourNodesGoRPC50rate start.SharpFourNodesGoRPC60rate start.SharpFourNodesGoRPC300rate start.SharpFourNodesGoRPC1000rate
 
 # Build all images
-build: gen build.node.bench build.node.go build.node.sharp
+build: gen build.node.bench build.node.go build.node.sharp build.bench
+
+# Build Benchmark binary file
+build.bench:
+	@echo "=> Building Bench binary file"
+	@set -x \
+		&& export GOGC=off \
+		&& export CGO_ENABLED=0 \
+		&& go build -C cmd -v -o bin/bench -trimpath ./bench
 
 # Push all images to registry
 push:
@@ -82,6 +90,8 @@ stop:
 	@docker compose -f $(DC_GO_IR) -f $(DC_GO_7_IR) -f $(DC_GO_RPC) -f $(DC_GO_7_RPC) \
 		-f $(DC_GO_IR_SINGLE) -f $(DC_SINGLE) -f $(DC_SHARP_IR) -f $(DC_SHARP_7_IR) \
 		-f $(DC_SHARP_RPC) -f $(DC_SHARP_7_RPC) -f $(DC_SHARP_IR_SINGLE) down --remove-orphans &> /dev/null
+	@echo "=> Stop Bench process"
+    +       @killall -w -v -INT bench > /dev/null 2>&1 || :
 
 # Check that all images were built
 check.images:
