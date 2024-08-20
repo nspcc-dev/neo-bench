@@ -7,7 +7,6 @@ require (
 	github.com/docker/docker v26.1.4+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/k14s/ytt v0.30.0
-	github.com/mailru/easyjson v0.7.7
 	github.com/moby/moby v25.0.3+incompatible
 	github.com/nspcc-dev/neo-go v0.106.0
 	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20240521091047-78685785716d
@@ -43,7 +42,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/josharian/intern v1.0.0 // indirect
 	github.com/k14s/starlark-go v0.0.0-20200720175618-3a5c849cc368 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
