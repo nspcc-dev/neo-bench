@@ -119,13 +119,8 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 		}(i)
 	}
 
-	// We support both N-to-1 and 1-to-N cases, thus these index calculations.
-	max := len(opts.Senders)
-	if max < opts.ToCount {
-		max = opts.ToCount
-	}
-
-	txR := make([]txRequest, max)
+	// We support both N-to-1 and 1-to-N cases, thus the size is adjusted.
+	txR := make([]txRequest, max(len(opts.Senders), opts.ToCount))
 	for i := range txR {
 		sender := opts.Senders[i%len(opts.Senders)]
 		receiver := opts.Senders[0].GetScriptHash()

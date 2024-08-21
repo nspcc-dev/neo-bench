@@ -1,19 +1,18 @@
 module github.com/nspcc-dev/neo-bench
 
-go 1.20
+go 1.21
 
 require (
-	github.com/Workiva/go-datastructures v1.1.1
-	github.com/docker/docker v26.1.4+incompatible
-	github.com/fatih/color v1.16.0
+	github.com/Workiva/go-datastructures v1.1.5
+	github.com/docker/docker v26.1.5+incompatible
+	github.com/fatih/color v1.17.0
 	github.com/k14s/ytt v0.30.0
-	github.com/mailru/easyjson v0.7.7
-	github.com/moby/moby v25.0.3+incompatible
-	github.com/nspcc-dev/neo-go v0.106.0
-	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20240521091047-78685785716d
+	github.com/moby/moby v26.1.5+incompatible
+	github.com/nspcc-dev/neo-go v0.106.3
+	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20240820093251-dfd4566a04a9
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.18.2
-	github.com/valyala/fasthttp v1.52.0
+	github.com/spf13/viper v1.19.0
+	github.com/valyala/fasthttp v1.55.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -42,10 +41,10 @@ require (
 	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/josharian/intern v1.0.0 // indirect
 	github.com/k14s/starlark-go v0.0.0-20200720175618-3a5c849cc368 // indirect
-	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -61,7 +60,8 @@ require (
 	github.com/onsi/gomega v1.17.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
-	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
+	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
@@ -85,13 +85,13 @@ require (
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
+	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

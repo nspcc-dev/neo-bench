@@ -318,9 +318,7 @@ loop:
 			lastBlockIndx = d.parse(ctx, lastBlockIndx, &lastBlockTime)
 
 			newPeriod := period - time.Since(tickTime)
-			if newPeriod <= 0 {
-				newPeriod = time.Microsecond
-			}
+			newPeriod = max(newPeriod, time.Microsecond)
 			// reset timer:
 			ticker.Reset(newPeriod)
 
