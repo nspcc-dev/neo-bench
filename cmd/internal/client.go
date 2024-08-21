@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
+	"math/rand/v2"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -58,15 +58,14 @@ func NewRPCClient(v *viper.Viper, maxConnsPerHost int) *RPCClient {
 		addresses = append(addresses, "http://"+addr)
 	}
 
-	buf := make([]byte, 8)
+	buf := make([]byte, 16)
 	if _, err := crand.Read(buf); err != nil {
 		log.Fatal("could not initialize randomizer for round robin")
 	}
 
-	src := binary.BigEndian.Uint64(buf)
-	rand.NewSource(int64(src))
+	pcg := rand.New(rand.NewPCG(binary.BigEndian.Uint64(buf[:8]), binary.BigEndian.Uint64(buf[8:])))
 
-	rand.Shuffle(len(addresses), func(i, j int) {
+	pcg.Shuffle(len(addresses), func(i, j int) {
 		addresses[i], addresses[j] = addresses[j], addresses[i]
 	})
 
@@ -97,7 +96,7 @@ func NewRPCClient(v *viper.Viper, maxConnsPerHost int) *RPCClient {
 
 		timeout: timeout,
 	}
-	c.inc.Store(rand.Int31())
+	c.inc.Store(pcg.Int32())
 	return c
 }
 
