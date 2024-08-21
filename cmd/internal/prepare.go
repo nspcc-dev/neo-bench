@@ -210,7 +210,7 @@ func fillChain(ctx context.Context, c *rpcclient.Client, proto result.Protocol, 
 	neoC := neo.NewReader(inv)
 	gasC := gas.NewReader(inv)
 	fs := make([]func() (bool, error), 0, len(opts.Senders)*2)
-	for i := 0; i < len(opts.Senders); i++ {
+	for i := range opts.Senders {
 		addr := opts.Senders[i].GetScriptHash()
 		fs = append(fs,
 			func() (bool, error) {

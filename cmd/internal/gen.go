@@ -112,7 +112,7 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 
 	var wg sync.WaitGroup
 	wg.Add(genWorkerCount)
-	for i := 0; i < genWorkerCount; i++ {
+	for i := range genWorkerCount {
 		go func(i int) {
 			defer wg.Done()
 			genTxWorker(i, txCh[i], result[i])
@@ -152,7 +152,7 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 
 	finishCh := make(chan struct{})
 	go func() {
-		for i := 0; i < count; i++ {
+		for i := range count {
 			if ctx.Err() != nil {
 				log.Fatal(ctx.Err())
 			}
@@ -165,7 +165,7 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 		close(finishCh)
 	}()
 
-	for i := 0; i < count; i++ {
+	for i := range count {
 		r := <-result[i%len(result)]
 
 		err := dump.TransactionsQueue.Put(r.blob)
