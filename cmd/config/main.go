@@ -13,7 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/k14s/ytt/pkg/cmd/template"
+	"carvel.dev/ytt/pkg/cmd/template"
+	"carvel.dev/ytt/pkg/cmd/ui"
+	"carvel.dev/ytt/pkg/files"
 	"github.com/nspcc-dev/neo-go/pkg/config"
 	"gopkg.in/yaml.v2"
 )
@@ -90,12 +92,21 @@ func main() {
 func convertTemplateToPlain(templatePath string, tempDir string, nodeCount int) error {
 	filePath := configPath + templatePath
 	dataPath := configPath + templateDataFile
-	cmd := template.NewCmd(template.NewOptions())
-	cmd.SetArgs([]string{"-f", filePath, "-f", dataPath, "--output-files", tempDir,
-		"--data-value-yaml", "validators_count=" + strconv.FormatInt(int64(nodeCount), 10)})
-	err := cmd.Execute()
+	opts := template.NewOptions()
+	opts.DataValuesFlags.KVsFromYAML = []string{"validators_count=" + strconv.FormatInt(int64(nodeCount), 10)}
+	inFiles, err := files.NewSortedFilesFromPaths([]string{filePath, dataPath}, files.SymlinkAllowOpts{})
 	if err != nil {
 		return err
+	}
+	out := opts.RunWithFiles(template.Input{Files: inFiles}, ui.NewTTY(false))
+	if out.Err != nil {
+		return out.Err
+	}
+	for _, f := range out.Files {
+		err = f.Create(tempDir)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

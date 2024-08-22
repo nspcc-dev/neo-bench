@@ -406,7 +406,7 @@ func (d *doer) Sender(ctx context.Context) {
 
 	start := time.Now()
 
-	for i := 0; i < d.wrkCount; i++ {
+	for range d.wrkCount {
 		go d.worker(ctx, idx, start)
 	}
 

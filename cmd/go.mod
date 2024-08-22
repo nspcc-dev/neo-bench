@@ -1,12 +1,12 @@
 module github.com/nspcc-dev/neo-bench
 
-go 1.21
+go 1.22
 
 require (
+	carvel.dev/ytt v0.49.1
 	github.com/Workiva/go-datastructures v1.1.5
 	github.com/docker/docker v26.1.5+incompatible
 	github.com/fatih/color v1.17.0
-	github.com/k14s/ytt v0.30.0
 	github.com/moby/moby v26.1.5+incompatible
 	github.com/nspcc-dev/neo-go v0.106.3
 	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20240820093251-dfd4566a04a9
@@ -38,11 +38,10 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
-	github.com/hashicorp/go-version v1.2.0 // indirect
+	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/k14s/starlark-go v0.0.0-20200720175618-3a5c849cc368 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -73,7 +72,6 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/cobra v1.5.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954 // indirect
 	github.com/twmb/murmur3 v1.1.8 // indirect
@@ -98,5 +96,3 @@ require (
 	gotest.tools/v3 v3.0.3 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
-
-replace github.com/pkg/errors v0.8.1 => github.com/pkg/errors v0.9.1 // see https://github.com/containerd/containerd/issues/4703#issuecomment-736542317

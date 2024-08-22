@@ -46,7 +46,7 @@ func ReadDump(from string) *Dump {
 
 	start := time.Now()
 	log.Printf("Read %d txs from %s", count, in.Name())
-	for i := uint64(0); i < count; i++ {
+	for i := range count {
 		_ = rd.ReadString()     // hash
 		blob := rd.ReadString() // blob
 

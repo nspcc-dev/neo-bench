@@ -158,7 +158,7 @@ func main() {
 	log.Println("Waiting for an empty block to be processed")
 	startBlockIndex := blk.Index
 	// 10*msPerBlock attempts (need some more time for mixed consensus)
-	for attempt := 0; attempt < 40; attempt++ {
+	for range 40 {
 		blk, err = client.GetLastBlock(ctx)
 		if err != nil {
 			log.Fatalf("could not fetch last block: %v", err)
