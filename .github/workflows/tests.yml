@@ -18,24 +18,9 @@ on:
 
 jobs:
   lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.ref }}
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: 'cmd/go.mod'
-          cache-dependency-path: cmd/go.sum
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: latest
-          working-directory: cmd
+    uses: nspcc-dev/.github/.github/workflows/go-linter.yml@master
+    with:
+      workdir: cmd
 
   codeql:
     name: CodeQL
