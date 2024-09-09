@@ -166,7 +166,7 @@ func (c *RPCClient) GetBlockCount(ctx context.Context) (int, error) {
 	return num, c.doRPCCall(ctx, rpc, &num, c.blockRequester)
 }
 
-func (c *RPCClient) doRPCCall(_ context.Context, call string, result interface{}, client *fasthttp.Client) error {
+func (c *RPCClient) doRPCCall(_ context.Context, call string, result any, client *fasthttp.Client) error {
 	idx := c.inc.Add(1) % c.len
 
 	req, res := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
