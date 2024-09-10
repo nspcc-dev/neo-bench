@@ -190,7 +190,7 @@ func generateSharpConfig(templatePath, storageEngine, suffix string) error {
 	return nil
 }
 
-func writeJSON(path string, obj interface{}) error {
+func writeJSON(path string, obj any) error {
 	bytes, err := json.Marshal(obj)
 	if err != nil {
 		return err

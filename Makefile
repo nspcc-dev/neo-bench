@@ -12,7 +12,7 @@ NEOBENCH_FROM_COUNT ?= 1
 NEOBENCH_TO_COUNT ?= 1
 MS_PER_BLOCK ?= 0
 
-.PHONY: help
+.PHONY: help lint
 
 # Show this help prompt
 help:
@@ -35,6 +35,13 @@ help:
 	start.SharpFourNodes25rate start.SharpFourNodes50rate start.SharpFourNodes60rate start.SharpFourNodes300rate start.SharpFourNodes1000rate \
 	start.SharpFourNodesGoRPC10wrk start.SharpFourNodesGoRPC30wrk start.SharpFourNodesGoRPC100wrk \
 	start.SharpFourNodesGoRPC25rate start.SharpFourNodesGoRPC50rate start.SharpFourNodesGoRPC60rate start.SharpFourNodesGoRPC300rate start.SharpFourNodesGoRPC1000rate
+
+.golangci.yml:
+	wget -O $@ https://github.com/nspcc-dev/.github/raw/master/.golangci.yml
+
+# Lint Go code
+lint: .golangci.yml
+	@cd cmd && golangci-lint run --config ../$<
 
 # Build all images
 build: gen build.node.bench build.node.go build.node.sharp build.bench
