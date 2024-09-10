@@ -6,4 +6,5 @@ on:
 
 jobs:
   dco:
+    name: Sign-off check
     uses: nspcc-dev/.github/.github/workflows/dco.yml@master
