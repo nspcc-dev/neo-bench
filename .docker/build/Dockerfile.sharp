@@ -9,7 +9,7 @@ RUN set -x \
     # APT cleanup to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 as Final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS Final
 
 # arguments to choose version of neo-cli to install
 ARG VERSION="3.7.4"
