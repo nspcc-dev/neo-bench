@@ -226,7 +226,6 @@ func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 	)
 
 	defer func() {
-		timer.Stop()
 		d.waiter.Done()
 	}()
 

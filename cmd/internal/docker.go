@@ -161,10 +161,6 @@ func (s *dockerState) Run(ctx context.Context, cb StatCallback) {
 	done := ctx.Done()
 	tick := time.NewTimer(s.per)
 
-	defer func() {
-		tick.Stop()
-	}()
-
 loop:
 	for {
 		select {
