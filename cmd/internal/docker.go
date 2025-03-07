@@ -127,8 +127,8 @@ func NewStats(ctx context.Context, opts ...StatOption) (DockerStater, error) {
 // Update returns current resource usage by containers.
 func (s *dockerState) Update(ctx context.Context) (cpu, mem float64, err error) {
 	var (
-		result types.ContainerStats
-		stats  types.Stats
+		result container.StatsResponseReader
+		stats  container.Stats
 	)
 
 	for i := range s.cnr {
@@ -181,7 +181,7 @@ loop:
 	}
 }
 
-func usage(s *types.Stats) (cpu, mem float64) {
+func usage(s *container.Stats) (cpu, mem float64) {
 	var (
 		systemDelta = float64(s.CPUStats.SystemUsage - s.PreCPUStats.SystemUsage)
 		cpuDelta    = float64(s.CPUStats.CPUUsage.TotalUsage - s.PreCPUStats.CPUUsage.TotalUsage)
