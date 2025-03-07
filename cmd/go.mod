@@ -1,6 +1,6 @@
 module github.com/nspcc-dev/neo-bench
 
-go 1.22
+go 1.23
 
 require (
 	carvel.dev/ytt v0.49.1
