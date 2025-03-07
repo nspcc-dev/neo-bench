@@ -10,7 +10,7 @@ require (
 	github.com/moby/moby v27.1.1+incompatible
 	github.com/nspcc-dev/neo-go v0.108.1
 	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20241223145456-80e18222bca2
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
 	github.com/valyala/fasthttp v1.55.0
 	gopkg.in/yaml.v2 v2.4.0
