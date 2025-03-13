@@ -21,7 +21,7 @@ on:
 jobs:
   build_image:
     name: Build Bench, GoNode and SharpNode docker images
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
           cache-dependency-path: cmd/go.sum
 
       - name: Build

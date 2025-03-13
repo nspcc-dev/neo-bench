@@ -51,7 +51,7 @@ jobs:
 
   tests:
     name: Run tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         benchmarks: [ 'GoSingle10wrk', 'SharpSingle10wrk', 'MixedFourNodesGoRPC50rate' ]
