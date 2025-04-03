@@ -2,7 +2,7 @@
 
 maxDelayBlocks=10
 # shellcheck disable=SC2155
-export port=$(jq -r '.PluginConfiguration.Servers[0].Port' </neo-cli/Plugins/RpcServer/config.json)
+export port=$(jq -r '.PluginConfiguration.Servers[0].Port' </neo-cli/Plugins/RpcServer/RpcServer.json)
 export host=127.0.0.1
 export addr=${host}:${port}
 echo curl -s -X POST "http://$addr" -H 'Content-Type: application/json' -d '{ "jsonrpc": "2.0", "id": 5, "method": "getblockcount", "params": [] }'
