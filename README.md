@@ -364,75 +364,23 @@ ARG REV="v0.91.0"
 $   make build
 ```
 
-### Build C# node image from sources [preferable way]
+### Build C# node image from sources
 
-Use this to test non-released version of C# node.
-Here we build all the neo, neo-vm, neo-node and neo-modules projects with their MyGet dependencies and then
-replace neo, neo-vm and neo-modules binaries from neo-cli by the built ones.
- 
-1. Set `DF_SHARP` variable of [neo-bench Makefile](https://github.com/nspcc-dev/neo-bench/blob/master/Makefile#L17)
-to `.docker/build/Dockerfile.sharp.sources.from_binaries`. It is necessary because neo-bench have three separate Dockerfiles to build C#
-Neo node image from release and from sources.
-
-2. Set `CLIBRANCH`, `MODULESBRANCH`, `NEOVMBRANCH` and `NEOBRANCH` variables of 
-[C# node-sources Dockerfile](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L12)
-to the desired branch, tag or commit from the corresponding repositories. Refer the following table for the variables meaning:
-
-    | Variable | Purpose | Example |
-    | --- | --- | --- |
-    | [`CLIBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L12) | Branch, tag or commit from [C# neo-node github repository](https://github.com/neo-project/neo-node) to build neo-cli from the source code | `ENV CLIBRANCH="v3.0.0-preview3"` |
-    | [`MODULESBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L24) | Branch, tag or commit from [C# neo-modules github repository](https://github.com/neo-project/neo-modules) to build node Plugins from the source code | `ENV MODULESBRANCH="v3.0.0-preview3-00"` |
-    | [`NEOVMBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L46) | Branch, tag or commit from [C# neo-vm github repository](https://github.com/neo-project/neo-vm) to build neo VM (Neo.VM.dll) from the source code | `ENV NEOVMBRANCH="v3.0.0-preview3"` |
-    | [`NEOBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L54) | Branch, tag or commit from [C# neo github repository](https://github.com/neo-project/neo/) to build neo itself (Neo.dll) from the source code | `ENV NEOBRANCH="v3.0.0-preview3"` |
-
-3. C# node image includes `LevellDBStore`, `BadgerDBStore` and `RpcServer` Plugins by default. If you need to install other 
-Plugins, add desired Plugin name to [`MODULES`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L25) 
-variable of C# node-sources Dockerfile. This will use `dotnet build` command to build the specified plugin without dependencies.
-If you need to build plugin with dependant .dll-s, refer to [this section](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L35-L43)
-of C# node-sources Dockerfile.
-
-4. ***Please, be careful while choosing branch, tag or commit on step 2.*** It is possible that one of the `neo-cli`, `neo-modules`, `neo` or `neo-vm` versions
- is incompatible with the others. For example, some method required for `neo.dll` from master-branch is missing in `neo-vm.dll` from v3.0.0-preview3-branch. In this
- case you either have to provide the compatible `neo-vm` branch via [`NEOVMBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L46)
- variable *or* provide `neo-vm.dll` from the dependencies of built `neo` (not from built `neo-vm`) by editing 
- [these sections](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_binaries#L89-L105) of C# node-sources Dockerfile.
-
-5. Build C# Neo node image with the following command:
-   ```
-   $   make build
-   ```
-
-### Build C# node image from sources [honest way]
-
-This way is slightly different from the previous one. Here we bring all necessary projects together in a separate
-`neo-project` folder and replace `PackageReferences` by `ProjectReferences` to the local projects.
+Use this way to test non-released version of C# node. Here we build all the neo, neo-vm, neo-node and neo-modules
+projects with their MyGet dependencies from the source commit.
 
 1. Set `DF_SHARP` variable of [neo-bench Makefile](https://github.com/nspcc-dev/neo-bench/blob/master/Makefile#L18)
-to `.docker/build/Dockerfile.sharp.sources.from_local_dependencies`.
+to `.docker/build/Dockerfile.sharp.sources`.
 
-2. Set `CLIBRANCH`, `MODULESBRANCH`, `NEOVMBRANCH` and `NEOBRANCH` variables of 
-[C# node-sources Dockerfile](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L23)
-to the desired branch, tag or commit from the corresponding repositories. Refer the following table for the variables meaning:
+2. Set `REVISION` environmental variable of
+[C# node sources Dockerfile](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources#L12)
+to the desired branch, tag or commit from the neo-project/neo GitHub repository.
 
-    | Variable | Purpose | Example |
-    | --- | --- | --- |
-    | [`CLIBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L23) | Branch, tag or commit from [C# neo-node github repository](https://github.com/neo-project/neo-node) to build neo-cli from the source code | `ENV CLIBRANCH="v3.0.0-preview3"` |
-    | [`MODULESBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L24) | Branch, tag or commit from [C# neo-modules github repository](https://github.com/neo-project/neo-modules) to build node Plugins from the source code | `ENV MODULESBRANCH="v3.0.0-preview3-00"` |
-    | [`NEOVMBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L26) | Branch, tag or commit from [C# neo-vm github repository](https://github.com/neo-project/neo-vm) to build neo VM (Neo.VM.dll) from the source code | `ENV NEOVMBRANCH="v3.0.0-preview3"` |
-    | [`NEOBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L27) | Branch, tag or commit from [C# neo github repository](https://github.com/neo-project/neo/) to build neo itself (Neo.dll) from the source code | `ENV NEOBRANCH="v3.0.0-preview3"` |
+3. C# node image includes `LevelDBStore`, `DBFTPlugin` and `RpcServer` plugins by default. If you need to install other
+plugins, add desired plugin name to [`MODULES`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources#L19)
+variable of C# node-sources Dockerfile. This will use `dotnet build` command to build the specified plugin.
 
-3. C# node image includes `LevellDBStore`, `BadgerDBStore` and `RpcServer` Plugins by default. If you need to install other 
-Plugins, add desired Plugin name to [`MODULES`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L25) 
-variable of C# node-sources Dockerfile. This will use `dotnet build` command to build the specified plugin without dependencies.
-If you need to build plugin with dependant .dll-s, refer to [this section](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L62-L66)
-of C# node-sources Dockerfile.
-
-4. ***Please, be careful while choosing branch, tag or commit on step 2.*** It is possible that one of the `neo-cli`, `neo-modules`, `neo` or `neo-vm` versions
- is incompatible with the others. For example, some method required for `neo.dll` from master-branch is missing in `neo-vm.dll` from v3.0.0-preview3-branch. In this
- case you have to provide the compatible `neo-vm` branch via [`NEOVMBRANCH`](https://github.com/nspcc-dev/neo-bench/blob/master/.docker/build/Dockerfile.sharp.sources.from_local_dependencies#L26)
- variable.
-
-5. Build C# Neo node image with the following command:
+4. Build C# Neo node image with the following command:
    ```
    $   make build
    ```
