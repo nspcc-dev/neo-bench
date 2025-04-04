@@ -426,6 +426,7 @@ NEOBENCH_VOTE|Vote for validators before the bench| empty   |`1` or empty
 
 For MacOS NEOBENCH_LOGGER should be set to `json-file` as `journald` and
 `syslog` are not supported by this architecture.
+
 ## Benchmark results visualisation
 
 There's a Python plotting script available for benchmark data visualisation. 
