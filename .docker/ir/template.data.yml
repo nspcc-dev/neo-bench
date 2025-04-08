@@ -1,6 +1,12 @@
 #@data/values
 ---
 validators_count: 4
+enable_hardforks: true
+hardforks:
+  a: 0
+  b: 0
+  c: 0
+  d: 0
 nodes_info:
 #! the first position in nodes_info list is reserved for the single-node configuration
   - node_name: single

@@ -43,4 +43,17 @@
         #@ end
     #@ end
     MaxTransactionsPerBlock: 65535
+    #@ if data.values.enable_hardforks:
+    Hardforks:
+      #@ if/end hasattr(data.values.hardforks, "a"):
+      HF_Aspidochelone: #@ data.values.hardforks.a
+      #@ if/end hasattr(data.values.hardforks, "b"):
+      HF_Basilisk: #@ data.values.hardforks.b
+      #@ if/end hasattr(data.values.hardforks, "c"):
+      HF_Cockatrice: #@ data.values.hardforks.c
+      #@ if/end hasattr(data.values.hardforks, "d"):
+      HF_Domovoi: #@ data.values.hardforks.d
+      #@ if/end hasattr(data.values.hardforks, "e"):
+      HF_Echidna: #@ data.values.hardforks.e
+    #@ end
 #@ end
