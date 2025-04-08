@@ -28,6 +28,19 @@ ProtocolConfiguration:
   MaxTransactionsPerBlock: 65535
   MaxBlockSize: 16777216
   MaxBlockSystemFee: 1600000000000
+  #@ if data.values.enable_hardforks:
+  Hardforks:
+    #@ if/end hasattr(data.values.hardforks, "a"):
+    Aspidochelone: #@ data.values.hardforks.a
+    #@ if/end hasattr(data.values.hardforks, "b"):
+    Basilisk: #@ data.values.hardforks.b
+    #@ if/end hasattr(data.values.hardforks, "c"):
+    Cockatrice: #@ data.values.hardforks.c
+    #@ if/end hasattr(data.values.hardforks, "d"):
+    Domovoi: #@ data.values.hardforks.d
+    #@ if/end hasattr(data.values.hardforks, "e"):
+    Echidna: #@ data.values.hardforks.e
+  #@ end
 
 ApplicationConfiguration:
   SkipBlockVerification: false

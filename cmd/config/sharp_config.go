@@ -38,13 +38,14 @@ type UnlockWallet struct {
 }
 
 type ProtocolConfiguration struct {
-	Network                   uint32   `yaml:"Network"`
-	MaxTransactionsPerBlock   int32    `yaml:"MaxTransactionsPerBlock"`
-	MillisecondsPerBlock      int      `yaml:"MillisecondsPerBlock"`
-	ValidatorsCount           int      `yaml:"ValidatorsCount"`
-	MemoryPoolMaxTransactions int      `yaml:"MemoryPoolMaxTransactions"`
-	StandbyCommittee          []string `yaml:"StandbyCommittee"`
-	SeedList                  []string `yaml:"SeedList"`
+	Network                   uint32         `yaml:"Network"`
+	MaxTransactionsPerBlock   int32          `yaml:"MaxTransactionsPerBlock"`
+	MillisecondsPerBlock      int            `yaml:"MillisecondsPerBlock"`
+	ValidatorsCount           int            `yaml:"ValidatorsCount"`
+	MemoryPoolMaxTransactions int            `yaml:"MemoryPoolMaxTransactions"`
+	StandbyCommittee          []string       `yaml:"StandbyCommittee"`
+	SeedList                  []string       `yaml:"SeedList"`
+	Hardforks                 map[string]int `yaml:"Hardforks,omitempty" json:"Hardforks,omitempty"`
 }
 
 type SharpTemplate struct {
