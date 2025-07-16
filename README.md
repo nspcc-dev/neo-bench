@@ -178,12 +178,14 @@ $ ./runner.sh --nodes mixed -d "MixedGoRPC4x1" -m rate -q 50 -z 5m -t 30s
 ```
 ## Usage example (local benchmark + external cluster)
 
-NeoBench can be run in a stand-alone mode (loader only) to benchmark some external network. 
-NeoBench expects external network to be launched with the known set of validators and committee (with wallets from `./docker/ir/`)
-and not contain any transactions in the network (to successfully perform initial NEO/GAS transfers). In this setup the 
-loader will be launched as a system process, without Docker container. You have to provide RPS address(-es) of some 
-node from the external network to the loader instance on start. The loader will use the provided RPC to send 
-transactions to the network.
+NeoBench can be run in a stand-alone mode (loader only) to benchmark some
+external network. NeoBench expects external network to be launched with the
+known set of validators and committee (with wallets from `./docker/ir/`) and do
+not contain any transactions in the network (to successfully perform initial
+NEO/GAS transfers). In this setup the loader will be launched as a system
+process, without Docker container. You have to provide endpoint(-s) of RPC
+node(-s) from the external network to the loader instance on start. The loader
+will use the provided RPC endpoints to send transactions to the network.
 
 1. Build the benchmark binary file with the following command:
 ```
@@ -202,7 +204,8 @@ sha256:a6ed753e8f81fedf8a9be556e60c6a41e385dd1ab2c90755ab44e2ceab92bca2
 + go -C cmd build -v -o bin/bench -trimpath ./bench
 ```
 
-2. Run benchmarks using the `runner.sh` script with RPC address(-es) of the external network and `--external` flag set:
+2. Run benchmarks using the `runner.sh` script with RPC address(-es) of the
+   external network and `--external` flag set:
 ```
 $ ./runner.sh -e -d "Go4x1" -m rate -q 1000 -z 5m -t 30s -a 192.168.1.100:20331 -a 192.168.1.101:20331
 ```
