@@ -8,12 +8,12 @@ require (
 	github.com/docker/docker v27.1.1+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/moby/moby v27.1.1+incompatible
-	github.com/nspcc-dev/neo-go v0.110.0
+	github.com/nspcc-dev/neo-go v0.110.1-0.20250715054439-d5a5706b4f8c
 	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20250423172732-0e55bd820115
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
 	github.com/valyala/fasthttp v1.59.0
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -95,7 +95,6 @@ require (
 	google.golang.org/grpc v1.70.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.0.3 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
