@@ -215,10 +215,16 @@ func fillChain(ctx context.Context, c *rpcclient.Client, proto result.Protocol, 
 		fs = append(fs,
 			func() (bool, error) {
 				b, err := neoC.BalanceOf(addr)
+				if err != nil {
+					return false, err
+				}
 				return b.Sign() > 0, err
 			},
 			func() (bool, error) {
 				b, err := gasC.BalanceOf(addr)
+				if err != nil {
+					return false, err
+				}
 				return b.Sign() > 0, err
 			})
 	}
