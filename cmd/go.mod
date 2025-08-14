@@ -5,7 +5,7 @@ go 1.23
 require (
 	carvel.dev/ytt v0.50.0
 	github.com/Workiva/go-datastructures v1.1.5
-	github.com/docker/docker v27.1.1+incompatible
+	github.com/docker/docker v28.0.0+incompatible
 	github.com/fatih/color v1.17.0
 	github.com/moby/moby v27.1.1+incompatible
 	github.com/nspcc-dev/neo-go v0.110.1-0.20250715054439-d5a5706b4f8c
