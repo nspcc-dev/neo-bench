@@ -127,7 +127,7 @@ func NewStats(ctx context.Context, opts ...StatOption) (DockerStater, error) {
 func (s *dockerState) Update(ctx context.Context) (cpu, mem float64, err error) {
 	var (
 		result container.StatsResponseReader
-		stats  container.Stats
+		stats  container.StatsResponse
 	)
 
 	for i := range s.cnr {
@@ -180,7 +180,7 @@ loop:
 	}
 }
 
-func usage(s *container.Stats) (cpu, mem float64) {
+func usage(s *container.StatsResponse) (cpu, mem float64) {
 	var (
 		systemDelta = float64(s.CPUStats.SystemUsage - s.PreCPUStats.SystemUsage)
 		cpuDelta    = float64(s.CPUStats.CPUUsage.TotalUsage - s.PreCPUStats.CPUUsage.TotalUsage)
