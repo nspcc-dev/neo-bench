@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/nspcc-dev/neo-bench/internal"
 )
 
@@ -100,7 +100,7 @@ func main() {
 			internal.StatEnableLogger(),
 			internal.StatPeriod(statsPeriod),
 			internal.StatCriteria([]string{"stats"}),
-			internal.StatListVerifier(func(list []types.Container) error {
+			internal.StatListVerifier(func(list []container.Summary) error {
 				if len(list) == 0 {
 					return errors.New("containers not found by criteria")
 				}

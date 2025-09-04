@@ -10,7 +10,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/moby/moby/client"
@@ -21,7 +20,7 @@ type (
 		enableLogger bool
 		criteria     []string
 		period       time.Duration
-		verifier     func([]types.Container) error
+		verifier     func([]container.Summary) error
 	}
 
 	// DockerStater interface.
@@ -35,7 +34,7 @@ type (
 
 		per time.Duration
 		cli *client.Client
-		cnr []types.Container
+		cnr []container.Summary
 	}
 
 	// StatOption is an option type to configure docker state.
@@ -67,7 +66,7 @@ func StatPeriod(dur time.Duration) StatOption {
 }
 
 // StatListVerifier sets containers list verifier.
-func StatListVerifier(verifier func([]types.Container) error) StatOption {
+func StatListVerifier(verifier func([]container.Summary) error) StatOption {
 	return func(p *dockerStateParams) {
 		if p.verifier == nil {
 			return
@@ -80,7 +79,7 @@ func StatListVerifier(verifier func([]types.Container) error) StatOption {
 // NewStats creates new DockerStater, to fetch resource usage by containers.
 func NewStats(ctx context.Context, opts ...StatOption) (DockerStater, error) {
 	p := &dockerStateParams{
-		verifier: func(_ []types.Container) error { return nil },
+		verifier: func(_ []container.Summary) error { return nil },
 	}
 
 	for i := range opts {
