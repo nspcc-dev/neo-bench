@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand/v2"
 	"strings"
 	"sync/atomic"
@@ -59,9 +58,7 @@ func NewRPCClient(v *viper.Viper, maxConnsPerHost int) *RPCClient {
 	}
 
 	buf := make([]byte, 16)
-	if _, err := crand.Read(buf); err != nil {
-		log.Fatal("could not initialize randomizer for round robin")
-	}
+	_, _ = crand.Read(buf)
 
 	pcg := rand.New(rand.NewPCG(binary.BigEndian.Uint64(buf[:8]), binary.BigEndian.Uint64(buf[8:])))
 
