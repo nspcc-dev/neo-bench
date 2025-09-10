@@ -1,5 +1,5 @@
-carvel.dev/ytt v0.50.0 h1:otS2H45ya406sikV17k9FP9Xo0MOVwbHByuA+cPvc4E=
-carvel.dev/ytt v0.50.0/go.mod h1:qnB4lXG2eR1F8f9sid21DYzU8hFGFAx/7HO2pvUysHk=
+carvel.dev/ytt v0.51.2 h1:g4zjw99F6drrqJNElm5XC1Wo1B/EBAAf4A/AVTfqbwg=
+carvel.dev/ytt v0.51.2/go.mod h1:niVHGIX/6R4qy5e9U5s19qUbwNGBTStaExwCVUPSGdo=
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 h1:L/gRVlceqvL25UVaW/CKtUDjefjrs0SPonmDGUVOYP0=

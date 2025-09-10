@@ -3,7 +3,7 @@ module github.com/nspcc-dev/neo-bench
 go 1.24
 
 require (
-	carvel.dev/ytt v0.50.0
+	carvel.dev/ytt v0.51.2
 	github.com/Workiva/go-datastructures v1.1.5
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/fatih/color v1.17.0
