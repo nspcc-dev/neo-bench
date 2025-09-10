@@ -7,7 +7,7 @@ require (
 	github.com/Workiva/go-datastructures v1.1.6
 	github.com/docker/docker v28.4.0+incompatible
 	github.com/fatih/color v1.18.0
-	github.com/moby/moby v27.1.1+incompatible
+	github.com/moby/moby v28.4.0+incompatible
 	github.com/nspcc-dev/neo-go v0.110.1-0.20250715054439-d5a5706b4f8c
 	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20250423172732-0e55bd820115
 	github.com/spf13/pflag v1.0.6
