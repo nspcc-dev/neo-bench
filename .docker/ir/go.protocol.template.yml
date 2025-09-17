@@ -3,6 +3,7 @@
 ---
 ProtocolConfiguration:
   Magic: 56753
+  MaxValidUntilBlockIncrement: 86400
   #@ if data.values.nodes_info[i].node_name == "single":
   MemPoolSize: 50000
   TimePerBlock: 1s
