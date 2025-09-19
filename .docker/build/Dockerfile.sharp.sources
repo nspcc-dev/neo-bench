@@ -9,14 +9,14 @@ RUN set -x \
 
 # Publish neo-cli from source as a self-contained deployment into /neo-cli folder (all dependant .dlls are included).
 # See https://docs.microsoft.com/ru-ru/dotnet/core/deploying/#publish-self-contained for details.
-ENV REVISION="b204fd1b8f8c578fb92d4997458680b988848722"
+ENV REVISION="afe7e060b4c9bd5981deab36dda70175558d5d41"
 RUN wget -O /tmp/neo-cli.zip https://github.com/neo-project/neo/archive/${REVISION}.zip && \
     unzip -q -d /tmp/neo-node/ /tmp/neo-cli.zip && \
     dotnet publish -c Release --framework net9.0 -o /neo-cli /tmp/neo-node/*/src/Neo.CLI && \
     mkdir /neo-cli/Plugins
 
 # Publish required neo-modules and move them into corresponding neo-cli/Plugins folder.
-ENV MODULES="LevelDBStore DBFTPlugin RpcServer"
+ENV MODULES="LevelDBStore DBFTPlugin RpcServer StateService StorageDumper ApplicationLogs"
 # StateService StorageDumper ApplicationLogs
 RUN for mod in ${MODULES}; do \
         dotnet publish -c Release --framework net9.0 /tmp/neo-node/*/src/Plugins/${mod}/; \
@@ -61,8 +61,8 @@ COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
 COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/RpcServer.json
 COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/DBFTPlugin.json
-#COPY ./sharp.stateservice.config.json /neo-cli/Plugins/StateService/StateService.json
-#COPY ./sharp.storagedumper.config.json /neo-cli/Plugins/StorageDumper/StorageDumper.json
-#COPY ./sharp.applicationlogs.config.json /neo-cli/Plugins/ApplicationLogs/ApplicationLogs.json
+COPY ./sharp.stateservice.config.json /neo-cli/Plugins/StateService/StateService.json
+COPY ./sharp.storagedumper.config.json /neo-cli/Plugins/StorageDumper/StorageDumper.json
+COPY ./sharp.applicationlogs.config.json /neo-cli/Plugins/ApplicationLogs/ApplicationLogs.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
