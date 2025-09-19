@@ -1,28 +1,16 @@
-# NEO private network - Dockerfile
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS Build
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 
-RUN set -x \
-    && apt-get update \
-    && apt-get install -y \
-        unzip \
-        wget \
-    # APT cleanup to reduce image size
-    && rm -rf /var/lib/apt/lists/*
+# Version of neo-cli release binary.
+ARG VERSION="3.9.2"
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS Final
-
-# arguments to choose version of neo-cli to install
-ARG VERSION="3.7.4"
-
-# Frontend non-interactive
-ENV DEBIAN_FRONTEND noninteractive
+# Frontend non-interactive.
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Disable dotnet usage information collection
 # https://docs.microsoft.com/en-us/dotnet/core/tools/telemetry#behavior
-ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# Install system dependencies. always should be done in one line
-# https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#run
+# Install system dependencies.
 RUN set -x \
     && apt-get update \
     && apt-get install -y \
@@ -41,38 +29,39 @@ RUN set -x \
 
 # Download, add and decompress the neo-cli package. At the end, delete the zip file.
 # $VERSION is a build argument
-ENV URL="https://github.com/neo-project/neo/releases/download/v${VERSION}/neo-cli-linux-x64.zip"
-RUN wget -O /opt/neo-cli.zip ${URL} && \
+ENV URL="https://github.com/neo-project/neo-node/releases/download/v${VERSION}"
+RUN wget -O /opt/neo-cli.zip ${URL}/neo-cli-linux-x64.zip && \
     unzip -q -d /tmp /opt/neo-cli.zip && \
     mkdir /neo-cli && \
-    mv /tmp/neo-cli-linux-x64/* /neo-cli && \
-    rm -r /tmp/neo-cli-linux-x64 && \
+    mv /tmp/neo-cli/* /neo-cli && \
+    rm -r /tmp/neo-cli && \
     rm /opt/neo-cli.zip
 
-ENV MODULES="DBFTPlugin RocksDBStore LevelDBStore RpcServer"
-# RocksDBStore SimplePolicy ApplicationLogs StatesDumper"
-ENV URL="https://github.com/neo-project/neo-modules/releases/download/v${VERSION}"
+ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
+# RocksDBStore ApplicationLogs StorageDumper StateService"
 
 # Download, add and decompress version-dependant plugin packages. At the end, delete the zip files.
 RUN for mod in ${MODULES}; do \
         wget -O /tmp/${mod}.zip ${URL}/${mod}.zip; \
-        unzip -q -d /neo-cli /tmp/${mod}.zip; \
+        unzip -q -d /tmp/${mod} /tmp/${mod}.zip; \
+        mv /tmp/${mod}/Plugins/${mod} /neo-cli/Plugins; \
+        rm -r /tmp/${mod}; \
         rm /tmp/${mod}.zip; \
     done
 
 # A welcome message for bash users
-RUN echo "printf \"\n* Please report issues to https://github.com/CityOfZion/neo-local\n\n\"" >> /root/.bashrc
+RUN echo "printf \"\n* Please report issues to https://github.com/nspcc-dev/neo-bench\n\n\"" >> /root/.bashrc
 
 WORKDIR /neo-cli
 
 RUN chmod +x /neo-cli/neo-cli
 
-
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh
-COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/config.json
-COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/config.json
-#COPY ./sharp.statesdumper.config.json /neo-cli/Plugins/StatesDumper/config.json
-#COPY ./sharp.applicationlogs.config.json /neo-cli/Plugins/ApplicationLogs/config.json
+COPY ./sharp.rpc.config.json /neo-cli/Plugins/RpcServer/RpcServer.json
+COPY ./sharp.dbft.config.json /neo-cli/Plugins/DBFTPlugin/DBFTPlugin.json
+#COPY ./sharp.stateservice.config.json /neo-cli/Plugins/StateService/StateService.json
+#COPY ./sharp.storagedumper.config.json /neo-cli/Plugins/StorageDumper/StorageDumper.json
+#COPY ./sharp.applicationlogs.config.json /neo-cli/Plugins/ApplicationLogs/ApplicationLogs.json
 
 ENTRYPOINT [ "/entrypoint.sh" ]
