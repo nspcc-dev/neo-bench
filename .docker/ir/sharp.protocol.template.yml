@@ -21,6 +21,7 @@
     PluginURL: https://github.com/neo-project/neo-plugins/releases/download/v{1}/{0}.zip
   ProtocolConfiguration:
     Network: 56753
+    MaxValidUntilBlockIncrement: 86400
     #@ if data.values.nodes_info[i].node_name == "single":
     MillisecondsPerBlock: 1000
     MemoryPoolMaxTransactions: 50000
@@ -55,5 +56,7 @@
       HF_Domovoi: #@ data.values.hardforks.d
       #@ if/end hasattr(data.values.hardforks, "e"):
       HF_Echidna: #@ data.values.hardforks.e
+      #@ if/end hasattr(data.values.hardforks, "f"):
+      HF_Faun: #@ data.values.hardforks.f
     #@ end
 #@ end
