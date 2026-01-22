@@ -41,7 +41,10 @@ ProtocolConfiguration:
     Domovoi: #@ data.values.hardforks.d
     #@ if/end hasattr(data.values.hardforks, "e"):
     Echidna: #@ data.values.hardforks.e
-  #@ end
+    #@ if/end hasattr(data.values.hardforks, "f"):
+    Faun: #@ data.values.hardforks.f
+
+#@ end
 
 ApplicationConfiguration:
   SkipBlockVerification: false
