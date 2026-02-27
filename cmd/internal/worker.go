@@ -212,8 +212,6 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 		parsedBlocks: make(map[int]struct{}),
 	}
 
-	w.waiter.Add(w.wrkCount)
-
 	return w, nil
 }
 
@@ -224,10 +222,6 @@ func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 		timer          = time.NewTimer(d.timeLimit)
 		localTxCounter int64
 	)
-
-	defer func() {
-		d.waiter.Done()
-	}()
 
 loop:
 	for {
@@ -406,7 +400,9 @@ func (d *doer) Sender(ctx context.Context) {
 	start := time.Now()
 
 	for range d.wrkCount {
-		go d.worker(ctx, idx, start)
+		d.waiter.Go(func() {
+			d.worker(ctx, idx, start)
+		})
 	}
 
 	d.waiter.Wait()

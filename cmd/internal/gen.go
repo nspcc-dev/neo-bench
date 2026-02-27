@@ -111,12 +111,10 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(genWorkerCount)
 	for i := range genWorkerCount {
-		go func(i int) {
-			defer wg.Done()
+		wg.Go(func() {
 			genTxWorker(i, txCh[i], result[i])
-		}(i)
+		})
 	}
 
 	// We support both N-to-1 and 1-to-N cases, thus the size is adjusted.
