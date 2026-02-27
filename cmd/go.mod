@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v28.4.0+incompatible
 	github.com/fatih/color v1.18.0
 	github.com/moby/moby v28.4.0+incompatible
-	github.com/nspcc-dev/neo-go v0.116.0
+	github.com/nspcc-dev/neo-go v0.117.0
 	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20260121113504-979d1f4aada1
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
