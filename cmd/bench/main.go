@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
@@ -173,9 +172,6 @@ func main() {
 	}
 
 	log.Printf("Started test from block = %v at unix time = %v", blk.Index, blk.Timestamp)
-
-	wg := new(sync.WaitGroup)
-	wg.Add(1)
 
 	go wrk.Parser(ctx, blk)
 	go wrk.Sender(ctx)
