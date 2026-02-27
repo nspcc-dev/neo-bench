@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	carvel.dev/ytt v0.52.2
-	github.com/Workiva/go-datastructures v1.1.6
+	github.com/Workiva/go-datastructures v1.1.7
 	github.com/docker/docker v28.4.0+incompatible
 	github.com/fatih/color v1.18.0
 	github.com/moby/moby v28.4.0+incompatible
