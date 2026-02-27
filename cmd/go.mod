@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/moby/moby v28.5.2+incompatible
 	github.com/nspcc-dev/neo-go v0.117.0
-	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20260121113504-979d1f4aada1
+	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20260226134506-d9d26157b697
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/valyala/fasthttp v1.65.0
