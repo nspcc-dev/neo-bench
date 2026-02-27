@@ -166,10 +166,7 @@ func fillChain(ctx context.Context, c *rpcclient.Client, proto result.Protocol, 
 		return err
 	}
 
-	timeout := 3 * time.Duration(proto.MillisecondsPerBlock) * time.Millisecond
-	if timeout < minAwaitThreshold {
-		timeout = minAwaitThreshold
-	}
+	timeout := max(3*time.Duration(proto.MillisecondsPerBlock)*time.Millisecond, minAwaitThreshold)
 
 	var neoHash, gasHash, mgmtHash util.Uint160
 	for i := range cs {
