@@ -73,6 +73,7 @@ ApplicationConfiguration:
   Relay: true
   RPC:
     Enabled: true
+    DirectRelay: true
     EnableCORSWorkaround: false
     Addresses:
       - #@ ":{}".format(data.values.nodes_info[i].node_rpc_port)
