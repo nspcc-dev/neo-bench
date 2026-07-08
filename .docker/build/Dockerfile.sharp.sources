@@ -56,8 +56,8 @@ RUN mkdir /Plugins && \
         dotnet build -c Release /neo-project/neo-node/plugins/${mod}/; \
 	    mkdir /Plugins/${mod}; \
         cp /neo-project/neo-node/plugins/${mod}/bin/Release/net10.0/${mod}.dll /Plugins/${mod}; \
-        if [ ${mod} == "StateService" ]; then \
-            cp /neo-project/neo-node/plugins/${mod}/bin/Release/net10.0/MPTTrie.dll /Plugins/${mod}; \
+        if [ "${mod}" = "StateService" ]; then \
+            cp /neo-project/neo-node/plugins/MPTTrie/bin/Release/net10.0/MPTTrie.dll /Plugins/${mod}; \
         fi; \
     done
 
