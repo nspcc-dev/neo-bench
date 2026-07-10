@@ -8,8 +8,8 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/fatih/color v1.18.0
 	github.com/moby/moby v28.5.2+incompatible
-	github.com/nspcc-dev/neo-go v0.119.0
-	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20260303143317-87ace720748a
+	github.com/nspcc-dev/neo-go v0.121.0
+	github.com/nspcc-dev/neo-go/pkg/interop v0.0.0-20260609115526-14bc7067ea2e
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/valyala/fasthttp v1.69.0
