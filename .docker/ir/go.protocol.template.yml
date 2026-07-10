@@ -43,6 +43,9 @@ ProtocolConfiguration:
     Echidna: #@ data.values.hardforks.e
     #@ if/end hasattr(data.values.hardforks, "f"):
     Faun: #@ data.values.hardforks.f
+    #@ if/end hasattr(data.values.hardforks, "g"):
+    Gorgon: #@ data.values.hardforks.g
+
 
 #@ end
 

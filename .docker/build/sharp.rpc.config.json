@@ -3,7 +3,6 @@
     "UnhandledExceptionPolicy": "Ignore",
     "Servers": [
       {
-        "Network": 56753,
         "BindAddress": "0.0.0.0",
         "Port": 20331,
         "SslCert": "",

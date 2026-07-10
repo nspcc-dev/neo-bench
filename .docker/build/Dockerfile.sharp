@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 
 # Version of neo-cli release binary.
-ARG VERSION="3.9.2"
+ARG VERSION="3.10.1"
 
 # Frontend non-interactive.
 ENV DEBIAN_FRONTEND=noninteractive
@@ -15,6 +15,7 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y \
         unzip \
+        tar \
         libleveldb-dev \
         wget \
         curl \
@@ -30,12 +31,11 @@ RUN set -x \
 # Download, add and decompress the neo-cli package. At the end, delete the zip file.
 # $VERSION is a build argument
 ENV URL="https://github.com/neo-project/neo-node/releases/download/v${VERSION}"
-RUN wget -O /opt/neo-cli.zip ${URL}/neo-cli-linux-x64.zip && \
-    unzip -q -d /tmp /opt/neo-cli.zip && \
-    mkdir /neo-cli && \
-    mv /tmp/neo-cli/* /neo-cli && \
-    rm -r /tmp/neo-cli && \
-    rm /opt/neo-cli.zip
+RUN wget -O /opt/neo-cli.tar.gz ${URL}/neo-cli.v${VERSION}-linux-x64.tar.gz \
+    && mkdir /neo-cli \
+    && tar -xvzf /opt/neo-cli.tar.gz --strip-components=1 -C /neo-cli \
+    && chmod +x /neo-cli/neo-cli \
+    && rm /opt/neo-cli.tar.gz
 
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
 # RocksDBStore ApplicationLogs StorageDumper StateService"
@@ -53,8 +53,6 @@ RUN for mod in ${MODULES}; do \
 RUN echo "printf \"\n* Please report issues to https://github.com/nspcc-dev/neo-bench\n\n\"" >> /root/.bashrc
 
 WORKDIR /neo-cli
-
-RUN chmod +x /neo-cli/neo-cli
 
 COPY ./sharp.entrypoint.sh /entrypoint.sh
 COPY ./sharp.healthcheck.sh /healthcheck.sh

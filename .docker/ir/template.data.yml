@@ -9,6 +9,7 @@ hardforks:
   d: 0
   e: 0
   f: 0
+  g: 0
 nodes_info:
 #! the first position in nodes_info list is reserved for the single-node configuration
   - node_name: single

@@ -58,5 +58,7 @@
       HF_Echidna: #@ data.values.hardforks.e
       #@ if/end hasattr(data.values.hardforks, "f"):
       HF_Faun: #@ data.values.hardforks.f
+      #@ if/end hasattr(data.values.hardforks, "g"):
+      HF_Gorgon: #@ data.values.hardforks.g
     #@ end
 #@ end
