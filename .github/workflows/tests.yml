@@ -62,7 +62,7 @@ jobs:
           ref: ${{ github.event.inputs.ref }}
           fetch-depth: 0
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: 'cmd/go.mod'
           cache-dependency-path: cmd/go.sum
