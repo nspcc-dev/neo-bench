@@ -277,6 +277,9 @@ The following default configurations are available:
 | `start.GoFoutNodes60rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 60 requests per second. |
 | `start.GoFoutNodes300rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 300 requests per second. |
 | `start.GoFoutNodes1000rate` | Runs benchmark for four-nodes Go privat network with Go RPC node under the load of 1000 requests per second. |
+| `start.GoFourNodes4RPC10wrk` | Runs benchmark for four-nodes Go privat network with 4 Go RPC nodes under the load of 10 workers. |
+| `start.GoFourNodes4RPC30wrk` | Runs benchmark for four-nodes Go privat network with 4 Go RPC nodes under the load of 30 workers. |
+| `start.GoFourNodes4RPC100wrk` | Runs benchmark for four-nodes Go privat network with 4 Go RPC nodes under the load of 100 workers. |
 | `start.SharpSingle10wrk` | Runs benchmark for single-node C# privat network under the load of 10 workers. |
 | `start.SharpSingle30wrk` | Runs benchmark for single-node C# privat network under the load of 30 workers. |
 | `start.SharpSingle100wrk` | Runs benchmark for single-node C# privat network under the load of 100 workers. |
