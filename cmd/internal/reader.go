@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Workiva/go-datastructures/queue"
@@ -42,6 +43,10 @@ func ReadDump(from string) *Dump {
 	dump.BenchOptions.DecodeBinary(rd)
 
 	count := dump.BenchOptions.TxCount
+	if strings.ToLower(dump.BenchOptions.TransferType) == ConflictTransfer {
+		// TxCount is the number of conflicting pairs, i.e. 2 dumped transactions each.
+		count *= 2
+	}
 	dump.TransactionsQueue = queue.NewRingBuffer(count)
 
 	start := time.Now()

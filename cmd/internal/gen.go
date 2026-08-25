@@ -43,6 +43,8 @@ type (
 		tx  *transaction.Transaction
 		acc *wallet.Account
 	}
+
+	txSetBuilder func(idx int) (txs []*transaction.Transaction, acc *wallet.Account)
 )
 
 const (
@@ -52,6 +54,8 @@ const (
 	GASTransfer = "gas"
 	// ContractTransfer is the type of deployed NEP17 contract transfer tx.
 	ContractTransfer = "nep17"
+	// ConflictTransfer is the type of conflicting transaction pairs.
+	ConflictTransfer = "conflict"
 )
 
 // newNEOTransferTx returns NEO transfer transaction with random nonce.
@@ -90,33 +94,88 @@ func newTransferTx(p *keys.PrivateKey, contractHash, toAddr util.Uint160) *trans
 
 var genWorkerCount = runtime.NumCPU()
 
-// Generate used to generate the specified number of transactions.
+// Generate runs opts.TxCount tasks in parallel, one task per worker
+// iteration: a single transfer transaction per task for the standard
+// transfer types, or a conflicting pair per task for ConflictTransfer.
 func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallback) *Dump {
 	start := time.Now()
-	count := int(opts.TxCount)
+	taskCount := int(opts.TxCount)
+	build, perTask := newTxSetBuilder(opts)
 
 	dump := Dump{
-		TransactionsQueue: queue.NewRingBuffer(opts.TxCount),
+		TransactionsQueue: queue.NewRingBuffer(opts.TxCount * uint64(perTask)),
 	}
 
-	log.Printf("Generate %d txs", count)
-
-	txCh := make([]chan txRequest, genWorkerCount)
-	for i := range txCh {
-		txCh[i] = make(chan txRequest, 1)
+	if perTask == 1 {
+		log.Printf("Generate %d txs", taskCount)
+	} else {
+		log.Printf("Generate %d conflicting transaction pairs (%d txs)", taskCount, taskCount*perTask)
 	}
-	result := make([]chan txBlob, genWorkerCount)
-	for i := range result {
-		result[i] = make(chan txBlob, 1)
+
+	reqCh := make([]chan int, genWorkerCount)
+	for i := range reqCh {
+		reqCh[i] = make(chan int, 1)
+	}
+	resultCh := make([]chan []txBlob, genWorkerCount)
+	for i := range resultCh {
+		resultCh[i] = make(chan []txBlob, 1)
 	}
 
 	var wg sync.WaitGroup
 	for i := range genWorkerCount {
 		wg.Go(func() {
-			genTxWorker(i, txCh[i], result[i])
+			genWorker(build, reqCh[i], resultCh[i])
 		})
 	}
 
+	finishCh := make(chan struct{})
+	go func() {
+		for i := range taskCount {
+			if ctx.Err() != nil {
+				log.Fatal(ctx.Err())
+			}
+
+			reqCh[i%len(reqCh)] <- i
+		}
+		for _, ch := range reqCh {
+			close(ch)
+		}
+		close(finishCh)
+	}()
+
+	for i := range taskCount {
+		blobs := <-resultCh[i%len(resultCh)]
+
+		for _, r := range blobs {
+			if err := dump.TransactionsQueue.Put(r.blob); err != nil {
+				log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
+			}
+			for j := range callback {
+				if err := callback[j](r.hash, r.blob); err != nil {
+					log.Fatalf("Callback returns error: %d %v", i, err)
+				}
+			}
+		}
+	}
+
+	<-finishCh
+	wg.Wait()
+	for _, ch := range resultCh {
+		close(ch)
+	}
+
+	log.Printf("Done: %s", time.Since(start))
+	return &dump
+}
+
+func newTxSetBuilder(opts BenchOptions) (txSetBuilder, int) {
+	if strings.ToLower(opts.TransferType) == ConflictTransfer {
+		return newConflictTxSetBuilder(opts), 2
+	}
+	return newTransferTxSetBuilder(opts), 1
+}
+
+func newTransferTxSetBuilder(opts BenchOptions) txSetBuilder {
 	// We support both N-to-1 and 1-to-N cases, thus the size is adjusted.
 	txR := make([]txRequest, max(len(opts.Senders), opts.ToCount))
 	for i := range txR {
@@ -148,71 +207,37 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 		txR[i].acc = wallet.NewAccountFromPrivateKey(sender)
 	}
 
-	finishCh := make(chan struct{})
-	go func() {
-		for i := range count {
-			if ctx.Err() != nil {
-				log.Fatal(ctx.Err())
-			}
-
-			txCh[i%len(txCh)] <- txR[i%len(txR)]
-		}
-		for _, ch := range txCh {
-			close(ch)
-		}
-		close(finishCh)
-	}()
-
-	for i := range count {
-		r := <-result[i%len(result)]
-
-		err := dump.TransactionsQueue.Put(r.blob)
-		if err != nil {
-			log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
-		}
-
-		for j := range callback {
-			if err := callback[j](r.hash, r.blob); err != nil {
-				log.Fatalf("Callback returns error: %d %v", i, err)
-			}
-		}
+	return func(idx int) ([]*transaction.Transaction, *wallet.Account) {
+		r := txR[idx%len(txR)]
+		tx := *r.tx
+		tx.Nonce = uint32(idx)
+		return []*transaction.Transaction{&tx}, r.acc
 	}
-
-	<-finishCh
-	wg.Wait()
-	for _, ch := range result {
-		close(ch)
-	}
-
-	log.Printf("Done: %s", time.Since(start))
-	return &dump
 }
 
-func genTxWorker(n int, ch <-chan txRequest, out chan<- txBlob) {
-	baseNonce := n << 24 // 255 possible workers and 16M transactions should be enough
-	i := 0
-
+func genWorker(build txSetBuilder, ch <-chan int, out chan<- []txBlob) {
 	buf := io.NewBufBinWriter()
-	for tr := range ch {
-		tx := *tr.tx
-		tx.Nonce = uint32(baseNonce | i)
+	for idx := range ch {
+		txs, acc := build(idx)
 
-		if err := tr.acc.SignTx(netmode.PrivNet, &tx); err != nil {
-			log.Fatalf("Could not sign tx: %v", err)
+		blobs := make([]txBlob, len(txs))
+		for i, tx := range txs {
+			if err := acc.SignTx(netmode.PrivNet, tx); err != nil {
+				log.Fatalf("Could not sign tx: %v", err)
+			}
+
+			buf.Reset()
+			tx.EncodeBinary(buf.BinWriter)
+			if buf.Err != nil {
+				log.Fatalf("Could not prepare transaction: %d %v", idx, buf.Err)
+			}
+
+			blobs[i] = txBlob{
+				hash: tx.Hash().String(),
+				blob: base64.StdEncoding.EncodeToString(buf.Bytes()),
+			}
 		}
 
-		buf.Reset()
-		tx.EncodeBinary(buf.BinWriter)
-
-		if buf.Err != nil {
-			log.Fatalf("Could not prepare transaction: %d %v", i, buf.Err)
-		}
-
-		out <- txBlob{
-			hash: tx.Hash().String(),
-			blob: base64.StdEncoding.EncodeToString(buf.Bytes()),
-		}
-
-		i++
+		out <- blobs
 	}
 }

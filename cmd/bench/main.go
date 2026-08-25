@@ -174,7 +174,15 @@ func main() {
 	log.Printf("Started test from block = %v at unix time = %v", blk.Index, blk.Timestamp)
 
 	go wrk.Parser(ctx, blk)
-	go wrk.Sender(ctx)
+
+	if dump.BenchOptions.TransferType == internal.ConflictTransfer {
+		if nodeCount := client.AddrCount(); nodeCount < 2 {
+			log.Fatalf("conflict scenario: need at least 2 RPC nodes, got %d", nodeCount)
+		}
+		go wrk.SendConflictPairs(ctx)
+	} else {
+		go wrk.Sender(ctx)
+	}
 
 	wrk.Wait()
 }
