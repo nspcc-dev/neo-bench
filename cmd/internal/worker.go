@@ -215,12 +215,19 @@ func NewWorkers(opts ...WorkerOption) (Worker, error) {
 	return w, nil
 }
 
+type txMode byte
+
+const (
+	singleTx txMode = 1 + iota
+	conflictPair
+)
+
 // idx defines the order of the transaction being sent and can be more than overall transactions count, because retransmission is supported.
-func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
+func (d *doer) worker(ctx context.Context, typ txMode, idx *atomic.Int64, start time.Time) {
 	var (
 		done           = ctx.Done()
 		timer          = time.NewTimer(d.timeLimit)
-		localTxCounter int64
+		localTxCounter atomic.Int64
 	)
 
 loop:
@@ -232,6 +239,10 @@ loop:
 			return
 		default:
 			idx.Add(1)
+		}
+
+		switch typ {
+		case singleTx:
 			if d.dump.TransactionsQueue.Len() == 0 {
 				return
 			}
@@ -240,35 +251,89 @@ loop:
 				log.Fatalf("cannot dequeue transaction: %s", err)
 				return
 			}
-			if err := d.cli.SendTX(ctx, tx.(string)); err != nil {
-				if errors.Is(err, ErrMempoolOOM) {
-					err := d.dump.TransactionsQueue.Put(tx.(string))
-					if err != nil {
-						log.Printf("failed to re-enqueue transaction: %s\n", err)
-						d.countErr.Add(1)
-					}
-					time.Sleep(d.mempoolOOMDelay)
-				} else {
-					d.countErr.Add(1)
-				}
+
+			if !d.handleSendResult(tx.(string), d.cli.SendTX(ctx, tx.(string)), start) {
 				continue loop
-				// d.stop()
-				// return
 			}
 
-			since := time.Since(start)
-			count := d.countTxs.Add(1)
-			localTxCounter++
-			d.rpsReporter(float64(count) / since.Seconds())
+			d.throttle(&localTxCounter, start)
+		case conflictPair:
+			tx, conflict, ok := d.dequeuePair()
+			if !ok {
+				return
+			}
 
-			if d.threshold > 0 {
-				waitFor := time.Until(start.Add(time.Duration(d.threshold.Nanoseconds() * (localTxCounter + 1))))
-				if waitFor > 0 {
-					time.Sleep(waitFor)
+			nodeA, nodeB := d.cli.PickNodePair()
+
+			var wg sync.WaitGroup
+			wg.Go(func() {
+				if d.handleSendResult(tx, d.cli.SendTXToNode(ctx, tx, nodeA), start) {
+					d.throttle(&localTxCounter, start)
 				}
-			}
+			})
+			wg.Go(func() {
+				if d.handleSendResult(conflict, d.cli.SendTXToNode(ctx, conflict, nodeB), start) {
+					d.throttle(&localTxCounter, start)
+				}
+			})
+			wg.Wait()
 		}
 	}
+}
+
+func (d *doer) throttle(localTxCounter *atomic.Int64, start time.Time) {
+	counter := localTxCounter.Add(1)
+	if d.threshold <= 0 {
+		return
+	}
+
+	waitFor := time.Until(start.Add(time.Duration(d.threshold.Nanoseconds() * (counter + 1))))
+	if waitFor > 0 {
+		time.Sleep(waitFor)
+	}
+}
+
+// dequeuePair atomically dequeues a pair of transactions so that
+// concurrent workers can't split a pair across each other.
+func (d *doer) dequeuePair() (string, string, bool) {
+	d.Lock()
+	defer d.Unlock()
+
+	if d.dump.TransactionsQueue.Len() < 2 {
+		return "", "", false
+	}
+
+	a, err := d.dump.TransactionsQueue.Get()
+	if err != nil {
+		return "", "", false
+	}
+	b, err := d.dump.TransactionsQueue.Get()
+	if err != nil {
+		return "", "", false
+	}
+
+	return a.(string), b.(string), true
+}
+
+func (d *doer) handleSendResult(blob string, err error, start time.Time) bool {
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrConflict):
+		case errors.Is(err, ErrMempoolOOM):
+			if putErr := d.dump.TransactionsQueue.Put(blob); putErr != nil {
+				log.Printf("failed to re-enqueue transaction: %s", putErr)
+				d.countErr.Add(1)
+			}
+			time.Sleep(d.mempoolOOMDelay)
+		default:
+			d.countErr.Add(1)
+		}
+		return false
+	}
+
+	count := d.countTxs.Add(1)
+	d.rpsReporter(float64(count) / time.Since(start).Seconds())
+	return true
 }
 
 // Wait waits when all workers stop.
@@ -395,13 +460,21 @@ func (d *doer) parse(ctx context.Context, startBlock int, lastTime *uint64) (las
 func (d *doer) Sender(ctx context.Context) {
 	defer close(d.sentOut)
 
+	typ := singleTx
+	if d.dump.BenchOptions.TransferType == ConflictTransfer {
+		typ = conflictPair
+		if nodeCount := d.cli.len; nodeCount < 2 {
+			log.Fatalf("conflict scenario: need at least 2 RPC nodes, got %d", nodeCount)
+		}
+	}
+
 	idx := new(atomic.Int64)
 
 	start := time.Now()
 
 	for range d.wrkCount {
 		d.waiter.Go(func() {
-			d.worker(ctx, idx, start)
+			d.worker(ctx, typ, idx, start)
 		})
 	}
 
