@@ -18,6 +18,7 @@ type (
 		Wait()
 		Prepare(ctx context.Context, vote bool, opts BenchOptions)
 		Sender(ctx context.Context)
+		SendConflictPairs(ctx context.Context)
 		Parser(ctx context.Context, block *block.Block)
 	}
 
@@ -223,7 +224,6 @@ func (d *doer) worker(ctx context.Context, idx *atomic.Int64, start time.Time) {
 		localTxCounter int64
 	)
 
-loop:
 	for {
 		select {
 		case <-done:
@@ -240,27 +240,12 @@ loop:
 				log.Fatalf("cannot dequeue transaction: %s", err)
 				return
 			}
-			if err := d.cli.SendTX(ctx, tx.(string)); err != nil {
-				if errors.Is(err, ErrMempoolOOM) {
-					err := d.dump.TransactionsQueue.Put(tx.(string))
-					if err != nil {
-						log.Printf("failed to re-enqueue transaction: %s\n", err)
-						d.countErr.Add(1)
-					}
-					time.Sleep(d.mempoolOOMDelay)
-				} else {
-					d.countErr.Add(1)
-				}
-				continue loop
-				// d.stop()
-				// return
+
+			if !d.handleSendResult(tx.(string), d.cli.SendTX(ctx, tx.(string)), start) {
+				continue
 			}
 
-			since := time.Since(start)
-			count := d.countTxs.Add(1)
 			localTxCounter++
-			d.rpsReporter(float64(count) / since.Seconds())
-
 			if d.threshold > 0 {
 				waitFor := time.Until(start.Add(time.Duration(d.threshold.Nanoseconds() * (localTxCounter + 1))))
 				if waitFor > 0 {
@@ -269,6 +254,27 @@ loop:
 			}
 		}
 	}
+}
+
+func (d *doer) handleSendResult(blob string, err error, start time.Time) bool {
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrConflict):
+		case errors.Is(err, ErrMempoolOOM):
+			if putErr := d.dump.TransactionsQueue.Put(blob); putErr != nil {
+				log.Printf("failed to re-enqueue transaction: %s", putErr)
+				d.countErr.Add(1)
+			}
+			time.Sleep(d.mempoolOOMDelay)
+		default:
+			d.countErr.Add(1)
+		}
+		return false
+	}
+
+	count := d.countTxs.Add(1)
+	d.rpsReporter(float64(count) / time.Since(start).Seconds())
+	return true
 }
 
 // Wait waits when all workers stop.
@@ -407,6 +413,10 @@ func (d *doer) Sender(ctx context.Context) {
 
 	d.waiter.Wait()
 
+	d.reportSendResult(start)
+}
+
+func (d *doer) reportSendResult(start time.Time) {
 	since := time.Since(start)
 	count := d.countTxs.Load()
 	errCount := d.countErr.Load()

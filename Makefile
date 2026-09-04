@@ -30,6 +30,7 @@ help:
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
 	start.GoFourNodes25rate start.GoFourNodes50rate start.GoFourNodes60rate start.GoFourNodes300rate start.GoFourNodes1000rate \
 	start.GoFourNodes4RPC10wrk start.GoFourNodes4RPC30wrk start.GoFourNodes4RPC100wrk \
+	start.Go4CN4RPC10wrk start.Go4CN4RPC30wrk start.Go4CN4RPC100wrk \
 	start.SharpSingle10wrk start.SharpSingle30wrk start.SharpSingle100wrk \
 	start.SharpSingle25rate start.SharpSingle50rate start.SharpSingle60rate start.SharpSingle300rate start.SharpSingle1000rate \
 	start.SharpFourNodes10wrk start.SharpFourNodes30wrk start.SharpFourNodes100wrk \
@@ -216,6 +217,16 @@ start.GoFourNodes4RPC30wrk:
 
 start.GoFourNodes4RPC100wrk:
 	./runner.sh --rpc go4 -d "Go4x4" -m wrk -w 100 -z 5m -t 30s
+
+#	## Conflicting transaction:
+start.Go4CN4RPC10wrk:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -w 10 -z 5m -t 30s
+
+start.Go4CN4RPC30wrk:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -w 30 -z 5m -t 30s
+
+start.Go4CN4RPC100wrk:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -w 100 -z 5m -t 30s
 
 ## Go×4 + SharpRPC
 #
