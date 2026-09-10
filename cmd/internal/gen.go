@@ -42,6 +42,8 @@ type (
 	txRequest struct {
 		tx  *transaction.Transaction
 		acc *wallet.Account
+		// conflict is tx's optional Conflicts-attribute counterpart.
+		conflict *transaction.Transaction
 	}
 )
 
@@ -52,6 +54,8 @@ const (
 	GASTransfer = "gas"
 	// ContractTransfer is the type of deployed NEP17 contract transfer tx.
 	ContractTransfer = "nep17"
+	// ConflictTransfer is the type of conflicting transaction pair.
+	ConflictTransfer = "conflict"
 )
 
 // newNEOTransferTx returns NEO transfer transaction with random nonce.
@@ -77,14 +81,17 @@ func newTransferTx(p *keys.PrivateKey, contractHash, toAddr util.Uint160) *trans
 		panic(w.Err)
 	}
 
-	script := w.Bytes()
+	return newTx(fromAddressHash, w.Bytes())
+}
+
+func newTx(account util.Uint160, script []byte) *transaction.Transaction {
 	tx := transaction.New(script, 15000000)
 	tx.NetworkFee = 1500000 // hardcoded for now
 	tx.ValidUntilBlock = 1200
-	tx.Signers = append(tx.Signers, transaction.Signer{
-		Account: fromAddressHash,
+	tx.Signers = []transaction.Signer{{
+		Account: account,
 		Scopes:  transaction.CalledByEntry,
-	})
+	}}
 	return tx
 }
 
@@ -95,11 +102,20 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 	start := time.Now()
 	count := int(opts.TxCount)
 
-	dump := Dump{
-		TransactionsQueue: queue.NewRingBuffer(opts.TxCount),
+	resultSize := 1
+	if strings.ToLower(opts.TransferType) == ConflictTransfer {
+		resultSize = 2
 	}
 
-	log.Printf("Generate %d txs", count)
+	dump := Dump{
+		TransactionsQueue: queue.NewRingBuffer(opts.TxCount * uint64(resultSize)),
+	}
+
+	if resultSize == 1 {
+		log.Printf("Generate %d txs", count)
+	} else {
+		log.Printf("Generate %d conflicting transaction pairs (%d txs)", count, count*resultSize)
+	}
 
 	txCh := make([]chan txRequest, genWorkerCount)
 	for i := range txCh {
@@ -107,13 +123,13 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 	}
 	result := make([]chan txBlob, genWorkerCount)
 	for i := range result {
-		result[i] = make(chan txBlob, 1)
+		result[i] = make(chan txBlob, resultSize)
 	}
 
 	var wg sync.WaitGroup
 	for i := range genWorkerCount {
 		wg.Go(func() {
-			genTxWorker(i, txCh[i], result[i])
+			genTxWorker(txCh[i], result[i])
 		})
 	}
 
@@ -132,7 +148,10 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 			}
 		}
 
-		var tx *transaction.Transaction
+		var (
+			tx       *transaction.Transaction
+			conflict *transaction.Transaction // an optional conflicting tx.
+		)
 		switch strings.ToLower(opts.TransferType) {
 		case NEOTransfer:
 			tx = newNEOTransferTx(sender, receiver)
@@ -141,10 +160,15 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 		case ContractTransfer:
 			h, _ := util.Uint160DecodeStringLE("ceb508fc02abc2dc27228e21976699047bbbcce0")
 			tx = newTransferTx(sender, h, receiver)
+		case ConflictTransfer:
+			senderHash := sender.GetScriptHash()
+			tx = newTx(senderHash, []byte{byte(opcode.RET)})
+			conflict = newTx(senderHash, []byte{byte(opcode.RET)})
 		default:
 			panic(fmt.Sprintf("invalid type: %s", opts.TransferType))
 		}
 		txR[i].tx = tx
+		txR[i].conflict = conflict
 		txR[i].acc = wallet.NewAccountFromPrivateKey(sender)
 	}
 
@@ -155,7 +179,26 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 				log.Fatal(ctx.Err())
 			}
 
-			txCh[i%len(txCh)] <- txR[i%len(txR)]
+			wrkIdx := uint32(i % len(txCh))
+			baseNonce := wrkIdx << 24 // 255 possible workers and 16M transactions should be enough
+			r := txR[i%len(txR)]
+
+			tx := *r.tx
+			tx.Nonce = baseNonce | uint32(2*i)
+
+			task := txRequest{tx: &tx, acc: r.acc}
+
+			if r.conflict != nil {
+				conflict := *r.conflict
+				conflict.Nonce = baseNonce | uint32(2*i+1)
+				conflict.Attributes = []transaction.Attribute{{
+					Type:  transaction.ConflictsT,
+					Value: &transaction.Conflicts{Hash: tx.Hash()},
+				}}
+				task.conflict = &conflict
+			}
+
+			txCh[wrkIdx] <- task
 		}
 		for _, ch := range txCh {
 			close(ch)
@@ -164,16 +207,18 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 	}()
 
 	for i := range count {
-		r := <-result[i%len(result)]
+		for range resultSize {
+			r := <-result[i%len(result)]
 
-		err := dump.TransactionsQueue.Put(r.blob)
-		if err != nil {
-			log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
-		}
+			err := dump.TransactionsQueue.Put(r.blob)
+			if err != nil {
+				log.Fatalf("Cannot enqueue transaction #%d: %s", i, err)
+			}
 
-		for j := range callback {
-			if err := callback[j](r.hash, r.blob); err != nil {
-				log.Fatalf("Callback returns error: %d %v", i, err)
+			for j := range callback {
+				if err := callback[j](r.hash, r.blob); err != nil {
+					log.Fatalf("Callback returns error: %d %v", i, err)
+				}
 			}
 		}
 	}
@@ -188,31 +233,30 @@ func Generate(ctx context.Context, opts BenchOptions, callback ...GenerateCallba
 	return &dump
 }
 
-func genTxWorker(n int, ch <-chan txRequest, out chan<- txBlob) {
-	baseNonce := n << 24 // 255 possible workers and 16M transactions should be enough
-	i := 0
-
+func genTxWorker(ch <-chan txRequest, out chan<- txBlob) {
 	buf := io.NewBufBinWriter()
 	for tr := range ch {
-		tx := *tr.tx
-		tx.Nonce = uint32(baseNonce | i)
+		out <- signAndEncode(buf, tr.acc, tr.tx)
 
-		if err := tr.acc.SignTx(netmode.PrivNet, &tx); err != nil {
-			log.Fatalf("Could not sign tx: %v", err)
+		if tr.conflict != nil {
+			out <- signAndEncode(buf, tr.acc, tr.conflict)
 		}
+	}
+}
 
-		buf.Reset()
-		tx.EncodeBinary(buf.BinWriter)
+func signAndEncode(buf *io.BufBinWriter, acc *wallet.Account, tx *transaction.Transaction) txBlob {
+	if err := acc.SignTx(netmode.PrivNet, tx); err != nil {
+		log.Fatalf("Could not sign tx: %v", err)
+	}
 
-		if buf.Err != nil {
-			log.Fatalf("Could not prepare transaction: %d %v", i, buf.Err)
-		}
+	buf.Reset()
+	tx.EncodeBinary(buf.BinWriter)
+	if buf.Err != nil {
+		log.Fatalf("Could not prepare transaction: %v", buf.Err)
+	}
 
-		out <- txBlob{
-			hash: tx.Hash().String(),
-			blob: base64.StdEncoding.EncodeToString(buf.Bytes()),
-		}
-
-		i++
+	return txBlob{
+		hash: tx.Hash().String(),
+		blob: base64.StdEncoding.EncodeToString(buf.Bytes()),
 	}
 }

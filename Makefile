@@ -30,6 +30,8 @@ help:
 	start.GoFourNodes10wrk start.GoFourNodes30wrk start.GoFourNodes100wrk \
 	start.GoFourNodes25rate start.GoFourNodes50rate start.GoFourNodes60rate start.GoFourNodes300rate start.GoFourNodes1000rate \
 	start.GoFourNodes4RPC10wrk start.GoFourNodes4RPC30wrk start.GoFourNodes4RPC100wrk \
+	start.GoFourNodes4RPCConflicts10wrk start.GoFourNodes4RPCConflicts30wrk start.GoFourNodes4RPCConflicts100wrk \
+	start.GoFourNodes4RPCConflicts25rate start.GoFourNodes4RPCConflicts50rate start.GoFourNodes4RPCConflicts60rate start.GoFourNodes4RPCConflicts300rate start.GoFourNodes4RPCConflicts1000rate \
 	start.SharpSingle10wrk start.SharpSingle30wrk start.SharpSingle100wrk \
 	start.SharpSingle25rate start.SharpSingle50rate start.SharpSingle60rate start.SharpSingle300rate start.SharpSingle1000rate \
 	start.SharpFourNodes10wrk start.SharpFourNodes30wrk start.SharpFourNodes100wrk \
@@ -120,6 +122,7 @@ pull:
 gen: $(BUILD_DIR)/dump.NEO.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 gen: $(BUILD_DIR)/dump.GAS.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 gen: $(BUILD_DIR)/dump.NEP17.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
+gen: $(BUILD_DIR)/dump.conflict.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs
 
 # Generate `dump.txs`
 $(BUILD_DIR)/dump.%.$(NEOBENCH_FROM_COUNT).$(NEOBENCH_TO_COUNT).txs: cmd/gen/main.go
@@ -216,6 +219,32 @@ start.GoFourNodes4RPC30wrk:
 
 start.GoFourNodes4RPC100wrk:
 	./runner.sh --rpc go4 -d "Go4x4" -m wrk -w 100 -z 5m -t 30s
+
+#	## Conflicting transactions:
+start.GoFourNodes4RPCConflicts10wrk:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -w 10 -z 5m -t 30s
+
+start.GoFourNodes4RPCConflicts30wrk:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -w 30 -z 5m -t 30s
+
+start.GoFourNodes4RPCConflicts100wrk:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -w 100 -z 5m -t 30s
+
+#	## Rate:
+start.GoFourNodes4RPCConflicts25rate:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -m rate -q 25 -z 5m -t 30s
+
+start.GoFourNodes4RPCConflicts50rate:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -m rate -q 50 -z 5m -t 30s
+
+start.GoFourNodes4RPCConflicts60rate:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -m rate -q 60 -z 5m -t 30s
+
+start.GoFourNodes4RPCConflicts300rate:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -m rate -q 300 -z 5m -t 30s
+
+start.GoFourNodes4RPCConflicts1000rate:
+	./runner.sh --rpc go4 -b conflict -d "Go4x4Conflict" -m rate -q 1000 -z 5m -t 30s
 
 ## Go×4 + SharpRPC
 #

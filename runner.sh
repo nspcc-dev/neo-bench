@@ -29,7 +29,7 @@ show_help() {
 	echo "   -r, --rpc                        RPC node type. Default is the same as --nodes."
 	echo "   -h, --help                       Show usage message."
 	echo "   -b, --benchmark                  Benchmark type."
-	echo "                                    Possible values: NEO (default) or GAS"
+	echo "                                    Possible values: NEO (default), GAS, NEP17, conflict"
 	echo "       --from                       Number of tx senders (default: 1)"
 	echo "       --to                         Number of fund receivers (default: 1)"
 	echo "       --vote                       Whether or not candidates should be voted for before the bench."

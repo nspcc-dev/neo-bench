@@ -280,6 +280,14 @@ The following default configurations are available:
 | `start.GoFourNodes4RPC10wrk` | Runs benchmark for four-nodes Go privat network with 4 Go RPC nodes under the load of 10 workers. |
 | `start.GoFourNodes4RPC30wrk` | Runs benchmark for four-nodes Go privat network with 4 Go RPC nodes under the load of 30 workers. |
 | `start.GoFourNodes4RPC100wrk` | Runs benchmark for four-nodes Go privat network with 4 Go RPC nodes under the load of 100 workers. |
+| `start.GoFourNodes4RPCConflicts10wrk` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 10 workers. |
+| `start.GoFourNodes4RPCConflicts30wrk` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 30 workers. |
+| `start.GoFourNodes4RPCConflicts100wrk` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 100 workers. |
+| `start.GoFourNodes4RPCConflicts25rate` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 25 requests per second. |
+| `start.GoFourNodes4RPCConflicts50rate` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 50 requests per second. |
+| `start.GoFourNodes4RPCConflicts60rate` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 60 requests per second. |
+| `start.GoFourNodes4RPCConflicts300rate` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 300 requests per second. |
+| `start.GoFourNodes4RPCConflicts1000rate` | Runs the conflicting-transactions scenario for four-nodes Go privat network with 4 Go RPC nodes under the load of 1000 requests per second. |
 | `start.SharpSingle10wrk` | Runs benchmark for single-node C# privat network under the load of 10 workers. |
 | `start.SharpSingle30wrk` | Runs benchmark for single-node C# privat network under the load of 30 workers. |
 | `start.SharpSingle100wrk` | Runs benchmark for single-node C# privat network under the load of 100 workers. |
@@ -315,7 +323,7 @@ The following default configurations are available:
    -r, --rpc                        RPC node type. Default is the same as --nodes.
    -h, --help                       Show usage message.
    -b, --benchmark                  Benchmark type.
-                                    Possible values: NEO (default) or GAS
+                                    Possible values: NEO (default), GAS, NEP17, conflict
        --from                       Number of tx senders (default: 1)
        --to                         Number of fund receivers (default: 1)
        --vote                       Whether or not candidates should be voted for before the bench.
@@ -424,7 +432,7 @@ Name|Description| Default |Example
 ---|---|---------|---
 NEOBENCH_LOGGER|Container logging facility| `none`  |`none`, `journald`, `syslog`,`json-file`
 NEOBENCH_TC|Parameters passed to the `tc qdisc` (netem discipline) on container startup|         |`delay 100ms`
-NEOBENCH_TYPE|Type of the load| `NEO`   |`NEO`, `GAS`
+NEOBENCH_TYPE|Type of the load| `NEO`   |`NEO`, `GAS`, `NEP17`, `conflict`
 NEOBENCH_FROM_COUNT|Number of tx senders| `1`     | `1`
 NEOBENCH_TO_COUNT|Number of fund receivers| `1`     | `1`
 NEOBENCH_VALIDATOR_COUNT|Number of validators| `4`     | `1`, `4`, `7`

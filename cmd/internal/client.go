@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/nspcc-dev/neo-go/pkg/core"
 	"github.com/nspcc-dev/neo-go/pkg/core/block"
 	"github.com/nspcc-dev/neo-go/pkg/io"
 	"github.com/nspcc-dev/neo-go/pkg/neorpc"
@@ -44,6 +45,9 @@ const DefaultTimeout = time.Second * 30
 var (
 	// ErrMempoolOOM is returned from `sendrawtransaction` when node cannot process transaction due to mempool OOM.
 	ErrMempoolOOM = errors.New("node cannot process transaction due to mempool OOM")
+	// ErrConflict is returned from `sendrawtransaction` when the node rejects a
+	// transaction because it conflicts with mempool or chain content via the Conflicts attribute.
+	ErrConflict = errors.New("node rejected transaction due to a Conflicts attribute clash")
 )
 
 // NewRPCClient creates new client for RPC communications.
@@ -118,15 +122,24 @@ func (c *RPCClient) GetVersion(ctx context.Context) (*result.Version, error) {
 
 // SendTX sends transaction.
 func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
+	idx := int(c.inc.Add(1) % c.len)
+	return c.SendTXToNode(ctx, tx, idx)
+}
+
+// SendTXToNode sends transaction to the node at nodeIdx.
+func (c *RPCClient) SendTXToNode(ctx context.Context, tx string, nodeIdx int) error {
 	var res struct {
 		Hash util.Uint256 `json:"hash"`
 	}
 	rpc := fmt.Sprintf(`{"jsonrpc": "2.0", "id": 1, "method": "sendrawtransaction", "params": ["%s"]}`, tx)
 
-	if err := c.doRPCCall(ctx, rpc, &res, c.txSender); err != nil {
+	if err := c.doRPCCallToAddr(ctx, rpc, &res, c.txSender, nodeIdx); err != nil {
 		msg := err.Error()
 		if errors.Is(err, neorpc.ErrMempoolCapReached) || strings.Contains(msg, "OutOfMemory") {
 			return ErrMempoolOOM
+		}
+		if strings.Contains(msg, core.ErrHasConflicts.Error()) {
+			return ErrConflict
 		}
 		return err
 	} else if res.Hash.Equals(util.Uint256{}) {
@@ -134,6 +147,14 @@ func (c *RPCClient) SendTX(ctx context.Context, tx string) error {
 	}
 
 	return nil
+}
+
+// PickNodePair returns two distinct node indices.
+func (c *RPCClient) PickNodePair() (int, int) {
+	base := c.inc.Add(2)
+	a := int(base % c.len)
+	b := int((base + 1) % c.len)
+	return a, b
 }
 
 // GetBlock sends getblock RPC request.
@@ -163,9 +184,14 @@ func (c *RPCClient) GetBlockCount(ctx context.Context) (int, error) {
 	return num, c.doRPCCall(ctx, rpc, &num, c.blockRequester)
 }
 
-func (c *RPCClient) doRPCCall(_ context.Context, call string, result any, client *fasthttp.Client) error {
-	idx := c.inc.Add(1) % c.len
+func (c *RPCClient) doRPCCall(ctx context.Context, call string, result any, client *fasthttp.Client) error {
+	idx := int(c.inc.Add(1) % c.len)
+	return c.doRPCCallToAddr(ctx, call, result, client, idx)
+}
 
+// doRPCCallToAddr sends call to c.addr[idx]. The caller must ensure
+// 0 <= idx < len(c.addr).
+func (c *RPCClient) doRPCCallToAddr(_ context.Context, call string, result any, client *fasthttp.Client, idx int) error {
 	req, res := fasthttp.AcquireRequest(), fasthttp.AcquireResponse()
 	defer func() {
 		fasthttp.ReleaseRequest(req)
