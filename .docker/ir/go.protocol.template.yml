@@ -45,6 +45,8 @@ ProtocolConfiguration:
     Faun: #@ data.values.hardforks.f
     #@ if/end hasattr(data.values.hardforks, "g"):
     Gorgon: #@ data.values.hardforks.g
+    #@ if/end hasattr(data.values.hardforks, "h"):
+    Huyao: #@ data.values.hardforks.h
 
 
 #@ end
