@@ -24,9 +24,9 @@ RUN set -x \
 #           └── neo-vm
 
 # Use ENV variables to specify branch, version or revision to download.
-ENV NEONODE_REV="7313f8087724e1de4caa88edd2ada58c1fe54abc"
-ENV NEOVM_REV="004cd6070a940405818d9357638277dd44407e2e"
-ENV NEO_REV="d10e9ceecdabe3fcff719ee68ea5b76ba7e62c3d"
+ENV NEONODE_REV="bcf3c3fe4e07141d631002d4b3ebe8951a4ae300"
+ENV NEOVM_REV="v3.11.2"
+ENV NEO_REV="v3.11.2"
 ENV MODULES="DBFTPlugin LevelDBStore RocksDBStore RpcServer"
 # RocksDBStore ApplicationLogs StorageDumper StateService"
 RUN mkdir /neo-project && \
